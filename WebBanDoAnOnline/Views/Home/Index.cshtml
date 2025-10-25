@@ -1,33 +1,95 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Trang chủ";
 }
 
-<main>
-    <section class="row" aria-labelledby="aspnetTitle">
-        <h1 id="title">ASP.NET</h1>
-        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-        <p><a href="https://asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
-    </section>
-
-    <div class="row">
-        <section class="col-md-4" aria-labelledby="gettingStartedTitle">
-            <h2 id="gettingStartedTitle">Getting started</h2>
-            <p>
-                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-                enables a clean separation of concerns and gives you full control over markup
-                for enjoyable, agile development.
+<!-- ============================ HERO SECTION ============================ -->
+<section class="hero-section">
+    <div class="row align-items-center">
+        <!-- Cột bên trái: Text và Form -->
+        <div class="col-lg-6">
+            <h1 class="hero-heading">
+                Dinh dưỡng tận nơi <br />
+                <span class="text-highlight">Thảnh thơi sống khỏe.</span>
+            </h1>
+            <p class="hero-subheading">
+                Tự tin là nhà hàng hàng đầu về chất lượng và độ tin cậy, với 36 năm kinh nghiệm trong nghề và hàng loạt đầu bếp chất lượng từ khắp mọi miền tổ quốc. Chúng tôi sáng tạo nên những bữa ăn hàng ngày vừa đậm đà hương vị, vừa cân bằng dinh dưỡng để bạn sống khỏe mạnh hơn.
             </p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="librariesTitle">
-            <h2 id="librariesTitle">Get more libraries</h2>
-            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="hostingTitle">
-            <h2 id="hostingTitle">Web Hosting</h2>
-            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-        </section>
+            <div class="address-form mt-4">
+                <input type="text" class="form-control" placeholder="Nhập địa chỉ của bạn để bắt đầu khám phá ngay!" />
+                <button class="btn btn-primary-custom">Tiếp tục</button>
+            </div>
+        </div>
+        <!-- Cột bên phải: Ảnh -->
+        <div class="col-lg-6 mt-4 mt-lg-0">
+            <img src="~/img/anhgioithieu.png" alt="Món phở bò thơm ngon" class="hero-image" />
+        </div>
     </div>
-</main>
+</section>
+
+<!-- ============================ FEATURED DISHES SECTION ============================ -->
+<section class="featured-section">
+    <h2 class="section-title">Món ăn nổi bật</h2>
+    <div class="row g-4">
+        <!-- Bắt đầu một thẻ sản phẩm (Product Card) - Bạn sẽ lặp lại khối này -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="product-card">
+                <img src="~/img/buncha (1).png" alt="Bún Chả" class="product-image">
+                <div class="product-info">
+                    <h5 class="product-name">Bún Chả</h5>
+                    <div class="product-meta">
+                        <span><i class="fas fa-tag"></i> 45.000đ</span>
+                        <span><i class="far fa-clock"></i> 20 phút</span>
+                    </div>
+                    <a href="#" class="btn btn-details">Xem chi tiết</a>
+                </div>
+            </div>
+        </div>
+        <!-- Kết thúc một thẻ sản phẩm -->
+        <!-- Thẻ sản phẩm 2 (Ví dụ) -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="product-card">
+                <img src="~/img/buncha (2).png" alt="Phở Bò" class="product-image">
+                <div class="product-info">
+                    <h5 class="product-name">Phở Bò</h5>
+                    <div class="product-meta">
+                        <span><i class="fas fa-tag"></i> 55.000đ</span>
+                        <span><i class="far fa-clock"></i> 20 phút</span>
+                    </div>
+                    <a href="#" class="btn btn-details">Xem chi tiết</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thẻ sản phẩm 3 (Ví dụ) -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="product-card">
+                <img src="~/img/buncha (3).png" alt="Bún Đậu" class="product-image">
+                <div class="product-info">
+                    <h5 class="product-name">Bún Đậu Mắm Tôm</h5>
+                    <div class="product-meta">
+                        <span><i class="fas fa-tag"></i> 65.000đ</span>
+                        <span><i class="far fa-clock"></i> 20 phút</span>
+                    </div>
+                    <a href="#" class="btn btn-details">Xem chi tiết</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thẻ sản phẩm 4 (Ví dụ) -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="product-card">
+                <img src="~/img/buncha (4).png" alt="Cơm Thố" class="product-image">
+                <div class="product-info">
+                    <h5 class="product-name">Cơm Thố Bò</h5>
+                    <div class="product-meta">
+                        <span><i class="fas fa-tag"></i> 75.000đ</span>
+                        <span><i class="far fa-clock"></i> 20 phút</span>
+                    </div>
+                    <a href="#" class="btn btn-details">Xem chi tiết</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hãy copy và paste các khối <div class="col-..."> để thêm các sản phẩm khác -->
+    </div>
+</section>

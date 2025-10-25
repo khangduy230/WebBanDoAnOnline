@@ -3,37 +3,107 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <title>@ViewBag.Title - FuTho Food</title>
+
+    <!-- Link Bootstrap CSS (sử dụng CDN cho đơn giản) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Link tới Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+    <!-- Dòng này sẽ render file Site.css của bạn từ BundleConfig -->
     @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
+    <main class="page-content">
+        <header class="main-header">
+            <!-- navbar và navbar-expand-lg là class của Bootstrap để tạo thanh điều hướng responsive -->
+            <nav class="navbar navbar-expand-lg">
+                <!-- container giới hạn chiều rộng và căn giữa nội dung -->
+                <div class="container">
+                    <!-- 1. Logo (navbar-brand là class của Bootstrap dành cho logo/tên thương hiệu) -->
+                    @Html.ActionLink("FuTho Food", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+
+                    <!-- 2. Menu chính (ở giữa) -->
+                    <!-- justify-content-center là class của Bootstrap để đẩy nội dung vào giữa -->
+                    <div class="collapse navbar-collapse justify-content-center">
+                        <!-- navbar-nav là class Bootstrap cho danh sách menu -->
+                        <ul class="navbar-nav">
+                            <!-- nav-item và nav-link là các class tiêu chuẩn cho từng mục menu -->
+                            <li class="nav-item">
+                                @Html.ActionLink("Trang chủ", "Index", "Home", null, new { @class = "nav-link active" })
+                            </li>
+                            <li class="nav-item">
+                                @Html.ActionLink("Thực đơn", "Index", "Menu", null, new { @class = "nav-link" })
+                            </li>
+                            <li class="nav-item">
+                                @Html.ActionLink("Giới thiệu", "About", "Home", null, new { @class = "nav-link" })
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 3. Các chức năng bên phải -->
+                    <!-- d-flex và align-items-center là các class flexbox của Bootstrap để sắp xếp các item -->
+                    <div class="d-flex align-items-center header-actions">
+                        <!-- Ô tìm kiếm -->
+                        <div class="search-box me-3">
+                            <input type="text" class="form-control" placeholder="Tìm kiếm món ăn">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        </div>
+                        <!-- Icons -->
+                        <a href="#" class="header-icon"><i class="fa-regular fa-bell"></i></a>
+                        <a href="#" class="header-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                        <a href="#" class="header-icon">
+                            <img src="https://i.imgur.com/4Ym2k5N.png" alt="User Avatar" class="user-avatar" />
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <div class="container body-content">
+            @RenderBody()
+            <hr />
+            
+
+        </div>
+    </main>
+    <footer class="main-footer">
         <div class="container">
-            @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li>@Html.ActionLink("Home", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("About", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Contact", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                </ul>
+            <!-- Hàng trên cùng của Footer -->
+            <div class="footer-top-row">
+                <!-- 1. Logo -->
+                <!-- Lưu ý: Dùng thẻ <a> thường để có thể dùng <strong> bên trong -->
+                <a href="@Url.Action("Index", "Home")" class="footer-logo-link">
+                    <strong>FuTho</strong> Food
+                </a>
+
+                <!-- 2. Các liên kết -->
+                <div class="footer-links">
+                    @Html.ActionLink("Về chúng tôi", "About", "Home", null, new { @class = "footer-link" })
+                    @Html.ActionLink("Giải đáp thắc mắc", "FAQ", "Home", null, new { @class = "footer-link" })
+                    @Html.ActionLink("Điều khoản & Điều kiện", "Terms", "Home", null, new { @class = "footer-link" })
+                </div>
+
+                <!-- 3. Thông tin liên hệ -->
+                <div class="footer-contact">
+                    <span>SĐT Liên hệ: <strong>0971123456</strong></span>
+                </div>
+            </div>
+
+            <!-- Hàng dưới cùng của Footer (Social Icons) -->
+            <div class="footer-bottom-row">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
             </div>
         </div>
-    </nav>
-    <div class="container body-content">
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
-        </footer>
-    </div>
+    </footer>
 
     @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
+    <!-- Link Bootstrap JS (sử dụng CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
     @RenderSection("scripts", required: false)
 </body>
 </html>

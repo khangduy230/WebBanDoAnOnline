@@ -18,3 +18,187 @@ select,
 textarea {
     max-width: 280px;
 }
+
+
+/* --- BIẾN MÀU VÀ FONT CHỮ TOÀN CỤC --- */
+:root {
+    --primary-color: #F58634; /* Màu cam chủ đạo */
+    --text-color: #212529; /* Màu chữ đen */
+    --body-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Font chữ */
+}
+
+html, body {
+    height: 100%; /* Đảm bảo html và body chiếm toàn bộ chiều cao */
+}
+
+body {
+    font-family: var(--body-font);
+    display: flex; /* Kích hoạt Flexbox */
+    flex-direction: column; /* Sắp xếp các phần tử con theo cột */
+}
+
+.page-content {
+    flex: 1 0 auto; /* Yêu cầu phần tử này giãn ra để lấp đầy không gian */
+}
+
+
+/* --- TÙY CHỈNH HEADER --- */
+.main-header {
+    background-color: #fff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 10px 0;
+    /* Có thể thêm:
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    để header luôn dính ở trên cùng khi cuộn trang */
+}
+
+/* 1. Logo */
+.navbar-brand {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--text-color) !important;
+}
+
+/* 2. Menu điều hướng */
+.navbar-nav .nav-item {
+    margin: 0 15px;
+}
+
+.navbar-nav .nav-link {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-color) !important;
+    padding-bottom: 8px;
+    position: relative; /* Nền tảng để tạo gạch chân */
+    transition: color 0.3s ease;
+}
+
+    .navbar-nav .nav-link:hover {
+        color: var(--primary-color) !important;
+    }
+
+    /* Gạch chân cho mục menu đang active bằng pseudo-element ::after */
+    .navbar-nav .nav-link.active::after {
+        content: '';
+        position: absolute; /* Định vị gạch chân so với nav-link */
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: var(--text-color);
+        border-radius: 2px;
+    }
+
+/* 3. Các thành phần bên phải */
+.header-actions {
+    gap: 15px; /* Tạo khoảng cách giữa các icon */
+}
+
+/* Ô tìm kiếm */
+.search-box {
+    position: relative; /* Nền tảng để đặt icon kính lúp bên trong */
+}
+
+    .search-box .form-control {
+        border-radius: 20px;
+        border: 1px solid #ced4da;
+        padding-left: 15px;
+        padding-right: 35px; /* Chừa chỗ cho icon search */
+        width: 250px;
+        transition: border-color 0.3s ease;
+    }
+
+        .search-box .form-control:focus {
+            box-shadow: none;
+            border-color: var(--primary-color);
+        }
+
+    .search-box .search-icon {
+        position: absolute; /* Định vị icon so với search-box */
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%); /* Căn giữa icon theo chiều dọc một cách hoàn hảo */
+        color: #6c757d;
+    }
+
+/* Icons */
+.header-icon {
+    font-size: 20px;
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+    .header-icon:hover {
+        color: var(--primary-color);
+    }
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%; /* Bo tròn ảnh */
+    object-fit: cover; /* Đảm bảo ảnh không bị méo */
+}
+
+/* Tùy chỉnh body-content của MVC template */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* --- HERO SECTION --- */
+.hero-image {
+    max-width: 100%; /* Giới hạn chiều rộng tối đa bằng chiều rộng của thẻ chứa nó */
+    height: auto; /* Tự động điều chỉnh chiều cao để giữ đúng tỷ lệ ảnh */
+    border-radius: 12px; /* Bo tròn các góc để ảnh trông mềm mại hơn */
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1); /* Thêm hiệu ứng đổ bóng nhẹ */
+}
+
+/* --- PRODUCT CARD SECTION --- */
+.product-card {
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden; /* Quan trọng: Ẩn bất kỳ phần nào của ảnh bị tràn ra ngoài */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .product-card:hover {
+        transform: translateY(-5px); /* Nhấc thẻ lên một chút khi hover */
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+        .product-card:hover .product-image {
+            transform: scale(1.05); /* Phóng to ảnh một chút khi hover */
+        }
+
+.product-image {
+    width: 100%; /* Chiếm toàn bộ chiều rộng của thẻ */
+    height: 200px; /* Đặt chiều cao cố định cho tất cả ảnh */
+    object-fit: cover; /* Đảm bảo ảnh lấp đầy khung mà không bị méo */
+    transition: transform 0.3s ease;
+}
+
+.product-info {
+    padding: 15px;
+}
+
+
+/* --- TÙY CHỈNH FOOTER --- */
+.main-footer {
+    background-color: var(--primary-color); /* Sử dụng biến màu cam đã định nghĩa */
+    color: #fff; /* Màu chữ mặc định là trắng */
+    padding: 50px 0; /* Tạo khoảng trống bên trên và dưới */
+    margin-top: 50px; /* Tạo khoảng cách với nội dung chính của trang */
+    flex-shrink: 0; /* Ngăn footer co lại */
+}
+
+/* Hàng trên cùng của Footer */
+.footer-top-row {
+    display: flex;
+    justify-content: space-between; /* Đẩy các phần tử ra các cạnh */
+    align-items: center; /* Căn giữa các phần tử theo chiều dọc */

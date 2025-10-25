@@ -1,0 +1,137 @@
+﻿/* ============================ HERO SECTION ============================ */
+.hero-section {
+    padding: 60px 0; /* Khoảng cách trên dưới cho section */
+}
+
+.hero-heading {
+    font-size: 56px;
+    font-weight: 900;
+    line-height: 1.2;
+    color: var(--text-color);
+}
+
+    .hero-heading .text-highlight {
+        color: var(--primary-color); /* Sử dụng màu cam đã định nghĩa */
+    }
+
+.hero-subheading {
+    font-size: 16px;
+    color: #6c757d; /* Màu xám nhẹ */
+    margin-top: 20px;
+}
+
+.address-form {
+    display: flex;
+    gap: 10px; /* Khoảng cách giữa input và button */
+    border: 1px solid #ced4da;
+    border-radius: 30px; /* Bo tròn viền ngoài */
+    padding: 5px;
+    background-color: #fff;
+}
+
+    .address-form .form-control {
+        border: none;
+        box-shadow: none; /* Bỏ viền và shadow khi focus */
+        background: transparent;
+    }
+
+    .address-form .btn-primary-custom {
+        background-color: var(--primary-color);
+        color: #fff;
+        border: none;
+        border-radius: 25px; /* Bo tròn nút */
+        padding: 10px 25px;
+        font-weight: 500;
+        white-space: nowrap; /* Ngăn chữ "Tiếp tục" xuống dòng */
+        transition: background-color 0.3s ease;
+    }
+
+        .address-form .btn-primary-custom:hover {
+            background-color: #e07022; /* Màu cam đậm hơn khi hover */
+        }
+
+.hero-image {
+    width: 100%;
+    border-radius: 20px; /* Bo tròn ảnh */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================ FEATURED DISHES SECTION ============================ */
+.featured-section {
+    padding: 60px 0;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 40px;
+}
+
+.product-card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    background-color: #fff;
+    overflow: hidden; /* Quan trọng: để ảnh bo tròn theo thẻ card */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%; /* Đảm bảo các card trong cùng 1 hàng cao bằng nhau */
+    display: flex;
+    flex-direction: column;
+}
+
+    .product-card:hover {
+        transform: translateY(-8px); /* Hiệu ứng nhấc lên khi hover */
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+.product-image {
+    width: 100%;
+    height: 200px; /* Set chiều cao cố định cho ảnh */
+    object-fit: cover; /* Đảm bảo ảnh không bị méo, tự cắt cho vừa */
+}
+
+.product-info {
+    padding: 20px;
+    flex-grow: 1; /* Quan trọng: để đẩy nút xuống dưới cùng */
+    display: flex;
+    flex-direction: column;
+}
+
+.product-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.product-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+    .product-meta i {
+        color: var(--primary-color);
+        margin-right: 5px;
+    }
+
+.btn-details {
+    display: block;
+    width: 100%;
+    background-color: #212529; /* Màu đen */
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    margin-top: auto; /* Quan trọng: đẩy nút xuống đáy của .product-info */
+}
+
+    .btn-details:hover {
+        background-color: #495057; /* Màu đen nhạt hơn */
+        color: #fff;
+    }
