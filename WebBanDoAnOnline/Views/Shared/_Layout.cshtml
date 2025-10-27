@@ -15,6 +15,12 @@
     @Styles.Render("~/Content/css")
 </head>
 <body>
+    @* Determine current route to set active menu item *@
+    @{
+        var currentController = (ViewContext.RouteData.Values["controller"] as string) ?? "";
+        var currentAction = (ViewContext.RouteData.Values["action"] as string) ?? "";
+    }
+
     <main class="page-content">
         <header class="main-header">
             <!-- navbar và navbar-expand-lg là class của Bootstrap để tạo thanh điều hướng responsive -->
@@ -31,13 +37,31 @@
                         <ul class="navbar-nav">
                             <!-- nav-item và nav-link là các class tiêu chuẩn cho từng mục menu -->
                             <li class="nav-item">
-                                @Html.ActionLink("Trang chủ", "Index", "Home", null, new { @class = "nav-link active" })
+                                @Html.ActionLink(
+                                                                  "Trang chủ",
+                                                                  "Index",
+                                                                  "Home",
+                                                                  null,
+                                                                  new { @class = "nav-link" + ((currentController == "Home" && currentAction == "Index") ? " active" : "") }
+                                                              )
                             </li>
                             <li class="nav-item">
-                                @Html.ActionLink("Thực đơn", "Index", "Menu", null, new { @class = "nav-link" })
+                                @Html.ActionLink(
+                                                                  "Thực đơn",
+                                                                  "Index",
+                                                                  "Menu",
+                                                                  null,
+                                                                  new { @class = "nav-link" + ((currentController == "Menu" && currentAction == "Index") ? " active" : "") }
+                                                              )
                             </li>
                             <li class="nav-item">
-                                @Html.ActionLink("Giới thiệu", "About", "Home", null, new { @class = "nav-link" })
+                                @Html.ActionLink(
+                                                                  "Giới thiệu",
+                                                                  "About",
+                                                                  "Home",
+                                                                  null,
+                                                                  new { @class = "nav-link" + ((currentController == "Home" && currentAction == "About") ? " active" : "") }
+                                                              )
                             </li>
                         </ul>
                     </div>
@@ -64,46 +88,121 @@
         <div class="container body-content">
             @RenderBody()
             <hr />
-            
-
         </div>
     </main>
-    <footer class="main-footer">
+    <footer class="site-footer">
         <div class="container">
-            <!-- Hàng trên cùng của Footer -->
-            <div class="footer-top-row">
-                <!-- 1. Logo -->
-                <!-- Lưu ý: Dùng thẻ <a> thường để có thể dùng <strong> bên trong -->
-                <a href="@Url.Action("Index", "Home")" class="footer-logo-link">
-                    <strong>FuTho</strong> Food
-                </a>
-
-                <!-- 2. Các liên kết -->
-                <div class="footer-links">
-                    @Html.ActionLink("Về chúng tôi", "About", "Home", null, new { @class = "footer-link" })
-                    @Html.ActionLink("Giải đáp thắc mắc", "FAQ", "Home", null, new { @class = "footer-link" })
-                    @Html.ActionLink("Điều khoản & Điều kiện", "Terms", "Home", null, new { @class = "footer-link" })
+            <div class="footer-top">
+                <div class="footer-logo">
+                    <a href="#">
+                        <span class="logo-bold fst-italic">FuTho</span>
+                        <span class="logo-regular">Food</span>
+                    </a>
                 </div>
 
-                <!-- 3. Thông tin liên hệ -->
+                <nav class="footer-nav">
+                    <ul>
+                        <li><a href="#">Về chúng tôi</a></li>
+                        <li><a href="#">Giải đáp thắc mắc</a></li>
+                        <li><a href="#">Điều khoản & Điều kiện</a></li>
+                    </ul>
+                </nav>
+
                 <div class="footer-contact">
-                    <span>SĐT Liên hệ: <strong>0971123456</strong></span>
+                    <p>SĐT Liên hệ: 0971123456</p>
                 </div>
             </div>
 
-            <!-- Hàng dưới cùng của Footer (Social Icons) -->
-            <div class="footer-bottom-row">
-                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+            <div class="footer-bottom">
+                <div class="footer-social">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                </div>
             </div>
         </div>
     </footer>
 
+
     @Scripts.Render("~/bundles/jquery")
     <!-- Link Bootstrap JS (sử dụng CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function ($) {
+            function setupSlidingUnderline() {
+                var $nav = $('.navbar .navbar-nav');
+                if (!$nav.length) return;
+
+                var $underline = $nav.find('.nav-underline');
+                if (!$underline.length) {
+                    $underline = $('<span class="nav-underline" aria-hidden="true"></span>').appendTo($nav);
+                }
+
+                var $activeLink = $nav.find('.nav-link.active').first();
+                var animationDuration = 360;
+
+                function getTargetTransform($el) {
+                    if (!$el || !$el.length) return 'scaleX(0)';
+                    var left = $el.position().left;
+                    var width = $el.outerWidth();
+                    return 'translate3d(' + left + 'px, 0, 0) scaleX(' + width + ')';
+                }
+
+                function moveTo($el, withAnimation) {
+                    // Tạm thời tắt hiệu ứng nếu không cần
+                    $underline.css('transition', withAnimation ? '' : 'none');
+                    // Áp dụng vị trí mới
+                    $underline[0].style.transform = getTargetTransform($el);
+
+                    // Bắt buộc trình duyệt phải "vẽ" lại ở trạng thái không có transition
+                    $underline[0].getBoundingClientRect();
+
+                    // Bật lại hiệu ứng cho các lần tương tác sau
+                    $underline.css('transition', '');
+                }
+
+                // 1. Khi trang tải xong, đặt gạch chân vào vị trí mà KHÔNG có hiệu ứng
+                if ($activeLink.length) {
+                    moveTo($activeLink, false);
+                }
+
+                // 2. Xử lý khi nhấp vào một mục menu (CÓ hiệu ứng)
+                $nav.on('click', '.nav-link', function (e) {
+                    var $clickedLink = $(this);
+                    var targetUrl = $clickedLink.attr('href');
+
+                    if ($clickedLink.is($activeLink)) {
+                        return;
+                    }
+
+                    e.preventDefault();
+                    moveTo($clickedLink, true); // Di chuyển với hiệu ứng
+
+                    setTimeout(function () {
+                        window.location.href = targetUrl;
+                    }, animationDuration);
+                });
+
+                // 3. Điều chỉnh lại vị trí khi thay đổi kích thước cửa sổ (KHÔNG có hiệu ứng)
+                var resizeTimer;
+                $(window).on('resize', function () {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function () {
+                        var $currentActive = $nav.find('.nav-link.active').first();
+                        if ($currentActive.length) {
+                            moveTo($currentActive, false);
+                        }
+                    }, 80);
+                });
+            }
+
+            $(document).ready(setupSlidingUnderline);
+
+        })(jQuery);
+    </script>
 
     @RenderSection("scripts", required: false)
 </body>
 </html>
+
+
+

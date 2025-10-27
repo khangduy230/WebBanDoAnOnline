@@ -116,11 +116,12 @@
         margin-right: 5px;
     }
 
-.btn-details {
+/*.btn-details {
     display: block;
     width: 100%;
-    background-color: #212529; /* Màu đen */
-    color: #fff;
+    background-color: #212529;*/  
+/*    Màu đen */
+    /*color: #fff;
     border: none;
     border-radius: 8px;
     padding: 12px;
@@ -128,10 +129,13 @@
     text-decoration: none;
     font-weight: 500;
     transition: background-color 0.3s ease;
-    margin-top: auto; /* Quan trọng: đẩy nút xuống đáy của .product-info */
-}
+    margin-top: auto;*/  
+/*    Quan trọng: đẩy nút xuống đáy của .product-info */
+/*}
 
     .btn-details:hover {
-        background-color: #495057; /* Màu đen nhạt hơn */
-        color: #fff;
-    }
+        background-color: #495057;*/ 
+/*        Màu đen nhạt hơn */
+        /*color: #fff;
+    }*/
+
