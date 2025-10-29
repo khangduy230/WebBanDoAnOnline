@@ -1,0 +1,114 @@
+﻿@model List<WebBanDoAnOnline.Models.CartLineVM>
+@{
+    ViewBag.Title = "Giỏ hàng";
+    Func<decimal, string> toCur = n => n.ToString("#,0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
+}
+
+<section class="container my-4 cart-page">
+    <h2 class="fw-bold mb-4">Giỏ hàng</h2>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="p-4 bg-white border rounded-3 text-center text-muted">
+            Giỏ hàng của bạn đang trống.
+        </div>
+    }
+    else
+    {
+        <div class="cart-lines d-flex flex-column gap-3">
+            @foreach (var item in Model)
+            {
+                <div class="cart-line p-3 border rounded-3 bg-white" data-id="@item.MaSP">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-6 d-flex align-items-center gap-3">
+                            <img src="@Url.Content(item.Anh)" alt="@item.TenSP" class="rounded-circle" width="56" height="56" />
+                            <div>
+                                <div class="fw-semibold">@item.TenSP</div>
+                                <div class="text-muted small">@toCur(item.Gia)đ</div>
+                                <input class="form-control mt-2 cart-note" value="@item.GhiChu" placeholder="Ghi chú về món ăn" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="d-flex justify-content-center align-items-center gap-3">
+                                <span class="cart-qty">@item.SoLuong</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <span class="cart-price">@toCur(item.ThanhTien)</span> <span>VNĐ</span>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <a href="@Url.Action("Index","Menu")" class="btn btn-outline-secondary btn-sm">Chọn thêm</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mt-4 gap-3">
+            <div></div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="fw-semibold">
+                    Tổng cộng:
+                    @{
+                        var total = Model.Sum(x => x.ThanhTien);
+                    }
+                    <span id="grandTotal">@toCur(total)</span> VNĐ
+                </div>
+                <a href="@Url.Action("Index","ThanhToan")" class="btn btn-warning">Mua hàng</a>
+            </div>
+        </div>
+    }
+</section>
+
+@section scripts {
+    <script>
+    (function () {
+            function toCurrency(n) {
+                return (n || 0).toLocaleString('vi-VN');
+            }
+            function parseTextNumber(s) {
+                return parseFloat(String(s).replace(/[^0-9]+/g, '')) || 0;
+            }
+            function recalcLine($line) {
+                var unit = parseFloat($line.find('.cart-price').attr('data-unit')) || 0;
+                var qty = parseInt($line.find('.cart-qty').text()) || 0;
+                $line.find('.cart-price').text(toCurrency(unit * qty));
+            }
+            function recalcTotal() {
+                var sum = 0;
+                $('.cart-line').each(function () {
+                    var $line = $(this);
+                    if ($line.find('.cart-select').is(':checked')) {
+                        sum += parseTextNumber($line.find('.cart-price').text());
+                    }
+                });
+                $('#grandTotal').text(toCurrency(sum));
+            }
+
+            $('.cart-lines').on('click', '.btn-qty', function () {
+                var $line = $(this).closest('.cart-line');
+                var delta = parseInt($(this).data('delta')) || 0;
+                var $qty = $line.find('.cart-qty');
+                var q = Math.max(1, (parseInt($qty.text()) || 1) + delta);
+                $qty.text(q);
+                recalcLine($line);
+                recalcTotal();
+            });
+
+            $('.cart-lines').on('click', '.btn-remove', function () {
+                $(this).closest('.cart-line').remove();
+                recalcTotal();
+            });
+
+            $('#checkAll').on('change', function () {
+                $('.cart-select').prop('checked', $(this).is(':checked'));
+                recalcTotal();
+            });
+
+            $('.cart-lines').on('change', '.cart-select', recalcTotal);
+
+            // Khởi tạo lần đầu
+            $('.cart-line').each(function () { recalcLine($(this)); });
+            recalcTotal();
+        })();</script>
+}

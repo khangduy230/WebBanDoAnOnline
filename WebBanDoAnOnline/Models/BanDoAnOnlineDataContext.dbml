@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?><Database Name="BanDoAnOnline" Class="DataClasses1DataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="BanDoAnOnline" Class="BanDoAnOnlineDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
   <Table Name="dbo.ChiTietDonHang" Member="ChiTietDonHangs">
     <Type Name="ChiTietDonHang">
       <Column Name="MaCTDH" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
@@ -10,7 +10,7 @@
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NText" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="DonHang_ChiTietDonHang" Member="DonHang" ThisKey="MaDH" OtherKey="MaDH" Type="DonHang" IsForeignKey="true" />
       <Association Name="SanPham_ChiTietDonHang" Member="SanPham" ThisKey="MaSP" OtherKey="MaSP" Type="SanPham" IsForeignKey="true" />
     </Type>
@@ -27,7 +27,7 @@
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NText" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="Voucher_DonHang" Member="DonHangs" ThisKey="MaVoucher" OtherKey="MaVoucher" Type="DonHang" />
     </Type>
   </Table>
@@ -41,7 +41,7 @@
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NText" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="SanPham_DanhGia" Member="SanPham" ThisKey="MaSP" OtherKey="MaSP" Type="SanPham" IsForeignKey="true" />
       <Association Name="TaiKhoan_DanhGia" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
     </Type>
@@ -56,7 +56,7 @@
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NText" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="DanhMuc_SanPham" Member="SanPhams" ThisKey="MaDM" OtherKey="MaDM" Type="SanPham" />
     </Type>
   </Table>
@@ -72,7 +72,7 @@
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NText" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="DiaChi_DonHang" Member="DonHangs" ThisKey="MaDiaChi" OtherKey="MaDiaChi" Type="DonHang" />
       <Association Name="TaiKhoan_DiaChi" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
     </Type>
@@ -90,7 +90,7 @@
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NText" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="DonHang_ChiTietDonHang" Member="ChiTietDonHangs" ThisKey="MaDH" OtherKey="MaDH" Type="ChiTietDonHang" />
       <Association Name="DonHang_LichSuTrangThai" Member="LichSuTrangThais" ThisKey="MaDH" OtherKey="MaDH" Type="LichSuTrangThai" />
       <Association Name="DiaChi_DonHang" Member="DiaChi" ThisKey="MaDiaChi" OtherKey="MaDiaChi" Type="DiaChi" IsForeignKey="true" />
@@ -108,7 +108,7 @@
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NText" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="SanPham_GioHang" Member="SanPham" ThisKey="MaSP" OtherKey="MaSP" Type="SanPham" IsForeignKey="true" />
       <Association Name="TaiKhoan_GioHang" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
     </Type>
@@ -124,7 +124,7 @@
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NText" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="DonHang_LichSuTrangThai" Member="DonHang" ThisKey="MaDH" OtherKey="MaDH" Type="DonHang" IsForeignKey="true" />
       <Association Name="TaiKhoan_LichSuTrangThai" Member="TaiKhoan" ThisKey="MaNhanVien" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
     </Type>
@@ -144,7 +144,7 @@
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NText" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="SanPham_ChiTietDonHang" Member="ChiTietDonHangs" ThisKey="MaSP" OtherKey="MaSP" Type="ChiTietDonHang" />
       <Association Name="SanPham_DanhGia" Member="DanhGias" ThisKey="MaSP" OtherKey="MaSP" Type="DanhGia" />
       <Association Name="SanPham_GioHang" Member="GioHangs" ThisKey="MaSP" OtherKey="MaSP" Type="GioHang" />
@@ -158,18 +158,30 @@
       <Column Name="SoDienThoai" Type="System.String" DbType="NVarChar(15) NOT NULL" CanBeNull="false" />
       <Column Name="Email" Type="System.String" DbType="NVarChar(200) NOT NULL" CanBeNull="false" />
       <Column Name="TenTK" Type="System.String" DbType="NVarChar(15) NOT NULL" CanBeNull="false" />
-      <Column Name="MatKhau" Type="System.String" DbType="NVarChar(10) NOT NULL" CanBeNull="false" />
+      <Column Name="MatKhau" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
       <Column Name="VaiTro" Type="System.String" DbType="NVarChar(20) NOT NULL" CanBeNull="false" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NText" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="TaiKhoan_DanhGia" Member="DanhGias" ThisKey="MaTK" OtherKey="MaTK" Type="DanhGia" />
       <Association Name="TaiKhoan_DiaChi" Member="DiaChis" ThisKey="MaTK" OtherKey="MaTK" Type="DiaChi" />
       <Association Name="TaiKhoan_DonHang" Member="DonHangs" ThisKey="MaTK" OtherKey="MaTK" Type="DonHang" />
       <Association Name="TaiKhoan_GioHang" Member="GioHangs" ThisKey="MaTK" OtherKey="MaTK" Type="GioHang" />
       <Association Name="TaiKhoan_LichSuTrangThai" Member="LichSuTrangThais" ThisKey="MaTK" OtherKey="MaNhanVien" Type="LichSuTrangThai" />
+      <Association Name="TaiKhoan_ThongBao" Member="ThongBaos" ThisKey="MaTK" OtherKey="MaTK" Type="ThongBao" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ThongBao" Member="ThongBaos">
+    <Type Name="ThongBao">
+      <Column Name="MaTB" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="MaTK" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Title" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Column Name="Subtitle" Type="System.String" DbType="NVarChar(1000)" CanBeNull="true" />
+      <Column Name="IsRead" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="CreatedAt" Type="System.DateTime" DbType="DateTime2 NOT NULL" CanBeNull="false" />
+      <Association Name="TaiKhoan_ThongBao" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
     </Type>
   </Table>
 </Database>

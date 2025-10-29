@@ -1,30 +1,28 @@
 ﻿@{
-    // Title đã được set trong Controller
-
-    // 2. LẤY DỮ LIỆU TỪ VIEWBAG VÀ ÉP KIỂU (CASTING)
-    // Bạn phải "dán nhãn" cho trình biên dịch biết đây là kiểu dữ liệu gì
     var danhMucList = (List<WebBanDoAnOnline.Models.DanhMuc>)ViewBag.DanhMucList;
     var sanPhamList = (List<WebBanDoAnOnline.Models.SanPham>)ViewBag.SanPhamList;
+    int? selectedDmId = (int?)ViewBag.SelectedDMId;
 }
 
 <div class="menu-categories-container mb-4">
     <h3 class="mb-3 fw-bold">Danh mục món ăn</h3>
     <div class="menu-categories">
-
-
         @foreach (var category in danhMucList)
         {
+            bool isSelected = selectedDmId.HasValue
+                                ? category.MaDM == selectedDmId.Value
+                                : (category.MacDinh == true);
 
-            if (category.MacDinh == true)
+            if (isSelected)
             {
-                <a href="#" class="category-item-special">
+                <a href="@Url.Action("Index", "Menu", new { dmId = category.MaDM })" class="category-item-special">
                     <img src="@Url.Content(category.Anh)" alt="@category.TenDM">
                     <span>@category.TenDM</span>
                 </a>
             }
             else
             {
-                <a href="#" class="category-item-circle">
+                <a href="@Url.Action("Index", "Menu", new { dmId = category.MaDM })" class="category-item-circle">
                     <div class="category-image">
                         <img src="@Url.Content(category.Anh)" alt="@category.TenDM">
                     </div>
@@ -35,41 +33,39 @@
     </div>
 </div>
 
-<div class="product-grid">
-    <div class="row g-4">
-
-
-        @foreach (var product in sanPhamList)
-        {
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="menu-product-card">
-
-                    <img src="@Url.Content(product.Anh)" alt="@product.TenSP" class="product-card-img">
-
-                    <div class="product-card-body">
-                        <h5 class="product-card-title">@product.TenSP</h5>
-                        <div class="product-card-meta">
-                            <span class="product-price">
-                                <i class="fa-solid fa-tags"></i>
-                                @product.Gia.Value.ToString("N0")đ
-                            </span>
-                            <span class="product-time">
-                                <i class="fa-regular fa-clock"></i>
-                                @product.ThoiGianGiao
-                            </span>
-                        </div>
-                        <a href="#" class="btn btn-order"
-                           data-id="@product.MaSP"
-                           data-name="@product.TenSP"
-                           data-price="@product.Gia.Value"
-                           data-image="@Url.Content(product.Anh)"
-                           data-description="@product.MoTa"
-                           data-time="@product.ThoiGianGiao"
-                           data-rating="4.0"
-                           data-reviews="100+">Đặt món</a>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
+<div id="products-container">
+    @Html.Partial("_Products") <!-- trang đầu tiên -->
 </div>
+
+@section scripts {
+    <script>
+    // Ajax pagination (progressive enhancement)
+    $(function () {
+        $('.body-content').on('click', '#products-container .pagination a', function (e) {
+            e.preventDefault();
+
+            var href = $(this).attr('href');
+            var url = new URL(href, window.location.origin);
+            var params = Object.fromEntries(url.searchParams.entries());
+
+            $.get('@Url.Action("Products", "Menu")', params)
+                .done(function (html) {
+                    $('#products-container').html(html);
+
+                    // Cập nhật URL để hỗ trợ Back/Reload
+                    var qs = $.param(params);
+                    var newUrl = '@Url.Action("Index", "Menu")' + (qs ? ('?' + qs) : '');
+                    window.history.pushState({}, '', newUrl);
+
+                    // Cuộn đến phần danh sách
+                    var top = $('#products-container').offset().top - 80;
+                    $('html,body').animate({ scrollTop: top }, 200);
+                })
+                .fail(function () {
+                    // Fallback: nếu lỗi Ajax thì chuyển hướng bình thường
+                    window.location.href = href;
+                });
+        });
+    });
+    </script>
+}

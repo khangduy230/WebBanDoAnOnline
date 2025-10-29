@@ -1,0 +1,64 @@
+﻿@using WebBanDoAnOnline.Models
+@{
+    var sanPhamList = (System.Collections.Generic.List<SanPham>)ViewBag.SanPhamList;
+    int page = ViewBag.Page ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int? selectedDmId = (int?)ViewBag.SelectedDMId;
+}
+
+<div class="product-grid">
+    <div class="row g-4">
+        @foreach (var product in sanPhamList)
+        {
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="menu-product-card">
+                    <img src="@Url.Content(product.Anh)" alt="@product.TenSP" class="product-card-img" />
+                    <div class="product-card-body">
+                        <h5 class="product-card-title">@product.TenSP</h5>
+                        <div class="product-card-meta">
+                            <span class="product-price">
+                                <i class="fa-solid fa-tags"></i>
+                                @(product.Gia.HasValue ? product.Gia.Value.ToString("N0") + "đ" : "Liên hệ")
+                            </span>
+                            <span class="product-time">
+                                <i class="fa-regular fa-clock"></i>
+                                @product.ThoiGianGiao
+                            </span>
+                        </div>
+                        <a href="#" class="btn btn-order"
+                           data-id="@product.MaSP"
+                           data-name="@product.TenSP"
+                           data-price="@(product.Gia ?? 0)"
+                           data-image="@Url.Content(product.Anh)"
+                           data-description="@product.MoTa"
+                           data-time="@product.ThoiGianGiao"
+                           data-rating="4.0"
+                           data-reviews="100+">Đặt món</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (totalPages > 1)
+{
+    <nav class="mt-4" aria-label="Phân trang món">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(page <= 1 ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("Index", "Menu", new { dmId = selectedDmId, page = page - 1 })">Trước</a>
+            </li>
+
+            @for (var p = 1; p <= totalPages; p++)
+            {
+                <li class="page-item @(p == page ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Index", "Menu", new { dmId = selectedDmId, page = p })">@p</a>
+                </li>
+            }
+
+            <li class="page-item @(page >= totalPages ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("Index", "Menu", new { dmId = selectedDmId, page = page + 1 })">Sau</a>
+            </li>
+        </ul>
+    </nav>
+}

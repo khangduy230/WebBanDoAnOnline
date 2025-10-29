@@ -1,0 +1,64 @@
+﻿@model WebBanDoAnOnline.Models.TaiKhoanViewModels.RegisterViewModel
+@{
+    ViewBag.Title = "Đăng ký";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<div class="auth-form-container">
+    <div class="auth-logo">
+        <span class="logo-bold fst-italic">FuTho</span>
+        <span class="logo-regular">Food</span>
+    </div>
+    <h2>Đăng ký tài khoản mới</h2>
+
+    @using (Html.BeginForm("Register", "TaiKhoan", FormMethod.Post, new { @class = "auth-form", role = "form" }))
+    {
+        @Html.AntiForgeryToken()
+
+        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.HoTen)
+            @Html.TextBoxFor(m => m.HoTen, new { @class = "form-control", placeholder = "Nhập họ và tên" })
+            @Html.ValidationMessageFor(m => m.HoTen, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.TenTK)
+            @Html.TextBoxFor(m => m.TenTK, new { @class = "form-control", placeholder = "Nhập tên tài khoản (vd: user123)" })
+            @Html.ValidationMessageFor(m => m.TenTK, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.SoDienThoai)
+            @Html.TextBoxFor(m => m.SoDienThoai, new { @class = "form-control", placeholder = "Nhập số điện thoại" })
+            @Html.ValidationMessageFor(m => m.SoDienThoai, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Email)
+            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Nhập email" })
+            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.MatKhau)
+            <div class="password-wrapper">
+                @Html.PasswordFor(m => m.MatKhau, new { @class = "form-control", placeholder = "Nhập mật khẩu (tối thiểu 6 ký tự)" })
+                <i class="fas fa-eye-slash toggle-password"></i>
+            </div>
+            @Html.ValidationMessageFor(m => m.MatKhau, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.ConfirmMatKhau)
+            <div class="password-wrapper">
+                @Html.PasswordFor(m => m.ConfirmMatKhau, new { @class = "form-control", placeholder = "Nhập lại mật khẩu" })
+                <i class="fas fa-eye-slash toggle-password"></i>
+            </div>
+            @Html.ValidationMessageFor(m => m.ConfirmMatKhau, "", new { @class = "text-danger" })
+        </div>
+
+        <button type="submit" class="btn btn-auth-primary">Đăng ký</button>
+    }
+</div>
