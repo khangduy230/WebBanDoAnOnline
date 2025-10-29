@@ -3,321 +3,320 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>@ViewBag.Title - FuTho Food</title>
+    <title>@ViewBag.Title - FuTho Food</title>
 
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    @Styles.Render("~/Content/css")
+</head>
 
-        @Styles.Render("~/Content/css")
-    </head>
-    <body>
+<body>
 
-        @{
-            var currentController = (ViewContext.RouteData.Values["controller"] as string) ?? "";
-            var currentAction = (ViewContext.RouteData.Values["action"] as string) ?? "";
-        }
+    @{
+        var currentController = (ViewContext.RouteData.Values["controller"] as string) ?? "";
+        var currentAction = (ViewContext.RouteData.Values["action"] as string) ?? "";
+    }
 
-        <main class="page-content">
-            <header class="main-header">
-                <nav class="navbar navbar-expand-lg">
-                    <div class="container">
-                        @Html.ActionLink("FuTho Food", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+    <main class="page-content">
+        <header class="main-header">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container">
+                    @Html.ActionLink("FuTho Food", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
 
-                        <div class="collapse navbar-collapse justify-content-center">
-                            <ul class="navbar-nav">
-                                <li class="nav-item">
-                                    @Html.ActionLink(
-                                         "Trang chủ",
-                                         "Index",
-                                         "Home",
-                                         null,
-                                         new { @class = "nav-link" + ((currentController == "Home" && currentAction == "Index") ? " active" : "") }
-                                     )
-                                </li>
-                                <li class="nav-item">
-                                    @Html.ActionLink(
-                                         "Thực đơn",
-                                         "Index",
-                                         "Menu",
-                                         null,
-                                         new { @class = "nav-link" + ((currentController == "Menu" && currentAction == "Index") ? " active" : "") }
-                                     )
-                                </li>
-                                <li class="nav-item">
-                                    @Html.ActionLink(
-                                         "Giới thiệu",
-                                         "About",
-                                         "Home",
-                                         null,
-                                         new { @class = "nav-link" + ((currentController == "Home" && currentAction == "About") ? " active" : "") }
-                                     )
-                                </li>
-                            </ul>
-                        </div>
+                    <div class="collapse navbar-collapse justify-content-center">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                @Html.ActionLink(
+                                                              "Trang chủ",
+                                                              "Index",
+                                                              "Home",
+                                                              null,
+                                                              new { @class = "nav-link" + ((currentController == "Home" && currentAction == "Index") ? " active" : "") }
+                                                          )
+                            </li>
+                            <li class="nav-item">
+                                @Html.ActionLink(
+                                                              "Thực đơn",
+                                                              "Index",
+                                                              "Menu",
+                                                              null,
+                                                              new { @class = "nav-link" + ((currentController == "Menu" && currentAction == "Index") ? " active" : "") }
+                                                          )
+                            </li>
 
-                        <!-- 3. Các chức năng bên phải -->
-                        <!-- d-flex và align-items-center là các class flexbox của Bootstrap để sắp xếp các item -->
-                        <div class="d-flex align-items-center header-actions">
-                            <!-- Ô tìm kiếm -->
-                            <div class="search-box me-3">
-                                <input type="text" class="form-control" placeholder="Tìm kiếm món ăn">
-                                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                            </div>
-                            @if (Session["TaiKhoan"] != null)
-                            {
-                                var currentUser = Session["TaiKhoan"] as WebBanDoAnOnline.Models.TaiKhoan;
-                                <div class="notification-wrapper">
-                                    <!-- CLICK sẽ đi tới trang Thông báo -->
-                                    <a href="@Url.Action("Index","ThongBao")" class="header-icon" id="notification-icon" title="Thông báo">
-                                        <i class="fa-regular fa-bell"></i>
-                                        <span class="header-badge">3</span>
-                                    </a>
-
-                                    <!-- POPUP xuất hiện khi hover -->
-                                    <div class="notification-panel" id="notification-panel">
-                                        <div class="notification-header"><h4>Thông báo</h4></div>
-                                        <div class="notification-body">
-                                            <div class="notification-item d-flex justify-content-between align-items-start">
-                                                <div class="d-flex">
-                                                    <div class="notification-item-icon"><i class="fas fa-bell"></i></div>
-                                                    <div class="notification-item-content">
-                                                        <p class="item-title">Bạn có voucher chưa sử dụng!</p>
-                                                        <p class="item-subtitle">Kiểm tra ưu đãi ngay.</p>
-                                                    </div>
-                                                </div>
-                                                <a class="btn btn-sm btn-outline-secondary btn-view-details" href="@((Url.Action("Index","ThongBao") + "#1"))">Xem chi tiết</a>
-                                            </div>
-
-                                            <div class="notification-item d-flex justify-content-between align-items-start">
-                                                <div class="d-flex">
-                                                    <div class="notification-item-icon"><i class="fas fa-bell"></i></div>
-                                                    <div class="notification-item-content">
-                                                        <p class="item-title">Món hot bạn đã thử chưa</p>
-                                                        <p class="item-subtitle">Nem chua chỉ 36.000đ</p>
-                                                    </div>
-                                                </div>
-                                                <a class="btn btn-sm btn-outline-secondary btn-view-details" href="@((Url.Action("Index","ThongBao") + "#2"))">Xem chi tiết</a>
-                                            </div>
-
-                                            <div class="notification-item d-flex justify-content-between align-items-start">
-                                                <div class="d-flex">
-                                                    <div class="notification-item-icon"><i class="fas fa-bell"></i></div>
-                                                    <div class="notification-item-content">
-                                                        <p class="item-title">Dark dark bùh bùh lmao</p>
-                                                        <p class="item-subtitle">Bí content</p>
-                                                    </div>
-                                                </div>
-                                                <a class="btn btn-sm btn-outline-secondary btn-view-details" href="@((Url.Action("Index","ThongBao") + "#3"))">Xem chi tiết</a>
-                                            </div>
-                                        </div>
-                                        <div class="notification-footer">
-                                            <a href="@Url.Action("Index","ThongBao")" class="btn-clear-all">Xem tất cả</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="cart-wrapper">
-                                    <!-- CLICK sẽ đi tới trang Giỏ hàng -->
-                                    <a href="@Url.Action("Index","GioHang")" class="header-icon" id="cart-icon" title="Giỏ hàng">
-                                        <i class="fa-solid fa-cart-shopping"></i>
-                                        <!-- Ẩn mặc định, hiện khi có số lượng -->
-                                        <span class="header-badge" style="display:none;">0</span>
-                                    </a>
-
-                                    <!-- POPUP xuất hiện khi hover -->
-                                    <div class="cart-panel" id="cart-panel">
-                                        <div class="cart-header"><h4>Giỏ hàng của bạn</h4></div>
-                                        <div class="cart-body">
-                                            <!-- BỎ 3 ITEM DEMO VIẾT CỨNG, ĐỂ THÔNG BÁO TRỐNG MẶC ĐỊNH -->
-                                            <p style="text-align:center; padding: 20px;">Giỏ hàng của bạn đang trống.</p>
-                                        </div>
-
-                                        <div class="cart-footer">
-                                            <div class="cart-summary">
-                                                <div class="summary-row">
-                                                    <span>Giảm giá</span>
-                                                    <span>0 VNĐ</span>
-                                                </div>
-                                                <div class="summary-row total">
-                                                    <span>Tổng cộng</span>
-                                                    <span>0 VNĐ</span>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex gap-2">
-                                                <a href="@Url.Action("Index","GioHang")" class="btn btn-outline-secondary">Xem giỏ hàng</a>
-                                                <a href="@Url.Action("Index","ThanhToan")" class="btn btn-checkout">Thanh toán</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Icon Người dùng -->
-                                <div class="user-menu-wrapper">
-                                    <a href="#" class="header-icon" id="user-avatar-icon">
-                                        <img src="https://i.imgur.com/4Ym2k5N.png" alt="User Avatar" class="user-avatar" />
-                                    </a>
-                                    <!-- User Dropdown Panel -->
-                                    <div class="user-panel" id="user-panel">
-                                        <div class="user-panel-header">
-                                            <h3>Phùng Thanh Độ</h3>
-                                        </div>
-                                        <div class="user-panel-body">
-                                            <a href="#" class="user-menu-item">
-                                                <span><i class="fa-regular fa-user user-menu-item-icon"></i> Tài khoản của tôi</span>
-                                                <i class="fa-solid fa-chevron-right"></i>
-                                            </a>
-                                            <a href="#" class="user-menu-item">
-                                                <span><i class="fa-solid fa-receipt user-menu-item-icon"></i> Đơn mua</span>
-                                                <i class="fa-solid fa-chevron-right"></i>
-                                            </a>
-                                            <a href="#" class="user-menu-item">
-                                                <span><i class="fa-solid fa-gear user-menu-item-icon"></i> Cài đặt</span>
-                                                <i class="fa-solid fa-chevron-right"></i>
-                                            </a>
-                                            @using (Html.BeginForm("LogOff", "TaiKhoan", FormMethod.Post, new { id = "logoutForm" }))
-                                            {
-                                                @Html.AntiForgeryToken()
-                                                <a href="javascript:document.getElementById('logoutForm').submit()" class="user-menu-item">
-                                                    <span><i class="fa-solid fa-right-from-bracket user-menu-item-icon"></i> Đăng xuất</span>
-                                                </a>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="header-actions d-flex align-items-center">
-                                    @Html.ActionLink(
-                                     "Đăng nhập",
-                                     "Login",
-                                     "TaiKhoan",
-                                     routeValues: null,
-                                     htmlAttributes: new { @class = "btn header-btn btn-header-login me-2" }
-                                     )
-                                    @Html.ActionLink(
-                                     "Đăng ký",
-                                     "Register",
-                                     "TaiKhoan",
-                                     routeValues: null,
-                                     htmlAttributes: new { @class = "btn header-btn btn-header-register" }
-                                     )
-                                </div>
-                            }
-                        </div>
-
-                    </div>
-                </nav>
-            </header>
-
-            <div class="notification-overlay" id="notification-overlay"></div>
-
-            <div class="container body-content">
-
-                @RenderBody()
-                <hr />
-            </div>
-        </main>
-
-
-
-
-
-
-        <footer class="site-footer">
-            <div class="container">
-                <div class="footer-top">
-                    <div class="footer-logo">
-                        <a href="#">
-                            <span class="logo-bold fst-italic">FuTho</span>
-                            <span class="logo-regular">Food</span>
-                        </a>
-                    </div>
-
-                    <nav class="footer-nav">
-                        <ul>
-                            <li><a href="#">Về chúng tôi</a></li>
-                            <li><a href="#">Giải đáp thắc mắc</a></li>
-                            <li><a href="#">Điều khoản & Điều kiện</a></li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("Index","ThongBao")"
+                                   class="nav-link@(currentController == "ThongBao" && currentAction == "Index" ? " active" : "")">
+                                    Thông báo
+                                    <span id="notif-badge" class="menu-badge" style="display:none;">0</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("Index","GioHang")"
+                                   class="nav-link@(currentController == "GioHang" && currentAction == "Index" ? " active" : "")">
+                                    Giỏ hàng
+                                    <span id="cart-badge" class="menu-badge" style="display:none;">0</span>
+                                </a>
+                            </li>
                         </ul>
-                    </nav>
-
-                    <div class="footer-contact">
-                        <p>SĐT Liên hệ: 0971123456</p>
                     </div>
+
+                    <!-- Khu vực bên phải: giữ ô tìm kiếm + user, bỏ icon/popup thông báo & giỏ hàng -->
+                    <div class="d-flex align-items-center header-actions">
+                        <div class="search-box me-3">
+                            <input type="text" class="form-control" placeholder="Tìm kiếm món ăn">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        </div>
+
+                        @if (Session["TaiKhoan"] != null)
+                        {
+                            var currentUser = Session["TaiKhoan"] as WebBanDoAnOnline.Models.TaiKhoan;
+
+                            <!-- Icon Người dùng -->
+                            <div class="user-menu-wrapper">
+                                <a href="#" class="header-icon" id="user-avatar-icon">
+                                    <img src="https://i.imgur.com/4Ym2k5N.png" alt="User Avatar" class="user-avatar" />
+                                </a>
+                                <!-- User Dropdown Panel -->
+                                <div class="user-panel" id="user-panel">
+                                    <div class="user-panel-header">
+                                        <h3>@((currentUser != null && !string.IsNullOrWhiteSpace(currentUser.HoTen)) ? currentUser.HoTen : "Tài khoản")</h3>
+                                    </div>
+                                    <div class="user-panel-body">
+                                        <a href="#" class="user-menu-item">
+                                            <span><i class="fa-regular fa-user user-menu-item-icon"></i> Tài khoản của tôi</span>
+                                            <i class="fa-solid fa-chevron-right"></i>
+                                        </a>
+                                        <a href="#" class="user-menu-item">
+                                            <span><i class="fa-solid fa-receipt user-menu-item-icon"></i> Đơn mua</span>
+                                            <i class="fa-solid fa-chevron-right"></i>
+                                        </a>
+                                        <a href="#" class="user-menu-item">
+                                            <span><i class="fa-solid fa-gear user-menu-item-icon"></i> Cài đặt</span>
+                                            <i class="fa-solid fa-chevron-right"></i>
+                                        </a>
+                                        @using (Html.BeginForm("LogOff", "TaiKhoan", FormMethod.Post, new { id = "logoutForm" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <a href="javascript:document.getElementById('logoutForm').submit()" class="user-menu-item">
+                                                <span><i class="fa-solid fa-right-from-bracket user-menu-item-icon"></i> Đăng xuất</span>
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="header-actions d-flex align-items-center">
+                                @Html.ActionLink(
+                                                     "Đăng nhập",
+                                                     "Login",
+                                                     "TaiKhoan",
+                                                     routeValues: null,
+                                                     htmlAttributes: new { @class = "btn header-btn btn-header-login me-2" }
+                                                     )
+                                @Html.ActionLink(
+                                                     "Đăng ký",
+                                                     "Register",
+                                                     "TaiKhoan",
+                                                     routeValues: null,
+                                                     htmlAttributes: new { @class = "btn header-btn btn-header-register" }
+                                                     )
+                            </div>
+                        }
+                    </div>
+
+                </div>
+            </nav>
+        </header>
+
+        <!-- Đã loại bỏ notification-overlay -->
+
+        <div class="container body-content">
+
+            @RenderBody()
+            <hr />
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-logo">
+                    <a href="#">
+                        <span class="logo-bold fst-italic">FuTho</span>
+                        <span class="logo-regular">Food</span>
+                    </a>
                 </div>
 
-                <div class="footer-bottom">
-                    <div class="footer-social">
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    </div>
+                <nav class="footer-nav">
+                    <ul>
+                        <li><a href="#">Về chúng tôi</a></li>
+                        <li><a href="#">Giải đáp thắc mắc</a></li>
+                        <li><a href="#">Điều khoản & Điều kiện</a></li>
+                    </ul>
+                </nav>
+
+                <div class="footer-contact">
+                    <p>SĐT Liên hệ: 0971123456</p>
                 </div>
             </div>
-        </footer>
 
-        <!-- --- HTML CHO MODAL CHI TIẾT SẢN PHẨM --- -->
-        <div class="modal-overlay" id="product-modal-overlay"></div>
-        <div class="product-modal" id="product-modal">
-            <button class="modal-close-btn" id="modal-close-btn">&times;</button>
-            <div class="product-modal-content">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <img id="modal-product-image" src="" alt="Product Image" class="modal-product-image">
-                    </div>
-                    <div class="col-md-6">
-                        <h2 id="modal-product-name" class="modal-product-name">Tên sản phẩm</h2>
-                        <p id="modal-product-price" class="modal-product-price">Giá</p>
-
-                        <div class="product-modal-meta">
-                            <span><i class="fa-solid fa-star"></i> <span id="modal-product-rating"></span></span>
-                            <span><i class="fa-regular fa-clock"></i> <span id="modal-product-time"></span></span>
-                        </div>
-
-                        <div class="product-modal-description">
-                            <h5>Mô tả món ăn:</h5>
-                            <p id="modal-product-description">Mô tả chi tiết...</p>
-                        </div>
-
-                        <!-- Số lượng -->
-                        <div class="modal-quantity-selector">
-                            <h5>Số lượng</h5>
-                            <div class="input-group">
-                                <button type="button" class="btn btn-outline-secondary" id="modal-quantity-minus">-</button>
-                                <input type="text" id="modal-quantity-input" class="form-control text-center" value="1" readonly />
-                                <button type="button" class="btn btn-outline-secondary" id="modal-quantity-plus">+</button>
-                            </div>
-                        </div>
-
-                        <!-- Ghi chú -->
-                        <div class="modal-notes">
-                            <h5>Ghi chú</h5>
-                            <textarea id="modal-product-notes" class="form-control" rows="2" style="max-width:100%" placeholder="Ví dụ: Ít cay, nhiều rau..."></textarea>
-                        </div>
-
-                        <!-- Nút thêm vào giỏ hàng + tổng tiền -->
-                        <a href="#" class="btn btn-add-to-cart-modal" id="modal-add-to-cart-btn">
-                            <span>Thêm vào giỏ hàng</span>
-                            <span id="modal-total-price">0 ₫</span>
-                        </a>
-                    </div>
+            <div class="footer-bottom">
+                <div class="footer-social">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
                 </div>
             </div>
         </div>
+    </footer>
+
+    <!-- --- HTML CHO MODAL CHI TIẾT SẢN PHẨM --- -->
+    <div class="modal-overlay" id="product-modal-overlay"></div>
+    <div class="product-modal" id="product-modal">
+        <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+        <div class="product-modal-content">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <img id="modal-product-image" src="" alt="Product Image" class="modal-product-image">
+                </div>
+                <div class="col-md-6">
+                    <h2 id="modal-product-name" class="modal-product-name">Tên sản phẩm</h2>
+                    <p id="modal-product-price" class="modal-product-price">Giá</p>
+
+                    <div class="product-modal-meta">
+                        <span><i class="fa-solid fa-star"></i> <span id="modal-product-rating"></span></span>
+                        <span><i class="fa-regular fa-clock"></i> <span id="modal-product-time"></span></span>
+                    </div>
+
+                    <div class="product-modal-description">
+                        <h5>Mô tả món ăn:</h5>
+                        <p id="modal-product-description">Mô tả chi tiết...</p>
+                    </div>
+
+                    <!-- Số lượng -->
+                    <div class="modal-quantity-selector">
+                        <h5>Số lượng</h5>
+                        <div class="input-group">
+                            <button type="button" class="btn btn-outline-secondary" id="modal-quantity-minus">-</button>
+                            <input type="text" id="modal-quantity-input" class="form-control text-center" value="1" readonly />
+                            <button type="button" class="btn btn-outline-secondary" id="modal-quantity-plus">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú -->
+                    <div class="modal-notes">
+                        <h5>Ghi chú</h5>
+                        <textarea id="modal-product-notes" class="form-control" rows="2" style="max-width:100%" placeholder="Ví dụ: Ít cay, nhiều rau..."></textarea>
+                    </div>
+
+                    <!-- Nút thêm vào giỏ hàng + tổng tiền -->
+                    <a href="#" class="btn btn-add-to-cart-modal" id="modal-add-to-cart-btn">
+                        <span>Thêm vào giỏ hàng</span>
+                        <span id="modal-total-price">0 ₫</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
-        @Scripts.Render("~/bundles/jquery")
-        <!-- Link Bootstrap JS (sử dụng CDN) -->
-        <script>
 
-        // Hợp nhất tất cả các script vào một khối $(document).ready()
-            $(document).ready(function () {
+    <!-- Token chống giả mạo dùng cho mọi POST -->
+    <div id="__af-token" style="display:none;">
+        @Html.AntiForgeryToken()
+    </div>
 
+    @Scripts.Render("~/bundles/jquery")
+
+    <script>
+        // Module helper dùng chung
+        window.App = (function () {
+            function getXsrf() {
+                var el = document.querySelector('#__af-token input[name="__RequestVerificationToken"]');
+                return el ? el.value : '';
+            }
+
+            async function postForm(url, data) {
+                const params = new URLSearchParams(data || {});
+                const xsrf = getXsrf();
+                if (xsrf && !params.has('__RequestVerificationToken')) {
+                    params.append('__RequestVerificationToken', xsrf);
+                }
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                    body: params
+                });
+                if (!resp.ok) throw new Error('Network error');
+                return resp.json();
+            }
+
+            function setBadge(id, count) {
+                var $b = $('#' + id);
+                if (!$b.length) return;
+                if ((count || 0) > 0) { $b.text(count).show(); } else { $b.hide(); }
+            }
+
+            function toCurrency(n) {
+                try { return (n || 0).toLocaleString('vi-VN'); } catch { return String(n || 0); }
+            }
+
+            function parseNumber(s) {
+                return parseFloat(String(s).replace(/[^0-9]+/g, '')) || 0;
+            }
+
+            function showToast(message, type) {
+                var stack = document.getElementById('toast-stack');
+                if (!stack) {
+                    stack = document.createElement('div');
+                    stack.id = 'toast-stack';
+                    stack.className = 'toast-stack';
+                    document.body.appendChild(stack);
+                }
+                var el = document.createElement('div');
+                el.className = 'app-toast ' + (type || '');
+                el.innerHTML = '<div class="toast-content">' + message + '</div>';
+                stack.appendChild(el);
+
+                var ttl = 2600;
+                setTimeout(function () { el.classList.add('hide'); }, ttl - 300);
+                el.addEventListener('transitionend', function () {
+                    if (el && el.parentNode) el.parentNode.removeChild(el);
+                });
+            }
+
+            return {
+                postForm: postForm,
+                setBadge: setBadge,
+                toCurrency: toCurrency,
+                parseNumber: parseNumber,
+                showToast: showToast
+            };
+        })();
+
+        // Giữ tương thích code cũ
+        window.setMenuBadge = function (id, count) { return window.App.setBadge(id, count); };
+        window.showToast = window.App.showToast;
+
+        $(function () {
+            // 1) Khởi tạo badge
+            (function initBadges() {
+                fetch('@Url.Action("CartCount","GioHang")', { credentials: 'same-origin' })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(res => { if (res && res.ok) App.setBadge('cart-badge', res.count || 0); })
+                    .catch(() => { /* ignore */ });
+
+                fetch('@Url.Action("UnreadCount","ThongBao")', { credentials: 'same-origin' })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(res => { if (res && res.ok) App.setBadge('notif-badge', res.unread || 0); })
+                    .catch(() => { /* ignore */ });
+            })();
+
+            // 2) Đồng bộ biến CSS chiều cao header (cho mobile panel)
             (function syncHeaderHeightVar() {
                 function setHeaderHeight() {
                     var h = $('.main-header').outerHeight() || 64;
@@ -327,9 +326,7 @@
                 $(window).on('resize', setHeaderHeight);
             })();
 
-            // ===================================================================
-            // --- SCRIPT CHO HIỆU ỨNG GẠCH CHÂN TRƯỢT ---
-            // ===================================================================
+            // 3) Hiệu ứng gạch chân trượt cho navbar
             (function setupSlidingUnderline() {
                 var $nav = $('.navbar .navbar-nav');
                 if (!$nav.length) return;
@@ -386,61 +383,25 @@
                 });
             })();
 
-                // ===================================================================
-                // --- SCRIPT QUẢN LÝ POPUP HEADER (Hover = mở popup, Click = điều hướng) ---
-                // ===================================================================
-
-                var $notificationIcon = $('#notification-icon');
-                var $notificationPanel = $('#notification-panel');
-                var $cartIcon = $('#cart-icon');
-                var $cartPanel = $('#cart-panel');
+            // 4) Toggle user panel
+            (function () {
                 var $userAvatarIcon = $('#user-avatar-icon');
-                var $userPanel = $('#user-panel'); // vẫn giữ user panel theo cơ chế click như cũ, nếu muốn
+                var $userPanel = $('#user-panel');
 
-                function addHoverPopup($icon, $panel) {
-                var hideTimer = null;
-
-                function open() {
-                    clearTimeout(hideTimer);
-                $panel.stop(true, true).fadeIn(150);
-                $icon.addClass('active');
-        }
-                function scheduleClose() {
-                    clearTimeout(hideTimer);
-                hideTimer = setTimeout(function () {
-                    $panel.stop(true, true).fadeOut(150);
-                $icon.removeClass('active');
-            }, 180);
-        }
-
-                $icon.on('mouseenter focusin', open);
-                $panel.on('mouseenter focusin', open);
-                $icon.on('mouseleave focusout', scheduleClose);
-                $panel.on('mouseleave focusout', scheduleClose);
-
-        // Không ngăn click - để mặc định chuyển trang theo href
-    }
-
-                addHoverPopup($notificationIcon, $notificationPanel);
-                addHoverPopup($cartIcon, $cartPanel);
-
-                // User panel (nếu muốn vẫn dùng click)
-                (function () {
-                    function closeUser() { $userPanel.fadeOut(150); $userAvatarIcon.removeClass('active'); }
-        function toggleUser(e) {
+                function closeUser() { $userPanel.fadeOut(150); $userAvatarIcon.removeClass('active'); }
+                function toggleUser(e) {
                     e.preventDefault();
-                if ($userPanel.is(':visible')) closeUser();
-                else {$userPanel.fadeIn(150); $userAvatarIcon.addClass('active'); }
-        }
+                    if ($userPanel.is(':visible')) closeUser();
+                    else { $userPanel.fadeIn(150); $userAvatarIcon.addClass('active'); }
+                }
                 $userAvatarIcon.on('click', toggleUser);
                 $(document).on('click', function (e) {
-            if (!$(e.target).closest('#user-panel, #user-avatar-icon').length) closeUser();
-        });
-    })();
+                    if (!$(e.target).closest('#user-panel, #user-avatar-icon').length) closeUser();
+                });
+            })();
 
-                // ===================================================================
-                // --- SCRIPT CHO MODAL CHI TIẾT SẢN PHẨM ---
-                // ===================================================================
+            // 5) Modal chi tiết sản phẩm + Thêm vào giỏ
+            (function () {
                 var $productModal = $('#product-modal');
                 var $productModalOverlay = $('#product-modal-overlay');
                 var currentProductPrice = 0;
@@ -466,11 +427,10 @@
                     $('#modal-product-description').text(data.description);
                     $('#modal-add-to-cart-btn').data('id', data.id);
 
-                    // Reset số lượng và ghi chú
                     $('#modal-quantity-input').val(1);
                     $('#modal-product-notes').val('');
 
-                    updateTotalPrice(); // Cập nhật tổng tiền lần đầu
+                    updateTotalPrice();
 
                     $productModalOverlay.fadeIn(200);
                     $productModal.fadeIn(200);
@@ -481,7 +441,7 @@
                     $productModal.fadeOut(200);
                 }
 
-                // SỬA LỖI: Gắn sự kiện vào '.body-content' để đảm bảo hoạt động
+                // Mở modal từ nút "Đặt món"
                 $('.body-content').on('click', '.btn-order', function (e) {
                     e.preventDefault();
                     var $button = $(this);
@@ -501,7 +461,7 @@
                 $('#modal-close-btn, #product-modal-overlay').on('click', closeProductModal);
                 $productModal.on('click', function (e) { e.stopPropagation(); });
 
-                // Xử lý tăng/giảm số lượng
+                // +/- số lượng
                 $('#modal-quantity-plus').on('click', function () {
                     var $input = $('#modal-quantity-input');
                     var currentVal = parseInt($input.val());
@@ -518,104 +478,43 @@
                     }
                 });
 
-                // ===================================================================
-                // --- SCRIPT QUẢN LÝ GIỎ HÀNG ---
-                // ===================================================================
-                function parseCurrency(currencyString) {
-                    // Loại bỏ ký tự không phải số (giữ lại dấu phẩy nếu có) và chuyển đổi
-                    return parseFloat(currencyString.replace(/[^0-9,-]+/g, "").replace(',', '.'));
-                }
-                    $('#modal-add-to-cart-btn').on('click', function (e) {
-            e.preventDefault();
+                // Thêm vào giỏ
+                $('#modal-add-to-cart-btn').on('click', async function (e) {
+                    e.preventDefault();
 
-            var productId = $(this).data('id');
-            var quantity = parseInt($('#modal-quantity-input').val()) || 1;
-            var notes = $('#modal-product-notes').val() || '';
+                    var productId = $(this).data('id');
+                    var quantity = parseInt($('#modal-quantity-input').val()) || 1;
+                    var notes = $('#modal-product-notes').val() || '';
+                    var productName = ($('#modal-product-name').text() || '').trim();
 
-            // Dùng fetch gửi form-urlencoded
-            fetch('@Url.Action("Add", "GioHang")', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                },
-                body: new URLSearchParams({
-                    productId: productId,
-                    quantity: quantity,
-                    notes: notes
-                })
-            })
-            .then(function (resp) {
-                if (!resp.ok) throw new Error('Network error');
-                return resp.json();
-            })
-            .then(function (res) {
-                if (res && res.requireLogin) {
-                    window.location = '@Url.Action("Login","TaiKhoan")';
-                    return;
-                }
-                if (res && res.ok) {
-                    // Cập nhật badge số lượng
-                    var $badge = $('.cart-wrapper .header-badge');
-                    if (res.count && res.count > 0) {
-                        $badge.text(res.count).show();
-                    } else {
-                        $badge.hide();
+                    try {
+                        var res = await App.postForm('@Url.Action("Add", "GioHang")', {
+                            productId: productId,
+                            quantity: quantity,
+                            notes: notes
+                        });
+
+                        if (res && res.requireLogin) {
+                            window.location = '@Url.Action("Login","TaiKhoan")';
+                            return;
+                        }
+
+                        if (res && res.ok) {
+                            App.setBadge('cart-badge', res.count || 0);
+                            App.showToast('Đã thêm ' + (productName || 'sản phẩm') + ' x' + quantity + ' vào giỏ hàng.', 'success');
+                            closeProductModal();
+                        } else {
+                            App.showToast((res && res.message) ? res.message : 'Không thể thêm vào giỏ hàng.', 'error');
+                        }
+                    } catch {
+                        App.showToast('Có lỗi khi thêm vào giỏ hàng. Vui lòng thử lại.', 'error');
                     }
-
-                    // (Tùy chọn) cập nhật tổng cộng nếu muốn
-                    if (typeof res.total === 'number') {
-                        $('.cart-summary .summary-row.total span:last-child')
-                            .text(res.total.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }));
-                    }
-
-                    // Đóng modal
-                    $('#product-modal-overlay').fadeOut(200);
-                    $('#product-modal').fadeOut(200);
-                } else {
-                    alert((res && res.message) ? res.message : 'Không thể thêm vào giỏ hàng.');
-                }
-            })
-            .catch(function () {
-                alert('Có lỗi khi thêm vào giỏ hàng. Vui lòng thử lại.');
-            });
+                });
+            })();
         });
+    </script>
 
-        // Sau khi bỏ 3 item demo, hàm này vẫn hoạt động khi bạn tự thêm item động vào .cart-body
-        function updateCartTotals() {
-            var grandTotal = 0;
-            var itemCount = 0;
-
-            $('.cart-body .cart-item').each(function () {
-                var $item = $(this);
-                var priceText = $item.find('.cart-item-price').text();
-                var price = parseFloat(priceText.replace(/[^0-9,-]+/g, "").replace(',', '.')) || 0;
-                var quantity = parseInt($item.find('.quantity-selector span').text()) || 0;
-
-                var itemTotal = price * quantity;
-                $item.find('.cart-item-total').text(itemTotal.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }));
-
-                grandTotal += itemTotal;
-                itemCount += quantity;
-            });
-
-            $('.cart-summary .summary-row.total span:last-child')
-                .text(grandTotal.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }));
-
-            var $badge = $('.cart-wrapper .header-badge');
-            if (itemCount > 0) {
-                $badge.text(itemCount).show();
-            } else {
-                $badge.hide();
-                if ($('.cart-body .cart-item').length === 0) {
-                    $('.cart-body').html('<p style="text-align:center; padding: 20px;">Giỏ hàng của bạn đang trống.</p>');
-                }
-            }
-        }
-
-        // Gọi lại nếu bạn có thêm/sửa/xóa item trong popup
-        // updateCartTotals();
-    });
-        </script>
-        @RenderSection("scripts", required: false)
-    </body>
-    </html>
+    @RenderSection("scripts", required: false)
+    <div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

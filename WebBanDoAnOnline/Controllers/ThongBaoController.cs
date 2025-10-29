@@ -31,5 +31,24 @@ namespace WebBanDoAnOnline.Controllers
             TempData["Message"] = "Đã đánh dấu tất cả thông báo là đã đọc.";
             return RedirectToAction("Index");
         }
+        [HttpGet]
+        public JsonResult UnreadCount()
+        {
+            // TODO: thay bằng logic đếm thông báo chưa đọc
+            var unread = 0;
+            if (Session["UnreadCount"] is int u) unread = u;
+
+            return Json(new { ok = true, unread }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult MarkAllRead()
+        {
+            // TODO: cập nhật trạng thái đã đọc trong DB, sau đó set unread = 0
+            // Ví dụ: NotificationService.MarkAllRead(userId);
+            Session["UnreadCount"] = 0;
+            return Json(new { ok = true, unread = 0 });
+        }
     }
 }

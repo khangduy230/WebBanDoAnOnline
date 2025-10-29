@@ -15,29 +15,52 @@
     }
     else
     {
+        <!-- Header cột -->
+        <div class="row fw-semibold text-muted mb-2 d-none d-md-flex">
+            <div class="col-md-6">Sản phẩm</div>
+            <div class="col-md-2 text-center">Số lượng</div>
+            <div class="col-md-2 text-end">Số tiền</div>
+            <div class="col-md-2 text-center">Thao tác</div>
+        </div>
+
         <div class="cart-lines d-flex flex-column gap-3">
             @foreach (var item in Model)
             {
-                <div class="cart-line p-3 border rounded-3 bg-white" data-id="@item.MaSP">
+                var unit = item.Gia;
+                var qty = item.SoLuong > 0 ? item.SoLuong : 1; // tránh dùng ?? với int
+                var lineTotal = unit * qty;
+                var safeNote = item.GhiChu ?? string.Empty;
+
+                <div class="cart-line p-3 border rounded-3 bg-white"
+                     data-id="@item.MaSP"
+                     data-notes="@safeNote">
                     <div class="row g-3 align-items-center">
                         <div class="col-md-6 d-flex align-items-center gap-3">
+                            <input type="checkbox" class="form-check-input cart-select me-2" checked />
                             <img src="@Url.Content(item.Anh)" alt="@item.TenSP" class="rounded-circle" width="56" height="56" />
                             <div>
                                 <div class="fw-semibold">@item.TenSP</div>
-                                <div class="text-muted small">@toCur(item.Gia)đ</div>
-                                <input class="form-control mt-2 cart-note" value="@item.GhiChu" placeholder="Ghi chú về món ăn" />
+                                <div class="text-muted small">@toCur(unit)đ</div>
+                                <input class="form-control mt-2 cart-note" value="@safeNote" placeholder="Ghi chú về món ăn" />
                             </div>
                         </div>
+
                         <div class="col-md-2">
-                            <div class="d-flex justify-content-center align-items-center gap-3">
-                                <span class="cart-qty">@item.SoLuong</span>
+                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm btn-qty" data-delta="-1">-</button>
+                                <span class="cart-qty">@qty</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm btn-qty" data-delta="1">+</button>
                             </div>
                         </div>
+
                         <div class="col-md-2 text-end">
-                            <span class="cart-price">@toCur(item.ThanhTien)</span> <span>VNĐ</span>
+                            <span class="cart-price" data-unit="@unit">@toCur(lineTotal)</span> <span>VNĐ</span>
                         </div>
+
                         <div class="col-md-2 text-center">
-                            <a href="@Url.Action("Index","Menu")" class="btn btn-outline-secondary btn-sm">Chọn thêm</a>
+                            <button class="btn btn-outline-danger btn-sm btn-remove" title="Xóa khỏi giỏ">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -45,12 +68,21 @@
         </div>
 
         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mt-4 gap-3">
-            <div></div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="checkAll" checked>
+                    <label class="form-check-label" for="checkAll">Chọn tất cả</label>
+                </div>
+                <button type="button" class="btn btn-outline-danger btn-sm" id="btnBulkRemove">
+                    Xóa đã chọn
+                </button>
+            </div>
+
             <div class="d-flex align-items-center gap-3">
                 <div class="fw-semibold">
                     Tổng cộng:
                     @{
-                        var total = Model.Sum(x => x.ThanhTien);
+                        var total = Model.Sum(x => x.Gia * (x.SoLuong > 0 ? x.SoLuong : 1));
                     }
                     <span id="grandTotal">@toCur(total)</span> VNĐ
                 </div>
@@ -62,18 +94,19 @@
 
 @section scripts {
     <script>
-    (function () {
-            function toCurrency(n) {
-                return (n || 0).toLocaleString('vi-VN');
-            }
-            function parseTextNumber(s) {
-                return parseFloat(String(s).replace(/[^0-9]+/g, '')) || 0;
-            }
+        (function () {
+
+            var App = window.App;
+
+            function toCurrency(n) { return App.toCurrency(n); }
+            function parseTextNumber(s) { return App.parseNumber(s); }
+
             function recalcLine($line) {
                 var unit = parseFloat($line.find('.cart-price').attr('data-unit')) || 0;
                 var qty = parseInt($line.find('.cart-qty').text()) || 0;
                 $line.find('.cart-price').text(toCurrency(unit * qty));
             }
+
             function recalcTotal() {
                 var sum = 0;
                 $('.cart-line').each(function () {
@@ -85,30 +118,137 @@
                 $('#grandTotal').text(toCurrency(sum));
             }
 
-            $('.cart-lines').on('click', '.btn-qty', function () {
-                var $line = $(this).closest('.cart-line');
-                var delta = parseInt($(this).data('delta')) || 0;
+            function getLineKey($line) {
+                return {
+                    productId: parseInt($line.data('id')),
+                    notes: String($line.data('notes') || '')
+                };
+            }
+
+            function syncHeaderBadge(count) {
+                var n = count || 0;
+                var $old = $('.cart-wrapper .header-badge');
+                if ($old.length) {
+                    if (n > 0) { $old.text(n).show(); } else { $old.hide(); }
+                }
+                if (window.setMenuBadge) window.setMenuBadge('cart-badge', n);
+            }
+
+            // +/- số lượng
+            $('.cart-lines').on('click', '.btn-qty', async function () {
+                var $btn = $(this);
+                var delta = parseInt($btn.data('delta')) || 0;
+                var $line = $btn.closest('.cart-line');
                 var $qty = $line.find('.cart-qty');
-                var q = Math.max(1, (parseInt($qty.text()) || 1) + delta);
-                $qty.text(q);
+                var cur = parseInt($qty.text()) || 1;
+                var next = Math.max(1, cur + delta);
+
+                if (next === cur) return;
+
+                // Optimistic UI
+                $qty.text(next);
                 recalcLine($line);
                 recalcTotal();
+
+                var key = getLineKey($line);
+                try {
+                    var res = await App.postForm('@Url.Action("UpdateQuantity","GioHang")', {
+                        productId: key.productId,
+                        notes: key.notes,
+                        quantity: next
+                    });
+                    if (!res || !res.ok) {
+                        alert((res && res.message) ? res.message : 'Cập nhật số lượng thất bại.');
+                        $qty.text(cur);
+                        recalcLine($line);
+                        recalcTotal();
+                        return;
+                    }
+                    syncHeaderBadge(res.count || 0);
+                } catch {
+                    alert('Có lỗi khi cập nhật số lượng.');
+                    $qty.text(cur);
+                    recalcLine($line);
+                    recalcTotal();
+                }
             });
 
-            $('.cart-lines').on('click', '.btn-remove', function () {
-                $(this).closest('.cart-line').remove();
+            // Xóa 1 dòng
+            $('.cart-lines').on('click', '.btn-remove', async function () {
+                var $line = $(this).closest('.cart-line');
+                var key = getLineKey($line);
+
+                if (!confirm('Xác nhận xóa món này khỏi giỏ hàng?')) return;
+
+                try {
+                    var res = await App.postForm('@Url.Action("Remove","GioHang")', {
+                        productId: key.productId,
+                        notes: key.notes
+                    });
+                    if (!res || !res.ok) {
+                        alert((res && res.message) ? res.message : 'Xóa thất bại.');
+                        return;
+                    }
+                    $line.remove();
+                    recalcTotal();
+                    syncHeaderBadge(res.count || 0);
+
+                    if ($('.cart-line').length === 0) {
+                        window.location.reload();
+                    }
+                } catch {
+                    alert('Có lỗi khi xóa khỏi giỏ hàng.');
+                }
+            });
+
+            // Xóa các dòng đã chọn
+            $('#btnBulkRemove').on('click', async function () {
+                var $selected = $('.cart-line').filter(function () { return $(this).find('.cart-select').is(':checked'); });
+                if ($selected.length === 0) {
+                    alert('Hãy chọn ít nhất 1 dòng để xóa.');
+                    return;
+                }
+                if (!confirm('Xác nhận xóa các dòng đã chọn?')) return;
+
+                for (const el of $selected.toArray()) {
+                    var $line = $(el);
+                    var key = getLineKey($line);
+                    try {
+                        var res = await App.postForm('@Url.Action("Remove","GioHang")', {
+                            productId: key.productId,
+                            notes: key.notes
+                        });
+                        if (res && res.ok) {
+                            $line.remove();
+                            syncHeaderBadge(res.count || 0);
+                        }
+                    } catch { /* ignore single errors */ }
+                }
                 recalcTotal();
+                if ($('.cart-line').length === 0) {
+                    window.location.reload();
+                }
             });
 
+            // Chọn tất cả
             $('#checkAll').on('change', function () {
-                $('.cart-select').prop('checked', $(this).is(':checked'));
+                var checked = $(this).is(':checked');
+                $('.cart-select').prop('checked', checked);
                 recalcTotal();
             });
 
+            // Chọn lẻ
             $('.cart-lines').on('change', '.cart-select', recalcTotal);
 
-            // Khởi tạo lần đầu
+            // Ghi chú -> cập nhật data-notes
+            $('.cart-lines').on('change', '.cart-note', function () {
+                var $line = $(this).closest('.cart-line');
+                $line.attr('data-notes', $(this).val() || '');
+            });
+
+            // Khởi tạo
             $('.cart-line').each(function () { recalcLine($(this)); });
             recalcTotal();
-        })();</script>
+        })();
+    </script>
 }
