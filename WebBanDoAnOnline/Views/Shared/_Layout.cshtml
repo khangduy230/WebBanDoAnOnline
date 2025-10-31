@@ -75,21 +75,190 @@
                             <i class="fa-solid fa-magnifying-glass search-icon"></i>
                         </div>
                         <!-- Icons -->
-                        <a href="#" class="header-icon"><i class="fa-regular fa-bell"></i></a>
-                        <a href="#" class="header-icon"><i class="fa-solid fa-cart-shopping"></i></a>
-                        <a href="#" class="header-icon">
-                            <img src="https://i.imgur.com/4Ym2k5N.png" alt="User Avatar" class="user-avatar" />
-                        </a>
+
+                        <div class="notification-wrapper">
+                            <a href="#" class="header-icon" id="notification-icon">
+                                <i class="fa-regular fa-bell"></i>
+                                <span class="header-badge">3</span>
+                            </a>
+                            <!-- Bảng thông báo (ẩn mặc định) -->
+                            <div class="notification-panel" id="notification-panel">
+                                <div class="notification-header">
+                                    <h4>Thông báo</h4>
+                                </div>
+                                <div class="notification-body">
+                                    <!-- Mục thông báo 1 -->
+                                    <div class="notification-item">
+                                        <div class="notification-item-icon"><i class="fas fa-bell"></i></div>
+                                        <div class="notification-item-content">
+                                            <p class="item-title">Bạn có voucher chưa sử dụng!</p>
+                                            <p class="item-subtitle">Kiểm tra ưu đãi ngay.</p>
+                                        </div>
+                                    </div>
+                                    <!-- Mục thông báo 2 -->
+                                    <div class="notification-item">
+                                        <div class="notification-item-icon"><i class="fas fa-bell"></i></div>
+                                        <div class="notification-item-content">
+                                            <p class="item-title">Món hot bạn đã thử chưa</p>
+                                            <p class="item-subtitle">Nem chua chỉ 36.000đ</p>
+                                        </div>
+                                    </div>
+                                    <!-- Mục thông báo 3 -->
+                                    <div class="notification-item">
+                                        <div class="notification-item-icon"><i class="fas fa-bell"></i></div>
+                                        <div class="notification-item-content">
+                                            <p class="item-title">Dark dark bùh bùh lmao</p>
+                                            <p class="item-subtitle">Bí content</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="notification-footer">
+                                    <a href="#" class="btn-clear-all">Xoá tất cả thông báo</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="cart-wrapper">
+                            <a href="#" class="header-icon" id="cart-icon">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                                <span class="header-badge">3</span>
+                            </a>
+                            <!-- Bảng giỏ hàng (dropdown) -->
+                            <div class="cart-panel" id="cart-panel">
+                                <div class="cart-header">
+                                    <h4>Giỏ hàng của bạn</h4>
+                                </div>
+                                <div class="cart-body">
+                                    <!-- Mục sản phẩm 1 (Ví dụ) -->
+                                    <div class="cart-item">
+                                        <img src="~/img/buncha (1).png" alt="Bún Chả" class="cart-item-img">
+                                        <div class="cart-item-info">
+                                            <p class="cart-item-name">Bún Chả</p>
+                                            <p class="cart-item-price">35.000 VNĐ</p>
+                                        </div>
+                                        <div class="quantity-selector">
+                                            <button class="btn-qty">-</button>
+                                            <span>1</span>
+                                            <button class="btn-qty">+</button>
+                                        </div>
+                                        <div class="cart-item-total">72.000 VNĐ</div>
+                                        <button class="btn-remove-item"><i class="fa-regular fa-trash-can"></i></button>
+                                    </div>
+                                    <!-- Mục sản phẩm 2 (Ví dụ) -->
+                                    <div class="cart-item">
+                                        <img src="~/img/buncha (2).png" alt="Phở Bò" class="cart-item-img">
+                                        <div class="cart-item-info">
+                                            <p class="cart-item-name">Phở Bò</p>
+                                            <p class="cart-item-price">60.000 VNĐ</p>
+                                        </div>
+                                        <div class="quantity-selector">
+                                            <button class="btn-qty">-</button>
+                                            <span>1</span>
+                                            <button class="btn-qty">+</button>
+                                        </div>
+                                        <div class="cart-item-total">60.000 VNĐ</div>
+                                        <button class="btn-remove-item"><i class="fa-regular fa-trash-can"></i></button>
+                                    </div>
+                                    <!-- Mục sản phẩm 3 (Ví dụ) -->
+                                    <div class="cart-item">
+                                        <img src="~/img/buncha (4).png" alt="Cơm Thố" class="cart-item-img">
+                                        <div class="cart-item-info">
+                                            <p class="cart-item-name">Cơm Thố</p>
+                                            <p class="cart-item-price">55.000 VNĐ</p>
+                                        </div>
+                                        <div class="quantity-selector">
+                                            <button class="btn-qty">-</button>
+                                            <span>1</span>
+                                            <button class="btn-qty">+</button>
+                                        </div>
+                                        <div class="cart-item-total">55.000 VNĐ</div>
+                                        <button class="btn-remove-item"><i class="fa-regular fa-trash-can"></i></button>
+                                    </div>
+                                </div>
+                                <div class="cart-footer">
+                                    <div class="cart-summary">
+                                        <div class="summary-row">
+                                            <span>Giảm giá</span>
+                                            <span>0 VNĐ</span>
+                                        </div>
+                                        <div class="summary-row total">
+                                            <span>Tổng cộng</span>
+                                            <span>212.000 VNĐ</span>
+                                        </div>
+                                    </div>
+                                    <a href="#" class="btn btn-checkout">Thanh toán</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Icon Người dùng -->
+                        <div class="user-menu-wrapper">
+                            <a href="#" class="header-icon" id="user-avatar-icon">
+                                <img src="https://i.imgur.com/4Ym2k5N.png" alt="User Avatar" class="user-avatar" />
+                            </a>
+                            <!-- User Dropdown Panel -->
+                            <div class="user-panel" id="user-panel">
+                                <div class="user-panel-header">
+                                    <h3>Phùng Thanh Độ</h3>
+                                </div>
+                                <div class="user-panel-body">
+                                    <a href="#" class="user-menu-item">
+                                        <span><i class="fa-regular fa-user user-menu-item-icon"></i> Tài khoản của tôi</span>
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </a>
+                                    <a href="#" class="user-menu-item">
+                                        <span><i class="fa-solid fa-receipt user-menu-item-icon"></i> Đơn mua</span>
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </a>
+                                    <a href="#" class="user-menu-item">
+                                        <span><i class="fa-solid fa-gear user-menu-item-icon"></i> Cài đặt</span>
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </nav>
         </header>
 
+        <div class="notification-overlay" id="notification-overlay"></div>
+
         <div class="container body-content">
+
             @RenderBody()
             <hr />
         </div>
     </main>
+
+    <!-- =================================================================== -->
+    <!-- --- HTML CHO MODAL CHI TIẾT SẢN PHẨM --- -->
+    <!-- =================================================================== -->
+    <div class="modal-overlay" id="product-modal-overlay"></div>
+    <div class="product-modal" id="product-modal">
+        <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+        <div class="product-modal-content">
+            <div class="row align-items-center">
+                <!-- Cột ảnh -->
+                <div class="col-md-6">
+                    <img id="modal-product-image" src="" alt="Product Image" class="modal-product-image">
+                </div>
+                <!-- Cột thông tin -->
+                <div class="col-md-6">
+                    <h2 id="modal-product-name" class="modal-product-name">Tên sản phẩm</h2>
+                    <p id="modal-product-price" class="modal-product-price">Giá</p>
+                    <div class="product-modal-meta">
+                        <span><i class="fa-solid fa-star"></i> <span id="modal-product-rating"></span></span>
+                        <span><i class="fa-regular fa-clock"></i> <span id="modal-product-time"></span></span>
+                    </div>
+                    <div class="product-modal-description">
+                        <h5>Mô tả món ăn:</h5>
+                        <p id="modal-product-description">Mô tả chi tiết...</p>
+                    </div>
+                    <a href="#" id="modal-add-to-cart-btn" class="btn-add-to-cart-modal">Thêm vào giỏ hàng</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="site-footer">
         <div class="container">
             <div class="footer-top">
@@ -127,8 +296,13 @@
     @Scripts.Render("~/bundles/jquery")
     <!-- Link Bootstrap JS (sử dụng CDN) -->
     <script>
-        (function ($) {
-            function setupSlidingUnderline() {
+        // Hợp nhất tất cả các script vào một khối $(document).ready()
+        $(document).ready(function () {
+
+            // ===================================================================
+            // --- SCRIPT CHO HIỆU ỨNG GẠCH CHÂN TRƯỢT ---
+            // ===================================================================
+            (function setupSlidingUnderline() {
                 var $nav = $('.navbar .navbar-nav');
                 if (!$nav.length) return;
 
@@ -148,41 +322,30 @@
                 }
 
                 function moveTo($el, withAnimation) {
-                    // Tạm thời tắt hiệu ứng nếu không cần
                     $underline.css('transition', withAnimation ? '' : 'none');
-                    // Áp dụng vị trí mới
                     $underline[0].style.transform = getTargetTransform($el);
-
-                    // Bắt buộc trình duyệt phải "vẽ" lại ở trạng thái không có transition
-                    $underline[0].getBoundingClientRect();
-
-                    // Bật lại hiệu ứng cho các lần tương tác sau
-                    $underline.css('transition', '');
+                    if (!withAnimation) {
+                        $underline[0].getBoundingClientRect();
+                        $underline.css('transition', '');
+                    }
                 }
 
-                // 1. Khi trang tải xong, đặt gạch chân vào vị trí mà KHÔNG có hiệu ứng
                 if ($activeLink.length) {
                     moveTo($activeLink, false);
                 }
 
-                // 2. Xử lý khi nhấp vào một mục menu (CÓ hiệu ứng)
                 $nav.on('click', '.nav-link', function (e) {
                     var $clickedLink = $(this);
-                    var targetUrl = $clickedLink.attr('href');
-
-                    if ($clickedLink.is($activeLink)) {
-                        return;
-                    }
+                    if ($clickedLink.is($activeLink)) return;
 
                     e.preventDefault();
-                    moveTo($clickedLink, true); // Di chuyển với hiệu ứng
+                    moveTo($clickedLink, true);
 
                     setTimeout(function () {
-                        window.location.href = targetUrl;
+                        window.location.href = $clickedLink.attr('href');
                     }, animationDuration);
                 });
 
-                // 3. Điều chỉnh lại vị trí khi thay đổi kích thước cửa sổ (KHÔNG có hiệu ứng)
                 var resizeTimer;
                 $(window).on('resize', function () {
                     clearTimeout(resizeTimer);
@@ -193,13 +356,98 @@
                         }
                     }, 80);
                 });
+            })();
+
+
+            // ===================================================================
+            // --- SCRIPT QUẢN LÝ DROPDOWN HEADER ---
+            // ===================================================================
+            var $overlay = $('#notification-overlay');
+            var $notificationIcon = $('#notification-icon');
+            var $notificationPanel = $('#notification-panel');
+            var $cartIcon = $('#cart-icon');
+            var $cartPanel = $('#cart-panel');
+            var $userAvatarIcon = $('#user-avatar-icon');
+            var $userPanel = $('#user-panel');
+
+            function closeAllDropdowns() {
+                $overlay.fadeOut(200);
+                $notificationPanel.fadeOut(200);
+                $cartPanel.fadeOut(200);
+                $userPanel.fadeOut(200);
+                $notificationIcon.removeClass('active');
+                $cartIcon.removeClass('active');
+                $userAvatarIcon.removeClass('active');
             }
 
-            $(document).ready(setupSlidingUnderline);
+            function toggleDropdown(e, $icon, $panel) {
+                e.preventDefault();
+                e.stopPropagation();
+                var isCurrentlyVisible = $panel.is(':visible');
+                closeAllDropdowns();
+                if (!isCurrentlyVisible) {
+                    $overlay.fadeIn(200);
+                    $panel.fadeIn(200);
+                    $icon.addClass('active');
+                }
+            }
 
-        })(jQuery);
+            $notificationIcon.on('click', function (e) { toggleDropdown(e, $(this), $notificationPanel); });
+            $cartIcon.on('click', function (e) { toggleDropdown(e, $(this), $cartPanel); });
+            $userAvatarIcon.on('click', function (e) { toggleDropdown(e, $(this), $userPanel); });
+
+            $overlay.on('click', closeAllDropdowns);
+            $('.notification-panel, .cart-panel, .user-panel').on('click', function (e) { e.stopPropagation(); });
+
+
+            // ===================================================================
+            // --- SCRIPT CHO MODAL CHI TIẾT SẢN PHẨM ---
+            // ===================================================================
+            var $productModal = $('#product-modal');
+            var $productModalOverlay = $('#product-modal-overlay');
+
+            function openProductModal(data) {
+                var priceNumber = parseFloat(String(data.price).replace(/[^0-9.-]+/g, ""));
+                var formattedPrice = isNaN(priceNumber) ? "N/A" : priceNumber.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+
+                $('#modal-product-image').attr('src', data.image);
+                $('#modal-product-name').text(data.name);
+                $('#modal-product-price').text(formattedPrice);
+                $('#modal-product-rating').text(data.rating + ' (' + data.reviews + ' đánh giá)');
+                $('#modal-product-time').text(data.time);
+                $('#modal-product-description').text(data.description);
+                $('#modal-add-to-cart-btn').data('id', data.id);
+
+                $productModalOverlay.fadeIn(200);
+                $productModal.fadeIn(200);
+            }
+
+            function closeProductModal() {
+                $productModalOverlay.fadeOut(200);
+                $productModal.fadeOut(200);
+            }
+
+            // SỬA LỖI: Gắn sự kiện vào '.body-content' để đảm bảo hoạt động
+            $('.body-content').on('click', '.btn-order', function (e) {
+                e.preventDefault();
+                var $button = $(this);
+                var productData = {
+                    id: $button.data('id'),
+                    name: $button.data('name'),
+                    price: $button.data('price'),
+                    image: $button.data('image'),
+                    description: $button.data('description'),
+                    time: $button.data('time'),
+                    rating: $button.data('rating'),
+                    reviews: $button.data('reviews')
+                };
+                openProductModal(productData);
+            });
+
+            $('#modal-close-btn, #product-modal-overlay').on('click', closeProductModal);
+            $productModal.on('click', function (e) { e.stopPropagation(); });
+        });
     </script>
-
     @RenderSection("scripts", required: false)
 </body>
 </html>
