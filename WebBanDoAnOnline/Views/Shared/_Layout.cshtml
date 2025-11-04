@@ -28,21 +28,21 @@
                         <ul class="navbar-nav">
                             <li class="nav-item">
                                 @Html.ActionLink(
-                                                              "Trang chủ",
-                                                              "Index",
-                                                              "Home",
-                                                              null,
-                                                              new { @class = "nav-link" + ((currentController == "Home" && currentAction == "Index") ? " active" : "") }
-                                                          )
+                                                                   "Trang chủ",
+                                                                   "Index",
+                                                                   "Home",
+                                                                   null,
+                                                                   new { @class = "nav-link" + ((currentController == "Home" && currentAction == "Index") ? " active" : "") }
+                                                               )
                             </li>
                             <li class="nav-item">
                                 @Html.ActionLink(
-                                                              "Thực đơn",
-                                                              "Index",
-                                                              "Menu",
-                                                              null,
-                                                              new { @class = "nav-link" + ((currentController == "Menu" && currentAction == "Index") ? " active" : "") }
-                                                          )
+                                                                   "Thực đơn",
+                                                                   "Index",
+                                                                   "Menu",
+                                                                   null,
+                                                                   new { @class = "nav-link" + ((currentController == "Menu" && currentAction == "Index") ? " active" : "") }
+                                                               )
                             </li>
 
                             <li class="nav-item">
@@ -65,8 +65,8 @@
                     <!-- Khu vực bên phải: giữ ô tìm kiếm + user, bỏ icon/popup thông báo & giỏ hàng -->
                     <div class="d-flex align-items-center header-actions">
                         <div class="search-box me-3">
-                            <input type="text" class="form-control" placeholder="Tìm kiếm món ăn">
-                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="global-search" class="form-control" placeholder="Tìm kiếm món ăn" />
+                            <i class="fa-solid fa-magnifying-glass search-icon" id="global-search-icon"></i>
                         </div>
 
                         @if (Session["TaiKhoan"] != null)
@@ -111,19 +111,19 @@
                         {
                             <div class="header-actions d-flex align-items-center">
                                 @Html.ActionLink(
-                                                     "Đăng nhập",
-                                                     "Login",
-                                                     "TaiKhoan",
-                                                     routeValues: null,
-                                                     htmlAttributes: new { @class = "btn header-btn btn-header-login me-2" }
-                                                     )
+                                                          "Đăng nhập",
+                                                          "Login",
+                                                          "TaiKhoan",
+                                                          routeValues: null,
+                                                          htmlAttributes: new { @class = "btn header-btn btn-header-login me-2" }
+                                                          )
                                 @Html.ActionLink(
-                                                     "Đăng ký",
-                                                     "Register",
-                                                     "TaiKhoan",
-                                                     routeValues: null,
-                                                     htmlAttributes: new { @class = "btn header-btn btn-header-register" }
-                                                     )
+                                                          "Đăng ký",
+                                                          "Register",
+                                                          "TaiKhoan",
+                                                          routeValues: null,
+                                                          htmlAttributes: new { @class = "btn header-btn btn-header-register" }
+                                                          )
                             </div>
                         }
                     </div>
@@ -181,7 +181,10 @@
         <div class="product-modal-content">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <img id="modal-product-image" src="" alt="Product Image" class="modal-product-image">
+                    <div class="modal-img-wrapper">
+                        <img id="modal-product-image" src="" alt="Product Image" class="modal-product-image">
+                        <span id="modal-discount-badge" class="discount-badge discount-badge-lg" style="display:none;"></span>
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <h2 id="modal-product-name" class="modal-product-name">Tên sản phẩm</h2>
@@ -232,7 +235,7 @@
 
     @Scripts.Render("~/bundles/jquery")
 
-    <script>
+<script>
         // Module helper dùng chung
         window.App = (function () {
             function getXsrf() {
@@ -262,11 +265,47 @@
             }
 
             function toCurrency(n) {
-                try { return (n || 0).toLocaleString('vi-VN'); } catch { return String(n || 0); }
+                try { return (n || 0).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }); } catch { return String(n || 0); }
             }
 
             function parseNumber(s) {
-                return parseFloat(String(s).replace(/[^0-9]+/g, '')) || 0;
+                if (s == null) return 0;
+                if (typeof s === 'number') return isFinite(s) ? s : 0;
+
+                var str = String(s).trim();
+                // Bỏ ký tự tiền tệ/khoảng trắng nhưng giữ . , và dấu âm
+                str = str.replace(/[^\d,.\-]/g, '');
+
+                if (str.indexOf(',') > -1 && str.indexOf('.') > -1) {
+                    // Có cả ',' và '.'
+                    if (str.lastIndexOf('.') > str.lastIndexOf(',')) {
+                        // "55,000.00" -> thập phân là '.'
+                        str = str.replace(/,/g, '');
+                    } else {
+                        // "55.000,00" -> thập phân là ','
+                        str = str.replace(/\./g, '').replace(',', '.');
+                    }
+                } else if (str.indexOf(',') > -1) {
+                    // Chỉ có ','
+                    var parts = str.split(',');
+                    if (parts.length > 1 && parts[parts.length - 1].length === 3) {
+                        // nhóm nghìn: "55,000"
+                        str = parts.join('');
+                    } else {
+                        // thập phân: "123,45"
+                        str = str.replace(',', '.');
+                    }
+                } else if (str.indexOf('.') > -1) {
+                    // Chỉ có '.'
+                    var p2 = str.split('.');
+                    if (p2.length > 1 && p2[p2.length - 1].length === 3) {
+                        // nhóm nghìn: "55.000"
+                        str = p2.join('');
+                    }
+                }
+
+                var n = parseFloat(str);
+                return isNaN(n) ? 0 : n;
             }
 
             function showToast(message, type) {
@@ -407,7 +446,7 @@
                 var currentProductPrice = 0;
 
                 function formatCurrency(number) {
-                    return isNaN(number) ? "N/A" : number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+                    try { return (number || 0).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }); } catch { return String(number || 0); }
                 }
 
                 function updateTotalPrice() {
@@ -417,11 +456,29 @@
                 }
 
                 function openProductModal(data) {
-                    currentProductPrice = parseFloat(String(data.price).replace(/[^0-9.-]+/g, ""));
+                    // Đọc dữ liệu giá
+                    var original = App.parseNumber(data.original || data.price || 0);
+                    var sale = App.parseNumber(data.sale || 0);
+                    var onSale = String(data.onsale) === 'true' || data.onsale === true;
+
+                    currentProductPrice = App.parseNumber(data.price || sale || original || 0);
 
                     $('#modal-product-image').attr('src', data.image);
                     $('#modal-product-name').text(data.name);
-                    $('#modal-product-price').text(formatCurrency(currentProductPrice));
+
+                    // Render giá và badge
+                    if (onSale && sale > 0 && original > 0 && sale < original) {
+                        var percent = Math.round((1 - (sale / original)) * 100);
+                        $('#modal-product-price').html('<span class="price-final">' + formatCurrency(sale) + '</span> <span class="price-original">' + formatCurrency(original) + '</span>');
+                        $('#modal-discount-badge').text('-' + percent + '%').show();
+                    } else if (original > 0) {
+                        $('#modal-product-price').html('<span class="price-final">' + formatCurrency(original) + '</span>');
+                        $('#modal-discount-badge').hide();
+                    } else {
+                        $('#modal-product-price').text('Liên hệ');
+                        $('#modal-discount-badge').hide();
+                    }
+
                     $('#modal-product-rating').text(data.rating + ' (' + data.reviews + ' đánh giá)');
                     $('#modal-product-time').text(data.time);
                     $('#modal-product-description').text(data.description);
@@ -449,6 +506,10 @@
                         id: $button.data('id'),
                         name: $button.data('name'),
                         price: $button.data('price'),
+                        original: $button.data('original'),
+                        sale: $button.data('sale'),
+                        onsale: $button.data('onsale'),
+                        discount: $button.data('discount'),
                         image: $button.data('image'),
                         description: $button.data('description'),
                         time: $button.data('time'),
@@ -511,8 +572,31 @@
                     }
                 });
             })();
+    // 6) Global Search: Enter/click icon => /Menu/Search?q=...
+    (function setupGlobalSearch() {
+        var $input = $('#global-search');
+        var $btn = $('#global-search-icon');
+
+        function goSearch() {
+            var q = ($input.val() || '').trim();
+            if (!q) { $input.focus(); return; }
+            window.location = '@Url.Action("Search", "Menu")' + '?q=' + encodeURIComponent(q);
+        }
+
+        $btn.on('click', goSearch);
+        $input.on('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); goSearch(); }
         });
-    </script>
+
+        // Đổ lại query lên ô tìm kiếm khi đang ở trang kết quả
+        try {
+            var qs = new URLSearchParams(window.location.search);
+            var q = qs.get('q');
+            if (q) { $input.val(q); }
+        } catch { /* ignore */ }
+    })();
+        });
+</script>
 
     @RenderSection("scripts", required: false)
     <div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>

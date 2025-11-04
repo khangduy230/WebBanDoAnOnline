@@ -237,6 +237,7 @@
     <Content Include="Views\ThongBao\Index.cshtml" />
     <Content Include="Views\GioHang\Index.cshtml" />
     <Content Include="Views\Menu\_Products.cshtml" />
+    <Content Include="Views\Menu\Search.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

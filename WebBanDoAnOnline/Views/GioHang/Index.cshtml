@@ -26,9 +26,10 @@
         <div class="cart-lines d-flex flex-column gap-3">
             @foreach (var item in Model)
             {
-                var unit = item.Gia;
-                var qty = item.SoLuong > 0 ? item.SoLuong : 1; // tránh dùng ?? với int
-                var lineTotal = unit * qty;
+                var unitFinal = item.GiaApDung > 0 ? item.GiaApDung : item.Gia; // fallback tương thích
+                var unitOriginal = item.GiaGoc;
+                var qty = item.SoLuong > 0 ? item.SoLuong : 1;
+                var lineTotal = unitFinal * qty;
                 var safeNote = item.GhiChu ?? string.Empty;
 
                 <div class="cart-line p-3 border rounded-3 bg-white"
@@ -40,7 +41,19 @@
                             <img src="@Url.Content(item.Anh)" alt="@item.TenSP" class="rounded-circle" width="56" height="56" />
                             <div>
                                 <div class="fw-semibold">@item.TenSP</div>
-                                <div class="text-muted small">@toCur(unit)đ</div>
+                                <div class="text-muted small">
+                                    @if (item.OnSale && unitOriginal > 0 && unitFinal < unitOriginal)
+                                    {
+                                        <span class="price-final">@toCur(unitFinal)đ</span>
+                                        <span class="price-original" style="margin-left:6px;text-decoration:line-through;color:#6c757d;">
+                                            @toCur(unitOriginal)đ
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="price-final">@toCur(unitFinal)đ</span>
+                                    }
+                                </div>
                                 <input class="form-control mt-2 cart-note" value="@safeNote" placeholder="Ghi chú về món ăn" />
                             </div>
                         </div>
@@ -54,7 +67,7 @@
                         </div>
 
                         <div class="col-md-2 text-end">
-                            <span class="cart-price" data-unit="@unit">@toCur(lineTotal)</span> <span>VNĐ</span>
+                            <span class="cart-price" data-unit="@unitFinal">@toCur(lineTotal)</span> <span>VNĐ</span>
                         </div>
 
                         <div class="col-md-2 text-center">
@@ -82,7 +95,12 @@
                 <div class="fw-semibold">
                     Tổng cộng:
                     @{
-                        var total = Model.Sum(x => x.Gia * (x.SoLuong > 0 ? x.SoLuong : 1));
+                        var total = Model.Sum(x =>
+                        {
+                            var unit = x.GiaApDung > 0 ? x.GiaApDung : x.Gia;
+                            var q = x.SoLuong > 0 ? x.SoLuong : 1;
+                            return unit * q;
+                        });
                     }
                     <span id="grandTotal">@toCur(total)</span> VNĐ
                 </div>

@@ -10,15 +10,47 @@
     <div class="row g-4">
         @foreach (var product in sanPhamList)
         {
+            var now = DateTime.Now;
+            var coGiaGoc = product.Gia.HasValue && product.Gia.Value > 0;
+            var coGiaKM = product.GiaKhuyenMai.HasValue && product.GiaKhuyenMai.Value > 0;
+            var trongKhungGio = (!product.NgayBatDauKM.HasValue || product.NgayBatDauKM.Value <= now)
+                                && (!product.NgayKetThucKM.HasValue || product.NgayKetThucKM.Value >= now);
+            var onSale = coGiaGoc && coGiaKM && trongKhungGio && product.GiaKhuyenMai.Value < product.Gia.Value;
+
+            var giaGoc = coGiaGoc ? product.Gia.Value : 0m;
+            var giaApDung = onSale ? product.GiaKhuyenMai.Value : giaGoc;
+            var percent = (onSale && giaGoc > 0m)
+                            ? (int)Math.Round((1 - (double)(product.GiaKhuyenMai.Value / giaGoc)) * 100d)
+                            : 0;
+
             <div class="col-lg-3 col-md-4 col-6">
                 <div class="menu-product-card">
+                    @if (onSale)
+                    {
+                        <span class="discount-badge">-@percent%</span>
+                    }
                     <img src="@Url.Content(product.Anh)" alt="@product.TenSP" class="product-card-img" />
                     <div class="product-card-body">
                         <h5 class="product-card-title">@product.TenSP</h5>
                         <div class="product-card-meta">
                             <span class="product-price">
                                 <i class="fa-solid fa-tags"></i>
-                                @(product.Gia.HasValue ? product.Gia.Value.ToString("N0") + "đ" : "Liên hệ")
+                                @if (coGiaGoc)
+                                {
+                                    if (onSale)
+                                    {
+                                        <span class="price-final">@giaApDung.ToString("N0") đ</span>
+                                        <span class="price-original">@giaGoc.ToString("N0") đ</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="price-final">@giaGoc.ToString("N0") đ</span>
+                                    }
+                                }
+                                else
+                                {
+                                    @:Liên hệ
+                                }
                             </span>
                             <span class="product-time">
                                 <i class="fa-regular fa-clock"></i>
@@ -28,7 +60,11 @@
                         <a href="#" class="btn btn-order"
                            data-id="@product.MaSP"
                            data-name="@product.TenSP"
-                           data-price="@(product.Gia ?? 0)"
+                           data-price="@giaApDung"
+                           data-original="@giaGoc"
+                           data-sale="@(onSale ? (product.GiaKhuyenMai ?? 0m) : 0m)"
+                           data-onsale="@onSale"
+                           data-discount="@percent"
                            data-image="@Url.Content(product.Anh)"
                            data-description="@product.MoTa"
                            data-time="@product.ThoiGianGiao"

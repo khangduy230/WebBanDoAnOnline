@@ -13,24 +13,64 @@ namespace WebBanDoAnOnline.Controllers
 
         private TaiKhoan CurrentUser => Session["TaiKhoan"] as TaiKhoan;
 
+        // Helper: Tính giá áp dụng theo KM và khung thời gian
+        private static decimal GetEffectivePrice(SanPham p, DateTime? now = null)
+        {
+            var n = now ?? DateTime.Now;
+            var giaGoc = p.Gia ?? 0m;
+            var km = p.GiaKhuyenMai ?? 0m;
+
+            var trongKhung =
+                (!p.NgayBatDauKM.HasValue || p.NgayBatDauKM.Value <= n) &&
+                (!p.NgayKetThucKM.HasValue || p.NgayKetThucKM.Value >= n);
+
+            if (giaGoc > 0 && km > 0 && km < giaGoc && trongKhung)
+                return km;
+
+            return giaGoc;
+        }
+
+        private static bool IsOnSale(SanPham p, DateTime? now = null)
+        {
+            var n = now ?? DateTime.Now;
+            var giaGoc = p.Gia ?? 0m;
+            var km = p.GiaKhuyenMai ?? 0m;
+
+            var trongKhung =
+                (!p.NgayBatDauKM.HasValue || p.NgayBatDauKM.Value <= n) &&
+                (!p.NgayKetThucKM.HasValue || p.NgayKetThucKM.Value >= n);
+
+            return giaGoc > 0 && km > 0 && km < giaGoc && trongKhung;
+        }
+
         [Authorize]
         public ActionResult Index()
         {
             var user = CurrentUser;
             if (user == null) return RedirectToAction("Login", "TaiKhoan");
 
-            var model = (from g in db.GioHangs
-                         join p in db.SanPhams on g.MaSP equals p.MaSP
-                         where g.isDelete != 1 && p.isDelete != 1 && g.MaTK == user.MaTK
-                         select new CartLineVM
-                         {
-                             MaSP = p.MaSP,
-                             TenSP = p.TenSP,
-                             Gia = p.Gia ?? 0m,
-                             Anh = p.Anh,
-                             SoLuong = g.SoLuong ?? 1,
-                             GhiChu = g.Extend_Data
-                         }).ToList();
+            var rows = (from g in db.GioHangs
+                        join p in db.SanPhams on g.MaSP equals p.MaSP
+                        where g.isDelete != 1 && p.isDelete != 1 && g.MaTK == user.MaTK
+                        select new { g, p }).ToList();
+
+            var model = rows.Select(x =>
+            {
+                var giaGoc = x.p.Gia ?? 0m;
+                var giaApDung = GetEffectivePrice(x.p);
+                return new CartLineVM
+                {
+                    MaSP = x.p.MaSP,
+                    TenSP = x.p.TenSP,
+                    Gia = giaApDung,           // tương thích cũ
+                    GiaGoc = giaGoc,
+                    GiaApDung = giaApDung,
+                    OnSale = giaApDung < giaGoc,
+                    Anh = x.p.Anh,
+                    SoLuong = x.g.SoLuong ?? 1,
+                    GhiChu = x.g.Extend_Data
+                };
+            }).ToList();
 
             return View(model);
         }
@@ -86,13 +126,11 @@ namespace WebBanDoAnOnline.Controllers
                 var lines = (from g in db.GioHangs
                              join p in db.SanPhams on g.MaSP equals p.MaSP
                              where g.MaTK == user.MaTK && g.isDelete != 1 && p.isDelete != 1
-                             select new { Qty = (g.SoLuong ?? 0), Price = (p.Gia ?? 0m) })
-                             .ToList();
+                             select new { Qty = (g.SoLuong ?? 0), P = p }).ToList();
 
                 var totalQty = lines.Sum(x => x.Qty);
-                var totalAmount = lines.Sum(x => x.Qty * x.Price);
+                var totalAmount = lines.Sum(x => x.Qty * GetEffectivePrice(x.P));
 
-                // Giữ đồng bộ cho lần reload tiếp theo
                 Session["CartCount"] = totalQty;
 
                 return Json(new { ok = true, count = totalQty, total = totalAmount });
@@ -134,15 +172,14 @@ namespace WebBanDoAnOnline.Controllers
 
                 db.SubmitChanges();
 
-                var lines = (from g in db.GioHangs
-                             join p in db.SanPhams on g.MaSP equals p.MaSP
-                             where g.MaTK == user.MaTK && g.isDelete != 1 && p.isDelete != 1
-                             select new { ProductId = p.MaSP, Qty = (g.SoLuong ?? 0), Price = (p.Gia ?? 0m) })
-                             .ToList();
+                var rows = (from g in db.GioHangs
+                            join p in db.SanPhams on g.MaSP equals p.MaSP
+                            where g.MaTK == user.MaTK && g.isDelete != 1 && p.isDelete != 1
+                            select new { ProductId = p.MaSP, Qty = (g.SoLuong ?? 0), P = p }).ToList();
 
-                var totalQty = lines.Sum(x => x.Qty);
-                var totalAmount = lines.Sum(x => x.Qty * x.Price);
-                var unitPrice = lines.FirstOrDefault(x => x.ProductId == productId)?.Price ?? 0m;
+                var totalQty = rows.Sum(x => x.Qty);
+                var totalAmount = rows.Sum(x => x.Qty * GetEffectivePrice(x.P));
+                var unitPrice = GetEffectivePrice(rows.FirstOrDefault(x => x.ProductId == productId)?.P);
                 var lineTotal = unitPrice * quantity;
 
                 Session["CartCount"] = totalQty;
@@ -186,11 +223,10 @@ namespace WebBanDoAnOnline.Controllers
                 var lines = (from g in db.GioHangs
                              join p in db.SanPhams on g.MaSP equals p.MaSP
                              where g.MaTK == user.MaTK && g.isDelete != 1 && p.isDelete != 1
-                             select new { Qty = (g.SoLuong ?? 0), Price = (p.Gia ?? 0m) })
-                             .ToList();
+                             select new { Qty = (g.SoLuong ?? 0), P = p }).ToList();
 
                 var totalQty = lines.Sum(x => x.Qty);
-                var totalAmount = lines.Sum(x => x.Price * x.Qty);
+                var totalAmount = lines.Sum(x => x.Qty * GetEffectivePrice(x.P));
 
                 Session["CartCount"] = totalQty;
 
@@ -210,7 +246,6 @@ namespace WebBanDoAnOnline.Controllers
             var user = CurrentUser;
             if (user != null)
             {
-                // Đếm trực tiếp từ DB để luôn chính xác mỗi lần tải trang
                 count = (from g in db.GioHangs
                          join p in db.SanPhams on g.MaSP equals p.MaSP
                          where g.MaTK == user.MaTK && g.isDelete != 1 && p.isDelete != 1

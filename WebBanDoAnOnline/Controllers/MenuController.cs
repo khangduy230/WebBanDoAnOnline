@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Web.Mvc;
 using WebBanDoAnOnline.Models;
+
 namespace WebBanDoAnOnline.Controllers
 {
     public class MenuController : Controller
@@ -27,7 +28,6 @@ namespace WebBanDoAnOnline.Controllers
 
             if (dmId.HasValue)
             {
-                // đổi "MaDM" nếu FK khác tên
                 query = query.Where(sp => sp.MaDM == dmId.Value);
             }
 
@@ -40,7 +40,7 @@ namespace WebBanDoAnOnline.Controllers
             if (page > totalPages) page = totalPages;
 
             var items = query
-                        .OrderBy(sp => sp.MaSP) // đổi tiêu chí sắp xếp nếu cần
+                        .OrderBy(sp => sp.MaSP)
                         .Skip((page - 1) * pageSize)
                         .Take(pageSize)
                         .ToList();
@@ -89,6 +89,46 @@ namespace WebBanDoAnOnline.Controllers
             ViewBag.TotalPages = totalPages;
 
             return PartialView("_Products");
+        }
+
+        // GET: /Menu/Search?q=tu-khoa&page=1&pageSize=8
+        [HttpGet]
+        public ActionResult Search(string q, int page = 1, int pageSize = 8)
+        {
+            ViewBag.CurrentPage = "Menu";
+            ViewBag.Title = "Kết quả tìm kiếm";
+            ViewBag.Q = q ?? "";
+
+            var query = db.SanPhams
+                          .Where(sp => sp.isDelete != 1 && sp.TrangThai == "Còn hàng");
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var kw = q.Trim();
+                // Có thể thêm điều kiện cho mô tả nếu có cột MoTa
+                query = query.Where(sp => sp.TenSP.Contains(kw));
+            }
+
+            if (pageSize < 1) pageSize = 8;
+            var totalItems = query.Count();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (totalPages == 0) totalPages = 1;
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            var items = query
+                        .OrderBy(sp => sp.MaSP)
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToList();
+
+            ViewBag.SanPhamList = items;
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+
+            return View("Search");
         }
 
         protected override void Dispose(bool disposing)

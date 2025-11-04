@@ -421,6 +421,7 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
+    position: relative; /* để đặt badge giảm giá */
 }
 
     .menu-product-card:hover {
@@ -530,6 +531,12 @@ body {
     height: auto;
     border-radius: 16px;
     object-fit: cover;
+}
+
+/* Bao ảnh trong modal để đặt badge */
+.modal-img-wrapper {
+    position: relative;
+    display: inline-block;
 }
 
 .product-modal-content .modal-product-name {
@@ -927,6 +934,40 @@ body {
         transform: translateX(16px);
     }
 
+/* Giá hiển thị (giảm giá) */
+.price-final {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.price-original {
+    color: #6c757d;
+    text-decoration: line-through;
+    margin-left: 8px;
+    font-weight: 500;
+}
+
+/* Badge giảm giá màu đỏ */
+.discount-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background-color: #DC3545;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    z-index: 2;
+}
+
+.discount-badge-lg {
+    font-size: 1rem;
+    padding: 6px 10px;
+    border-radius: 10px;
+}
+
 /* Responsive: tối ưu header và user panel trên mobile/tablet */
 @media (max-width: 576px) {
     .main-header .navbar-brand,
@@ -980,4 +1021,43 @@ body {
         .user-panel::before {
             right: 16px;
         }
+}
+
+
+
+/* --- Search Result Hero --- */
+.search-hero {
+    background-color: var(--primary-color);
+    color: #fff;
+    border-radius: 12px;
+    padding: 26px 28px;
+    margin: 20px 0 28px;
+}
+
+    .search-hero .search-title {
+        font-weight: 700;
+        font-size: 28px;
+        opacity: 0.95;
+    }
+
+    .search-hero .search-keyword {
+        font-size: 44px;
+        font-weight: 800;
+        margin-top: 6px;
+    }
+
+/* Link xem thêm */
+.search-see-more {
+    color: var(--primary-color);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+    .search-see-more:hover {
+        color: #e0701b;
+    }
+
+/* Cho icon tìm kiếm trên header có thể click */
+.search-box .search-icon {
+    cursor: pointer;
 }
