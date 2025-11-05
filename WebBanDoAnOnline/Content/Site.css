@@ -1061,3 +1061,37 @@ body {
 .search-box .search-icon {
     cursor: pointer;
 }
+
+
+/* --- Checkout Page --- */
+.checkout-page .address-card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    min-width: 260px;
+    max-width: 320px;
+    background: #fff;
+    transition: box-shadow .2s ease, border-color .2s ease;
+}
+
+    .checkout-page .address-card.active,
+    .checkout-page .address-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+
+.checkout-page .addr-title {
+    color: var(--text-color);
+}
+
+.checkout-page .pay-method .btn.active {
+    background-color: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+
+.checkout-page .checkout-line .btn {
+    width: 34px;
+    padding: 4px 0;
+}

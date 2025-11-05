@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Web.Mvc;
 using WebBanDoAnOnline.Models;
+using System.Globalization;   // thêm
+using System.Text;           // thêm
 
 namespace WebBanDoAnOnline.Controllers
 {
@@ -11,27 +13,34 @@ namespace WebBanDoAnOnline.Controllers
             System.Configuration.ConfigurationManager.ConnectionStrings["BanDoAnOnlineConnectionString"].ConnectionString
         );
 
-        // GET: /Menu/Index?dmId=5&page=1&pageSize=8
+        // GET: /Menu?dmId=...&page=1&pageSize=8
+        [HttpGet]
         public ActionResult Index(int? dmId, int page = 1, int pageSize = 8)
         {
             ViewBag.CurrentPage = "Menu";
             ViewBag.Title = "Thực đơn";
 
             // Danh mục
-            ViewBag.DanhMucList = db.DanhMucs
-                                    .Where(d => d.isDelete != 1)
-                                    .ToList();
+            var danhMucList = db.DanhMucs
+                                .Where(dm => dm.isDelete != 1)
+                                .OrderBy(dm => dm.MaDM)
+                                .ToList();
+            ViewBag.DanhMucList = danhMucList;
 
-            // Query sản phẩm
+            if (!dmId.HasValue)
+            {
+                var macDinh = danhMucList.FirstOrDefault(x => x.MacDinh == true);
+                if (macDinh != null) dmId = macDinh.MaDM;
+            }
+            ViewBag.SelectedDMId = dmId;
+
+            // Sản phẩm theo danh mục (nếu có)
             var query = db.SanPhams
                           .Where(sp => sp.isDelete != 1 && sp.TrangThai == "Còn hàng");
+            if (dmId.HasValue) query = query.Where(sp => sp.MaDM == dmId.Value);
 
-            if (dmId.HasValue)
-            {
-                query = query.Where(sp => sp.MaDM == dmId.Value);
-            }
+            query = query.OrderBy(sp => sp.MaSP);
 
-            // Phân trang
             if (pageSize < 1) pageSize = 8;
             var totalItems = query.Count();
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
@@ -39,33 +48,29 @@ namespace WebBanDoAnOnline.Controllers
             if (page < 1) page = 1;
             if (page > totalPages) page = totalPages;
 
-            var items = query
-                        .OrderBy(sp => sp.MaSP)
-                        .Skip((page - 1) * pageSize)
-                        .Take(pageSize)
-                        .ToList();
+            var items = query.Skip((page - 1) * pageSize)
+                             .Take(pageSize)
+                             .ToList();
 
             ViewBag.SanPhamList = items;
-            ViewBag.SelectedDMId = dmId;
-
             ViewBag.Page = page;
             ViewBag.PageSize = pageSize;
             ViewBag.TotalItems = totalItems;
             ViewBag.TotalPages = totalPages;
 
-            return View();
+            return View(); // Views/Menu/Index.cshtml
         }
 
-        // GET (Partial): /Menu/Products?dmId=5&page=2&pageSize=8
-        public PartialViewResult Products(int? dmId, int page = 1, int pageSize = 8)
+        // GET: /Menu/Products?dmId=...&page=1&pageSize=8
+        // Dùng cho Ajax phân trang trong Index.cshtml
+        [HttpGet]
+        public ActionResult Products(int? dmId, int page = 1, int pageSize = 8)
         {
             var query = db.SanPhams
                           .Where(sp => sp.isDelete != 1 && sp.TrangThai == "Còn hàng");
+            if (dmId.HasValue) query = query.Where(sp => sp.MaDM == dmId.Value);
 
-            if (dmId.HasValue)
-            {
-                query = query.Where(sp => sp.MaDM == dmId.Value);
-            }
+            query = query.OrderBy(sp => sp.MaSP);
 
             if (pageSize < 1) pageSize = 8;
             var totalItems = query.Count();
@@ -74,21 +79,35 @@ namespace WebBanDoAnOnline.Controllers
             if (page < 1) page = 1;
             if (page > totalPages) page = totalPages;
 
-            var items = query
-                        .OrderBy(sp => sp.MaSP)
-                        .Skip((page - 1) * pageSize)
-                        .Take(pageSize)
-                        .ToList();
+            var items = query.Skip((page - 1) * pageSize)
+                             .Take(pageSize)
+                             .ToList();
 
             ViewBag.SanPhamList = items;
-            ViewBag.SelectedDMId = dmId;
-
             ViewBag.Page = page;
             ViewBag.PageSize = pageSize;
             ViewBag.TotalItems = totalItems;
             ViewBag.TotalPages = totalPages;
+            ViewBag.SelectedDMId = dmId;
 
             return PartialView("_Products");
+        }
+
+        // Helper: bỏ dấu tiếng Việt + chuẩn hoá so sánh
+        private static string NormalizeVN(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+            var s = input.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder(s.Length);
+            foreach (var ch in s)
+            {
+                var cat = CharUnicodeInfo.GetUnicodeCategory(ch);
+                if (cat != UnicodeCategory.NonSpacingMark)
+                    sb.Append(ch);
+            }
+            var res = sb.ToString().Normalize(NormalizationForm.FormC);
+            res = res.Replace('đ', 'd');
+            return res;
         }
 
         // GET: /Menu/Search?q=tu-khoa&page=1&pageSize=8
@@ -99,28 +118,28 @@ namespace WebBanDoAnOnline.Controllers
             ViewBag.Title = "Kết quả tìm kiếm";
             ViewBag.Q = q ?? "";
 
-            var query = db.SanPhams
-                          .Where(sp => sp.isDelete != 1 && sp.TrangThai == "Còn hàng");
+            var baseQuery = db.SanPhams
+                              .Where(sp => sp.isDelete != 1 && sp.TrangThai == "Còn hàng")
+                              .OrderBy(sp => sp.MaSP);
+
+            var list = baseQuery.ToList();
 
             if (!string.IsNullOrWhiteSpace(q))
             {
-                var kw = q.Trim();
-                // Có thể thêm điều kiện cho mô tả nếu có cột MoTa
-                query = query.Where(sp => sp.TenSP.Contains(kw));
+                var kw = NormalizeVN(q);
+                list = list.Where(sp => NormalizeVN(sp.TenSP).Contains(kw)).ToList();
             }
 
             if (pageSize < 1) pageSize = 8;
-            var totalItems = query.Count();
+            var totalItems = list.Count;
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             if (totalPages == 0) totalPages = 1;
             if (page < 1) page = 1;
             if (page > totalPages) page = totalPages;
 
-            var items = query
-                        .OrderBy(sp => sp.MaSP)
-                        .Skip((page - 1) * pageSize)
-                        .Take(pageSize)
-                        .ToList();
+            var items = list.Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToList();
 
             ViewBag.SanPhamList = items;
             ViewBag.Page = page;

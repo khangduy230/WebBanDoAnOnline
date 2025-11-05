@@ -1,0 +1,12 @@
+﻿@{
+    ViewBag.Title = "Đặt hàng thành công";
+    var orderId = (int?)ViewBag.OrderId ?? 0;
+}
+<div class="container my-5 text-center">
+    <h2 class="fw-bold text-success mb-3">Đặt hàng thành công!</h2>
+    @if (orderId > 0)
+    {
+        <p>Mã đơn hàng của bạn: <strong>#@orderId</strong></p>
+    }
+    <a class="btn btn-dark mt-3" href="@Url.Action("Index","Home")">Về Trang chủ</a>
+</div>

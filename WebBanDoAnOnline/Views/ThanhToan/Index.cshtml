@@ -1,0 +1,229 @@
+﻿@model WebBanDoAnOnline.Models.TrangThanhToanVM
+@{
+    ViewBag.Title = "Thanh toán";
+    Func<decimal, string> toVnd = n => n.ToString("#,0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) + "đ";
+}
+
+<div class="checkout-page container my-4">
+    <h2 class="fw-bold mb-3">Thanh toán</h2>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-location-dot text-warning me-2"></i>Địa chỉ giao hàng</h5>
+                    <div class="d-flex flex-wrap gap-3">
+                        @if (!Model.DanhSachDiaChi.Any())
+                        {
+                            <div class="alert alert-warning w-100 mt-2" role="alert">
+                                Bạn chưa có địa chỉ giao hàng. Hãy thêm địa chỉ trước khi thanh toán.
+                            </div>
+                        }
+                        @foreach (var dc in Model.DanhSachDiaChi)
+                        {
+                            var active = Model.MaDiaChiDaChon == dc.MaDiaChi;
+                            <label class="address-card @(active ? "active" : "")">
+                                <input type="radio" name="address" class="d-none address-radio" value="@dc.MaDiaChi" @(active ? "checked" : "") />
+                                <div class="addr-title fw-semibold">@dc.DiaChiCuThe</div>
+                                <div class="addr-sub text-muted small">@dc.TenNguoiNhan - @dc.SDTNhan</div>
+                            </label>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-wallet text-warning me-2"></i>Lựa chọn phương thức thanh toán</h5>
+                    <div class="d-flex gap-3 pay-method">
+                        <button type="button" class="btn btn-outline-warning btn-pay @(Model.PhuongThucThanhToan == "COD" ? "active" : "")" data-method="COD">
+                            <i class="fa-solid fa-money-bill-1-wave me-2"></i>Tiền mặt
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-pay @(Model.PhuongThucThanhToan == "BANK" ? "active" : "")" data-method="BANK">
+                            <i class="fa-solid fa-building-columns me-2"></i>Ngân hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-ticket text-warning me-2"></i>Voucher giảm giá</h5>
+                    <div class="d-flex" style="max-width:520px;">
+                        <input id="voucher-input" class="form-control" placeholder="GIAM30 (đơn từ 100.000đ)" />
+                        <button id="btn-apply-voucher" class="btn btn-warning ms-2"><i class="fa-solid fa-angle-right"></i></button>
+                    </div>
+                    <div id="voucher-msg" class="text-muted small mt-2"></div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3"><i class="fa-regular fa-pen-to-square text-warning me-2"></i>Ghi chú</h5>
+                    <textarea id="note-input" class="form-control" rows="3" placeholder="Nhập ghi chú của bạn tại đây">@Model.GhiChu</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 90px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5 class="fw-bold">Giỏ hàng</h5>
+                        <div class="text-muted small">@Model.DanhSach.Count món</div>
+                    </div>
+
+                    <div id="checkout-lines" class="d-flex flex-column gap-3 mb-3">
+                        @foreach (var it in Model.DanhSach)
+                        {
+                            <div class="checkout-line" data-id="@it.MaSP" data-unit="@it.DonGia" data-notes="@it.GhiChu">
+                                <div class="d-flex align-items-start justify-content-between">
+                                    <div>
+                                        <div class="fw-semibold">@it.TenSP</div>
+                                        <div class="text-muted small">@toVnd(it.DonGia)</div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button class="btn btn-outline-secondary btn-sm btn-qty" data-delta="-1">-</button>
+                                        <span class="line-qty">@it.SoLuong</span>
+                                        <button class="btn btn-outline-secondary btn-sm btn-qty" data-delta="1">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr />
+                    <div class="small text-muted mb-1">Thông tin đơn hàng</div>
+                    <div class="d-flex justify-content-between small"><span>Giá trị đơn hàng</span><span id="sum-subtotal">@toVnd(Model.TongTienHang)</span></div>
+                    <div class="d-flex justify-content-between small"><span>Phí giao hàng (≈3.7km)</span><span id="sum-shipping">@toVnd(Model.PhiGiaoHang)</span></div>
+                    <div class="d-flex justify-content-between small"><span>Phụ phí</span><span id="sum-service">@toVnd(Model.PhuPhi)</span></div>
+                    <div class="d-flex justify-content-between small text-success"><span>Giảm giá</span><span id="sum-discount">@toVnd(Model.GiamGia)</span></div>
+
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fw-bold">Tổng đơn hàng</div>
+                            <div id="sum-grand" class="fw-bold text-warning">@toVnd(Model.TongThanhToan)</div>
+                        </div>
+                    </div>
+
+                    <button id="btn-place-order" class="btn btn-warning w-100 mt-3">Thanh toán</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+(function(){
+    var App = window.App;
+    function toVnd(n){ return App.toCurrency(n); }
+    function parseNum(s){ return App.parseNumber(s); }
+
+    var payMethod = "@Model.PhuongThucThanhToan";
+    var shipping = @Model.PhiGiaoHang;
+    var service  = @Model.PhuPhi;
+    var discount = 0;
+    var subtotal = @Model.TongTienHang;
+
+    function recalcFromDom(){
+        subtotal = 0;
+        document.querySelectorAll('#checkout-lines .checkout-line').forEach(function(el){
+            var unit = parseFloat(el.getAttribute('data-unit'))||0;
+            var qty = parseInt(el.querySelector('.line-qty').textContent)||1;
+            subtotal += unit * qty;
+        });
+        document.getElementById('sum-subtotal').textContent = toVnd(subtotal);
+        document.getElementById('sum-discount').textContent = toVnd(discount);
+        document.getElementById('sum-grand').textContent = toVnd(Math.max(0, subtotal + shipping + service - discount));
+    }
+
+    $('.address-card').on('click', function(){
+        $('.address-card').removeClass('active');
+        $(this).addClass('active');
+        $(this).find('input[type=radio]').prop('checked', true);
+    });
+
+    $('.btn-pay').on('click', function(){
+        $('.btn-pay').removeClass('active');
+        $(this).addClass('active');
+        payMethod = $(this).data('method');
+    });
+
+    $('#checkout-lines').on('click', '.btn-qty', async function(){
+        var $line = $(this).closest('.checkout-line');
+        var qtyEl = $line.find('.line-qty');
+        var cur = parseInt(qtyEl.text())||1;
+        var delta = parseInt($(this).data('delta'))||0;
+        var next = Math.max(1, cur + delta);
+        if (next === cur) return;
+
+        qtyEl.text(next);
+        recalcFromDom();
+
+        try {
+            var res = await App.postForm('@Url.Action("UpdateQuantity","GioHang")', {
+                productId: parseInt($line.data('id')),
+                notes: String($line.data('notes')||''),
+                quantity: next
+            });
+            if (!res || !res.ok){
+                qtyEl.text(cur);
+                recalcFromDom();
+                App.showToast((res && res.message) ? res.message : 'Cập nhật số lượng thất bại', 'error');
+                return;
+            }
+            if (res.count != null) App.setBadge('cart-badge', res.count);
+        } catch(e){
+            qtyEl.text(cur);
+            recalcFromDom();
+            App.showToast('Có lỗi mạng khi cập nhật số lượng', 'error');
+        }
+    });
+
+    $('#btn-apply-voucher').on('click', async function(e){
+        e.preventDefault();
+        var code = ($('#voucher-input').val()||'').trim();
+        try{
+            var res = await App.postForm('@Url.Action("ApplyVoucher","ThanhToan")', { code: code, subtotal: subtotal });
+            if (res && res.ok){
+                discount = Math.max(0, res.discount || 0);
+                $('#voucher-msg').text(discount > 0 ? ('Đã áp dụng mã, giảm ' + toVnd(discount)) : 'Không đủ điều kiện hoặc mã không hợp lệ.');
+                recalcFromDom();
+            }else{
+                $('#voucher-msg').text((res && res.message) ? res.message : 'Áp dụng thất bại.');
+            }
+        }catch{
+            $('#voucher-msg').text('Áp dụng thất bại.');
+        }
+    });
+
+    $('#btn-place-order').on('click', async function(){
+        var addrId = parseInt($('.address-radio:checked').val());
+        if (!addrId){ App.showToast('Hãy chọn địa chỉ giao hàng', 'error'); return; }
+
+        var note = ($('#note-input').val()||'').trim();
+        var code = ($('#voucher-input').val()||'').trim();
+
+        try{
+            var res = await App.postForm('@Url.Action("PlaceOrder","ThanhToan")', {
+                addressId: addrId,
+                payMethod: payMethod,
+                note: note,
+                voucherCode: code
+            });
+            if (res && res.requireLogin){ window.location = '@Url.Action("Login","TaiKhoan")'; return; }
+            if (res && res.ok){
+                App.setBadge('cart-badge', 0);
+                window.location = res.redirect || '@Url.Action("Success","ThanhToan")';
+            }else{
+                App.showToast((res && res.message) ? res.message : 'Đặt hàng thất bại.', 'error');
+            }
+        }catch{
+            App.showToast('Đặt hàng thất bại.', 'error');
+        }
+    });
+
+    recalcFromDom();
+})();
+    </script>
+}

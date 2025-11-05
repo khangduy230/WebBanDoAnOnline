@@ -141,6 +141,7 @@
       <DependentUpon>BanDoAnOnlineDataContext.dbml</DependentUpon>
     </Compile>
     <Compile Include="Models\CartLineVM.cs" />
+    <Compile Include="Models\ThanhToanVM.cs" />
     <Compile Include="Models\TaiKhoanViewModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -238,11 +239,12 @@
     <Content Include="Views\GioHang\Index.cshtml" />
     <Content Include="Views\Menu\_Products.cshtml" />
     <Content Include="Views\Menu\Search.cshtml" />
+    <Content Include="Views\ThanhToan\Index.cshtml" />
+    <Content Include="Views\ThanhToan\Success.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="img\" />
-    <Folder Include="Views\ThanhToan\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
