@@ -1,0 +1,145 @@
+﻿@{
+    ViewBag.Title = "Cập nhật Người dùng";
+    
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 text-warning fw-bold">Cập nhật thông tin</h5>
+        </div>
+        <div class="card-body">
+            <form id="form-user-edit">
+                <!-- ID ẩn, tên là txt_MaTK_hide để khớp Controller -->
+                <input type="hidden" id="txt_MaTK_hide" name="txt_MaTK_hide" value="@ViewBag.MaTK" />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Họ và tên</label>
+                            <input type="text" class="form-control" name="txt_HoTen" id="txt_HoTen" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tên tài khoản</label>
+                            <input type="text" class="form-control bg-light" name="txt_TenTK" id="txt_TenTK" readonly />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="txt_Email" id="txt_Email" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="tel" class="form-control" name="txt_SoDienThoai" id="txt_SoDienThoai" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Vai trò</label>
+                                <select name="slc_VaiTro" id="slc_VaiTro" class="form-select">
+                                    <option value="QuanLy">Quản lý</option>
+                                    <option value="NhanVien">Nhân viên</option>
+                                    <option value="KhachHang">Khách hàng</option>
+                                </select>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Trạng thái</label>
+                                <select name="slc_TrangThai" id="slc_TrangThai" class="form-select">
+                                    <option value="HoatDong">Hoạt động</option>
+                                    <option value="BiKhoa">Bị khóa</option>
+                                </select>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="mb-3">
+                            <label class="form-label">Đổi mật khẩu (Bỏ trống nếu không đổi)</label>
+                            <input type="password" class="form-control" name="txt_MatKhau" id="txt_MatKhau" placeholder="Nhập mật khẩu mới..." />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Xác nhận mật khẩu mới</label>
+                            <input type="password" class="form-control" id="txt_MatKhau_Confirm" />
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="@Url.Action("LayNguoiDung", "NguoiDung")" class="btn btn-secondary">Hủy</a>
+                    <button type="button" id="btn_capnhat" class="btn btn-warning text-white">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var userId = '@ViewBag.MaTK';
+
+    // 1. Load thông tin cũ
+    function loadInfo() {
+        var formData = new FormData();
+        formData.append('id', userId);
+
+        $.ajax({
+            type: "POST",
+            url: window.location.origin + '/NguoiDung/LayTTNguoiDung',
+            data: formData,
+            processData: false, contentType: false, cache: false,
+            success: function (res) {
+                var u = JSON.parse(res);
+                if (!u.MaTK) { alert("Không tìm thấy user"); return; }
+
+                // Điền dữ liệu
+                $("#txt_HoTen").val(u.HoTen);
+                $("#txt_TenTK").val(u.TenTK);
+                $("#txt_Email").val(u.Email);
+                $("#txt_SoDienThoai").val(u.SoDienThoai);
+
+                // MAP DỮ LIỆU DB (Tiếng Việt) -> SELECT OPTION (Mã)
+                // DB: "Quản lý" -> Select: "QuanLy"
+                var role = "KhachHang";
+                if (u.VaiTro === "Quản lý") role = "QuanLy";
+                else if (u.VaiTro === "Nhân viên") role = "NhanVien";
+                $("#slc_VaiTro").val(role);
+
+                // DB: "Hoạt động" -> Select: "HoatDong"
+                var status = (u.TrangThai === "Bị khóa") ? "BiKhoa" : "HoatDong";
+                $("#slc_TrangThai").val(status);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        if (userId) loadInfo();
+
+        $("#btn_capnhat").click(function () {
+        var email = $("#txt_Email").val();
+        var phone = $("#txt_SoDienThoai").val();
+
+        if (!email.includes("@@")) { alert("Email không hợp lệ"); return; }
+        var phoneRegex = /^\d{9,11}$/;
+        if (!phoneRegex.test(phone)) { alert("Số điện thoại không hợp lệ"); return; }
+
+        var pass = $("#txt_MatKhau").val();
+        var rePass = $("#txt_MatKhau_Confirm").val();
+        if (pass !== "" && pass !== rePass) { alert("Mật khẩu xác nhận không khớp!"); return; }
+
+        var form = $('#form-user-edit')[0];
+        var formData = new FormData(form);
+
+        $.ajax({
+            type: "POST",
+            url: window.location.origin + '/NguoiDung/Update',
+            data: formData,
+            processData: false, contentType: false, cache: false,
+            success: function (res) {
+                alert(res);
+                if (res.toLowerCase().includes("thành công")) {
+                    window.location.href = '@Url.Action("LayNguoiDung", "NguoiDung")';
+                }
+            },
+            error: function () { alert("Lỗi kết nối server."); }
+            });
+        });
+    });
+</script>

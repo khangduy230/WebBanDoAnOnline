@@ -1,0 +1,219 @@
+﻿@{
+    ViewBag.Title = "Quản lý Danh mục";
+    
+}
+
+<div class="container-fluid py-4">
+    <!-- Header của trang -->
+    <div class="row mb-3">
+        <div class="col-sm-6">
+            <h3 class="mb-0">Quản lý Danh mục</h3>
+        </div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+                <li class="breadcrumb-item"><a href="~/SanPham/LaySanPham">Quay lại</a></li>
+                
+            </ol>
+        </div>
+    </div>
+
+    <!-- Form để Thêm/Sửa -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 id="form_title" class="mb-0">Thêm mới Danh mục</h5>
+        </div>
+        <div class="card-body">
+            <!-- Input ẩn để lưu MaDM khi đang ở chế độ Sửa -->
+            <input type="hidden" id="hide_MaDM" value="" />
+
+            <div class="mb-3">
+                <label for="txt_TenDM" class="form-label">Tên danh mục</label>
+                <input type="text" class="form-control" id="txt_TenDM" placeholder="Nhập tên danh mục...">
+            </div>
+
+            <button type="button" id="btn_Luu" class="btn btn-primary">Lưu</button>
+            <button type="button" id="btn_Huy" class="btn btn-secondary" style="display: none;">Hủy</button>
+        </div>
+    </div>
+
+    <!-- Bảng hiển thị danh sách -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Danh sách hiện có</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">STT</th>
+                        <th>Tên Danh mục</th>
+                        <th style="width: 20%;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="tbl_danhmuc_body">
+                    <!-- Dữ liệu sẽ được nạp vào đây bằng AJAX -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+    var url_domain = window.location.origin;
+
+    // ----- CÁC HÀM XỬ LÝ GIAO DIỆN -----
+
+    // Hàm reset form về trạng thái thêm mới ban đầu
+    function resetForm() {
+        $("#hide_MaDM").val(""); // Xóa ID đang sửa
+        $("#txt_TenDM").val(""); // Xóa text
+        $("#form_title").text("Thêm mới Danh mục"); // Đặt lại tiêu đề
+        $("#btn_Huy").hide(); // Ẩn nút Hủy
+        $("#txt_TenDM").focus();
+    }
+
+    // Hàm chuẩn bị form cho việc sửa
+    function prepareEditForm(maDM, tenDM) {
+        $("#hide_MaDM").val(maDM); // Gán ID vào input ẩn
+        $("#txt_TenDM").val(tenDM); // Gán tên vào ô text
+        $("#form_title").text("Cập nhật Danh mục: " + tenDM); // Đổi tiêu đề
+        $("#btn_Huy").show(); // Hiện nút Hủy
+
+        // Cuộn lên đầu trang để người dùng thấy form
+        $('html, body').animate({ scrollTop: 0 }, 'slow');
+        $("#txt_TenDM").focus();
+    }
+
+
+    // ----- CÁC HÀM GỌI API BẰNG AJAX -----
+
+    // Hàm tải và hiển thị danh sách danh mục
+    function loadCategories() {
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/DanhMuc/Lay_DSDM',
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function (response) {
+                if (response.charAt(0) !== '[') {
+                    $("#tbl_danhmuc_body").html(`<tr><td colspan="3" class="text-center">${response}</td></tr>`);
+                    return;
+                }
+                var categories = JSON.parse(response);
+                var tableBody = $("#tbl_danhmuc_body");
+                tableBody.empty(); // Xóa dữ liệu cũ
+
+                if (categories.length === 0) {
+                     tableBody.html(`<tr><td colspan="3" class="text-center">Chưa có danh mục nào.</td></tr>`);
+                     return;
+                }
+
+                categories.forEach(function (cat, index) {
+                    var row = `<tr>
+                                 <td>${index + 1}</td>
+                                 <td>${cat.TenDM}</td>
+                                 <td>
+                                     <button class="btn btn-warning btn-sm btn-sua" data-id="${cat.MaDM}" data-name="${cat.TenDM}">Sửa</button>
+                                     <button class="btn btn-danger btn-sm btn-xoa" data-id="${cat.MaDM}">Xóa</button>
+                                 </td>
+                               </tr>`;
+                    tableBody.append(row);
+                });
+            },
+            error: function (err) {
+                console.log("Lỗi tải danh mục:", err);
+                alert("Không thể tải danh sách danh mục.");
+            }
+        });
+    }
+
+    // ----- GÁN SỰ KIỆN CHO CÁC NÚT BẤM -----
+
+    $(document).ready(function () {
+        // Tải danh sách ngay khi trang được mở
+        loadCategories();
+
+        // Sự kiện khi nhấn nút "Hủy"
+        $("#btn_Huy").on('click', function () {
+            resetForm();
+        });
+
+        // Sự kiện khi nhấn nút "Lưu"
+        $("#btn_Luu").on('click', function () {
+            var maDM = $("#hide_MaDM").val();
+            var tenDM = $("#txt_TenDM").val();
+
+            var url_api = "";
+            var formData = new FormData();
+            formData.append("tenDM", tenDM);
+
+            // Quyết định gọi API Thêm hay Sửa
+            if (maDM) {
+                // Nếu có maDM -> đây là chế độ Sửa
+                url_api = url_domain + '/DanhMuc/SuaDM';
+                formData.append("maDM", maDM);
+            } else {
+                // Nếu không có maDM -> đây là chế độ Thêm
+                url_api = url_domain + '/DanhMuc/ThemDM';
+            }
+
+            $.ajax({
+                type: "POST",
+                url: url_api,
+                data: formData,
+                processData: false,
+                contentType: false,
+                cache: false,
+                success: function (response) {
+                    alert(response);
+                    // Nếu thành công, làm mới danh sách và reset form
+                    if (response.toLowerCase().includes("thành công")) {
+                        loadCategories();
+                        resetForm();
+                    }
+                },
+                error: function (err) {
+                     console.log("Lỗi:", err);
+                     alert("Thao tác thất bại.");
+                }
+            });
+        });
+
+        // Gán sự kiện cho các nút "Sửa" và "Xóa" trên bảng
+        // Phải dùng cách này vì các nút này được tạo ra sau khi trang đã tải
+        $('#tbl_danhmuc_body').on('click', '.btn-sua', function () {
+            var maDM = $(this).data('id');
+            var tenDM = $(this).data('name');
+            prepareEditForm(maDM, tenDM);
+        });
+
+        $('#tbl_danhmuc_body').on('click', '.btn-xoa', function () {
+            var maDM = $(this).data('id');
+            if (confirm("Bạn có chắc chắn muốn xóa danh mục này không?")) {
+                 var formData = new FormData();
+                 formData.append("maDM", maDM);
+                 $.ajax({
+                    type: "POST",
+                    url: url_domain + '/DanhMuc/XoaDM',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    cache: false,
+                    success: function (response) {
+                        alert(response);
+                        if (response.toLowerCase().includes("thành công")) {
+                            loadCategories();
+                        }
+                    },
+                    error: function (err) {
+                        console.log("Lỗi:", err);
+                        alert("Xóa thất bại.");
+                    }
+                });
+            }
+        });
+    });
+</script>

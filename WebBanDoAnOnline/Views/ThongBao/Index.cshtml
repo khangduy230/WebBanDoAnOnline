@@ -1,34 +1,122 @@
-﻿@model IEnumerable<WebBanDoAnOnline.Models.ThongBao>
-@{
-    ViewBag.Title = "Thông báo";
+﻿@{
+    ViewBag.Title = "Tất cả thông báo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<section class="container my-4">
-    <h2 class="fw-bold mb-4">Thông báo</h2>
-
-    <div class="d-flex flex-column gap-3">
-        @foreach (var n in Model)
-        {
-            <div class="p-3 rounded-3 bg-light border d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-start gap-3">
-                    <div class="text-secondary fs-3"><i class="fas fa-bell"></i></div>
-                    <div>
-                        <div class="fw-semibold @(n.IsRead ? "text-secondary" : "text-dark")">@n.Title</div>
-                        <div class="text-muted small">@n.Subtitle</div>
-                    </div>
-                </div>
-                <div>
-                    <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index","ThongBao")#@n.MaTB">Xem chi tiết</a>
-                </div>
-            </div>
-        }
+<div class="container my-4">
+    <!-- 1. Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-uppercase">Thông báo của bạn</h4>
+        <!-- Nút này mặc định ẩn, có dữ liệu mới hiện -->
+        <button id="btn-mark-all" onclick="danhDauTatCa()" class="btn btn-sm btn-outline-primary" style="display:none">
+            <i class="fas fa-check-double"></i> Đánh dấu đã đọc
+        </button>
     </div>
 
-    <div class="text-end mt-4">
-        @using (Html.BeginForm("MarkAllAsRead", "ThongBao", FormMethod.Post))
-        {
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-warning">Đánh dấu đã đọc tất cả</button>
-        }
+    <!-- 2. Chỗ chứa danh sách (HTML rỗng, chờ JS điền vào) -->
+    <div class="accordion shadow-sm" id="accordionThongBao">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Đang tải dữ liệu...</p>
+        </div>
     </div>
-</section>
+</div>
+
+<!-- 3. JAVASCRIPT (Vẽ giao diện) -->
+<script>
+    $(document).ready(function () {
+        loadDanhSachThongBao();
+    });
+
+    function loadDanhSachThongBao() {
+        // Lấy tham số openId trên URL (Ví dụ: ?openId=10)
+        const urlParams = new URLSearchParams(window.location.search);
+        const openId = urlParams.get('openId'); // Lấy ID cần mở
+
+        $.get("/ThongBao/GetAllThongBaoJson", function (res) {
+            if (res.success) {
+                var htmlStr = "";
+
+                // Nếu không có dữ liệu
+                if (res.data.length === 0) {
+                    $("#accordionThongBao").html('<div class="text-center p-5 bg-white border rounded"><p class="text-muted">Bạn chưa có thông báo nào.</p></div>');
+                    return;
+                }
+
+                // Hiện nút đánh dấu tất cả
+                $("#btn-mark-all").show();
+
+                // Vòng lặp vẽ HTML
+                $.each(res.data, function (i, item) {
+                    // Logic kiểm tra ID trên URL để mở tự động
+                    // Lưu ý: item.MaTB là số, openId lấy từ URL là chuỗi, nên dùng == để so sánh tương đối
+                    var isOpening = (openId && item.MaTB == openId);
+
+                    // Logic màu sắc
+                    var mauNenHeader = item.DaDoc ? "bg-white" : "bg-warning-subtle";
+                    var iconClass = item.DaDoc ? "text-secondary" : "text-warning";
+
+                    // Logic class mở rộng của Bootstrap
+                    var showClass = isOpening ? "show" : "";       // Class để hiện nội dung
+                    var collapsedClass = isOpening ? "" : "collapsed"; // Class để xoay mũi tên
+                    var expandedAttr = isOpening ? "true" : "false";
+
+                    // Template String (Dấu huyền)
+                    htmlStr += `
+                    <div class="accordion-item border-0 border-bottom">
+                        <h2 class="accordion-header" id="heading-${item.MaTB}">
+                            <button class="accordion-button ${collapsedClass} ${mauNenHeader}"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapse-${item.MaTB}"
+                                    aria-expanded="${expandedAttr}"
+                                    onclick="danhDauDaDoc1Tin(${item.MaTB}, this)">
+                                <div class="d-flex align-items-center w-100">
+                                    <i class="fas fa-bell fs-5 me-3 icon-chuong ${iconClass}"></i>
+                                    <div>
+                                        <div class="fw-bold text-dark">${item.TieuDe}</div>
+                                        <small class="text-muted">${item.ThoiGian}</small>
+                                    </div>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse-${item.MaTB}" class="accordion-collapse collapse ${showClass}" data-bs-parent="#accordionThongBao">
+                            <div class="accordion-body bg-light">
+                                <p><strong>Chi tiết:</strong></p>
+                                <p>${item.NoiDung || 'Không có nội dung chi tiết.'}</p>
+                                <div class="text-end mt-2">
+                                    <span class="badge bg-secondary">Mã tin: #${item.MaTB}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+                // Gắn HTML vào giao diện
+                $("#accordionThongBao").html(htmlStr);
+            }
+        });
+    }
+
+    // --- CÁC HÀM XỬ LÝ CLICK GIỮ NGUYÊN ---
+
+    function danhDauDaDoc1Tin(id, element) {
+        var btn = $(element);
+        if (btn.hasClass('bg-white')) return; // Đã đọc rồi thì thôi
+
+        // Gọi server
+        $.post('/ThongBao/MarkAsRead', { id: id });
+
+        // Đổi màu giao diện ngay lập tức
+        btn.removeClass('bg-warning-subtle').addClass('bg-white');
+        btn.find('.icon-chuong').removeClass('text-warning').addClass('text-secondary');
+    }
+
+    function danhDauTatCa() {
+        if (!confirm("Đánh dấu tất cả là đã đọc?")) return;
+        $.post('/ThongBao/MarkAllRead', function (res) {
+            // Vì load bằng Ajax nên chỉ cần gọi lại hàm load là xong, không cần reload trang
+            loadDanhSachThongBao();
+        });
+    }
+</script>

@@ -8,12 +8,64 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     @Styles.Render("~/Content/css")
+
+    <style>
+        /* --- CSS CHO LAYOUT --- */
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Container bao ngoài cùng */
+        .auth-layout {
+            display: flex;
+            height: 100vh; /* Full chiều cao màn hình */
+            width: 100%;
+            overflow: hidden; /* Tránh thanh cuộn thừa */
+        }
+
+        /* Panel chứa Ảnh (Bên trái) */
+        .auth-image-panel {
+            flex: 1.2; /* Chiếm khoảng 55-60% màn hình */
+            /* Thay link ảnh món ăn của bạn vào đây */
+            background: url('https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
+            background-size: cover;
+            position: relative;
+        }
+        /* Lớp phủ màu tối lên ảnh để dịu mắt */
+        .auth-image-panel::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.2);
+        }
+
+        /* Panel chứa Form (Bên phải) */
+        .auth-form-panel {
+            flex: 1; /* Chiếm phần còn lại */
+            background-color: #f4f6f9; /* Màu nền xám nhẹ */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Căn giữa dọc */
+            align-items: center;     /* Căn giữa ngang */
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Responsive: Trên mobile thì ẩn ảnh đi */
+        @@media (max-width: 768px) {
+            .auth-image-panel { display: none; }
+            .auth-form-panel { flex: 1; width: 100%; }
+        }
+    </style>
 </head>
 <body>
-    
+
     <div class="auth-layout">
+        <!-- Panel Ảnh -->
         <div class="auth-image-panel"></div>
 
+        <!-- Panel Form: RenderBody sẽ nhét cái Card trắng vào giữa đây -->
         <div class="auth-form-panel">
             @RenderBody()
         </div>
@@ -21,22 +73,12 @@
 
     @Scripts.Render("~/bundles/jquery")
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        $(document).ready(function () {
-            // Dùng .on() để áp dụng cho cả 2 nút (nếu có)
-            $('.auth-form-panel').on('click', '.toggle-password', function () {
-                $(this).toggleClass('fa-eye fa-eye-slash');
-                var input = $(this).prev('input'); 
-                if (input.attr('type') === 'password') {
-                    input.attr('type', 'text');
-                } else {
-                    input.attr('type', 'password');
-                }
-            });
-        });
-    </script>
-    
+
+    <!--
+        ĐÃ XÓA đoạn script toggle-password ở đây
+        để tránh xung đột với script riêng của từng trang Login/Register
+    -->
+
     @RenderSection("scripts", required: false)
 </body>
 </html>

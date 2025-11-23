@@ -1,0 +1,294 @@
+﻿@{
+    ViewBag.Title = "Quản lý sản phẩm";
+    
+}
+
+<style>
+    /* CSS mượn từ trang Khách hàng để đồng bộ giao diện */
+    .category-item-special {
+        background-color: #ffc107 !important;
+        color: #000 !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+
+    .category-item-circle {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+        .category-item-circle:hover img {
+            transform: scale(1.1);
+            border-color: #ffc107 !important;
+        }
+
+    .product-card {
+        transition: transform 0.3s;
+    }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+
+    .pagination .page-item.active .page-link {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: black;
+    }
+
+    .pagination .page-link {
+        color: #333;
+    }
+
+    /* CSS riêng cho nút Admin */
+    .admin-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 5px;
+        opacity: 0; /* Ẩn mặc định */
+        transition: opacity 0.3s;
+    }
+
+    .product-card:hover .admin-actions {
+        opacity: 1; /* Hiện khi hover */
+    }
+</style>
+
+<main class="container-fluid py-4">
+    <!-- Header: Tiêu đề và Nút Thêm Mới -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="mb-0 fw-bold">Quản lý Sản phẩm</h3>
+            <div class="text-muted small">Danh sách món ăn trong hệ thống</div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="position-relative">
+                <input id="txt_search" class="form-control rounded-pill ps-4" style="width:250px;" placeholder="Tìm món ăn..." />
+                <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            </div>
+            <a href="@Url.Action("ThemSanPham", "SanPham")" class="btn btn-warning rounded-pill fw-bold px-3">
+                <i class="fas fa-plus me-1"></i> Thêm món
+            </a>
+            <a href="@Url.Action("SuaDanhMuc", "DanhMuc")" class="btn btn-outline-secondary rounded-pill fw-bold px-3">
+                <i class="fas fa-list me-1"></i> Danh mục
+            </a>
+        </div>
+    </div>
+
+    <!-- Khu vực Danh mục (Style giống Khách hàng) -->
+    <div class="menu-categories-container mb-4">
+        <div id="menu-categories" class="d-flex overflow-auto gap-3 pb-2 px-1" style="scrollbar-width: thin;">
+            <!-- JS sẽ điền danh mục vào đây -->
+            <div class="spinner-border text-warning spinner-border-sm" role="status"></div>
+        </div>
+    </div>
+
+    <!-- Lưới sản phẩm -->
+    <div id="product_grid" class="row g-4">
+        <!-- JS sẽ điền sản phẩm vào đây -->
+    </div>
+
+    <!-- Phân trang -->
+    <div id="pagination" class="d-flex justify-content-center mt-5"></div>
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var url_domain = window.location.origin;
+    var activeCategoryId = null;
+    var currentPage = 1;
+
+    // Hàm định dạng tiền tệ
+    function formatCurrency(n) {
+        return isNaN(n) ? "0 đ" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+    }
+
+    $(document).ready(function () {
+        // 1. Tải danh mục trước
+        loadCategories();
+
+        // 2. Tải tất cả sản phẩm
+        loadProducts(null, "", 1);
+
+        // 3. Tìm kiếm (delay 500ms)
+        var searchTimeout;
+        $("#txt_search").on("keyup", function () {
+            var keyword = $(this).val();
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function () {
+                loadProducts(activeCategoryId, keyword, 1);
+            }, 500);
+        });
+    });
+
+    // --- HÀM 1: TẢI DANH MỤC ---
+    function loadCategories() {
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/DanhMuc/Lay_DSDM',
+            processData: false, contentType: false, cache: false,
+            success: function (res) {
+                var cats = (typeof res === 'string') ? JSON.parse(res) : res;
+                var container = $("#menu-categories");
+                container.empty();
+
+                // Thêm nút "Tất cả"
+                var allActive = (activeCategoryId === null) ? 'category-item-special bg-warning text-white' : 'bg-white border text-dark';
+                container.append(`
+                    <a href="javascript:void(0)" onclick="changeCategory(null)"
+                       class="${allActive} d-flex align-items-center gap-2 p-2 px-3 rounded-pill text-decoration-none shadow-sm" style="min-width: fit-content;">
+                       <i class="fas fa-utensils"></i> <span class="fw-bold">Tất cả</span>
+                    </a>
+                `);
+
+                cats.forEach(c => {
+                    var isActive = (c.MaDM == activeCategoryId);
+                    var imgUrl = c.Anh ? url_domain + c.Anh.replace('~/', '/') : "https://via.placeholder.com/40";
+
+                    // Style item
+                    var itemClass = isActive
+                        ? 'category-item-special d-flex align-items-center gap-2 p-2 rounded-pill bg-warning text-white text-decoration-none'
+                        : 'category-item-circle text-center text-decoration-none text-dark';
+
+                    var contentHtml = isActive
+                        ? `<img src="${imgUrl}" class="rounded-circle" style="width:30px; height:30px; object-fit:cover;"> <span class="fw-bold">${c.TenDM}</span>`
+                        : `<div class="mb-1"><img src="${imgUrl}" class="rounded-circle border" style="width:50px; height:50px; object-fit:cover;"></div><span class="small fw-bold">${c.TenDM}</span>`;
+
+                    var html = `<a href="javascript:void(0)" onclick="changeCategory(${c.MaDM})" class="${itemClass} mx-1" style="min-width: fit-content;">${contentHtml}</a>`;
+                    container.append(html);
+                });
+            }
+        });
+    }
+
+    // --- HÀM 2: ĐỔI DANH MỤC ---
+    function changeCategory(id) {
+        activeCategoryId = id;
+        $("#txt_search").val(""); // Reset tìm kiếm
+        loadCategories(); // Vẽ lại để cập nhật trạng thái active
+        loadProducts(id, "", 1);
+    }
+
+    // --- HÀM 3: TẢI SẢN PHẨM (ADMIN) ---
+    function loadProducts(maDM, searchTerm, page) {
+        currentPage = page;
+        var formData = new FormData();
+        if (maDM) formData.append('maDM', maDM);
+        formData.append('searchTerm', searchTerm || "");
+        formData.append('page', page);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/SanPham/Lay_Menu', // Dùng chung API lấy menu
+            data: formData, processData: false, contentType: false, cache: false,
+            success: function (res) {
+                var data = (typeof res === 'string') ? JSON.parse(res) : res;
+                var products = data.Products;
+                var grid = $("#product_grid");
+                grid.empty();
+
+                if (!products || products.length === 0) {
+                    grid.html('<div class="col-12 text-center py-5 text-muted"><h5>Không có món ăn nào.</h5></div>');
+                    $("#pagination").html("");
+                    return;
+                }
+
+                products.forEach(function (p) {
+                    var imgUrl = p.Anh ? url_domain + p.Anh.replace('~/', '/') : "https://via.placeholder.com/300x200";
+
+                    var html = `
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="card h-100 shadow-sm border-0 product-card position-relative">
+        
+                                <!-- Phần ảnh và thông tin (Click vào để xem chi tiết nếu muốn) -->
+                                <a href="${url_domain}/SanPham/SuaSanPham/${p.MaSP}" class="text-decoration-none text-dark">
+                                    <div style="position: relative; overflow: hidden; border-radius: 8px 8px 0 0;">
+                                        <img src="${imgUrl}" class="card-img-top" style="height:180px; object-fit:cover;" alt="${p.TenSP}" />
+                
+                                        <!-- Badge ID nằm trên ảnh -->
+                                        <span class="position-absolute top-0 start-0 bg-white text-muted border small m-2 px-2 rounded">
+                                            #${p.MaSP}
+                                        </span>
+                                    </div>
+                                    <div class="card-body text-center p-2">
+                                        <h6 class="card-title fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
+                                        <p class="card-text text-danger fw-bold mb-2">${formatCurrency(p.Gia)}</p>
+                                    </div>
+                                </a>
+
+                                <!-- Phần Footer chứa nút bấm Admin (HIỆN RÕ RÀNG) -->
+                                <div class="card-footer bg-white border-top-0 d-flex justify-content-center gap-2 pb-3">
+                                    <a href="${url_domain}/SanPham/SuaSanPham/${p.MaSP}" class="btn btn-sm btn-warning text-white fw-bold px-3">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger fw-bold px-3" onclick="Del_confirm(${p.MaSP})">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>`;
+                    grid.append(html);
+                });
+
+                // Vẽ phân trang
+                taoPhanTrang(data.TotalPages, data.CurrentPage);
+            },
+            error: function (err) {
+                console.log("Lỗi tải sản phẩm:", err);
+            }
+        });
+    }
+
+    // --- HÀM 4: XÓA SẢN PHẨM ---
+    function Del_confirm(id) {
+        if (confirm("Bạn chắc chắn muốn xóa món ăn này?")) {
+            var formData = new FormData();
+            formData.append('id', id);
+
+            $.ajax({
+                type: "POST",
+                url: url_domain + '/SanPham/Delete',
+                data: formData, processData: false, contentType: false,
+                success: function (res) {
+                    alert(res);
+                    // Load lại trang hiện tại
+                    loadProducts(activeCategoryId, $("#txt_search").val(), currentPage);
+                },
+                error: function () { alert("Lỗi kết nối server."); }
+            });
+        }
+    }
+
+    // --- HÀM 5: PHÂN TRANG ---
+    function taoPhanTrang(totalPages, currentPage) {
+        if (totalPages <= 1) { $("#pagination").html(''); return; }
+
+        var html = `<nav><ul class="pagination shadow-sm">`;
+        // Previous
+        var prevClass = (currentPage === 1) ? "disabled" : "";
+        html += `<li class="page-item ${prevClass}">
+                    <a class="page-link" href="javascript:void(0)" onclick="loadProducts(activeCategoryId, $('#txt_search').val(), ${currentPage - 1})">&laquo;</a>
+                 </li>`;
+
+        // Numbers
+        for (let i = 1; i <= totalPages; i++) {
+            var activeClass = (i === currentPage) ? "active" : "";
+            html += `<li class="page-item ${activeClass}">
+                        <a class="page-link" href="javascript:void(0)" onclick="loadProducts(activeCategoryId, $('#txt_search').val(), ${i})">${i}</a>
+                     </li>`;
+        }
+
+        // Next
+        var nextClass = (currentPage === totalPages) ? "disabled" : "";
+        html += `<li class="page-item ${nextClass}">
+                    <a class="page-link" href="javascript:void(0)" onclick="loadProducts(activeCategoryId, $('#txt_search').val(), ${currentPage + 1})">&raquo;</a>
+                 </li>`;
+
+        html += `</ul></nav>`;
+        $("#pagination").html(html);
+    }
+</script>

@@ -1,0 +1,105 @@
+﻿@{
+    ViewBag.Title = "Thêm mới Người dùng";
+    
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 text-primary fw-bold">Thêm mới tài khoản</h5>
+        </div>
+        <div class="card-body">
+            <!-- Form thêm mới -->
+            <form id="form-add-user">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="txt_HoTen" id="txt_HoTen" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tên tài khoản <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="txt_TenTK" id="txt_TenTK" placeholder="Viết liền không dấu" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="txt_Email" id="txt_Email" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="tel" class="form-control" name="txt_SoDienThoai" id="txt_SoDienThoai" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" name="txt_MatKhau" id="txt_MatKhau" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="txt_MatKhau_Confirm" required />
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Vai trò</label>
+                                <!-- Value ở đây sẽ được Controller map sang DB -->
+                                <select name="slc_VaiTro" id="slc_VaiTro" class="form-select">
+                                    <option value="QuanLy">Quản lý</option>
+                                    <option value="NhanVien" selected>Nhân viên</option>
+                                    <option value="KhachHang">Khách hàng</option>
+                                </select>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Trạng thái</label>
+                                <select name="slc_TrangThai" id="slc_TrangThai" class="form-select">
+                                    <option value="HoatDong" selected>Hoạt động</option>
+                                    <option value="BiKhoa">Bị khóa</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="@Url.Action("LayNguoiDung", "NguoiDung")" class="btn btn-secondary">Quay lại</a>
+                    <button type="button" id="btn_them" class="btn btn-success">Lưu lại</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $("#btn_them").click(function () {
+    var email = $("#txt_Email").val();
+    var phone = $("#txt_SoDienThoai").val();
+    var pass = $("#txt_MatKhau").val();
+    var rePass = $("#txt_MatKhau_Confirm").val();
+
+    // Validate Client
+    if (!email.includes("@@")) { alert("Email không hợp lệ"); return; }
+
+    // Regex số điện thoại (chỉ số, 9-11 ký tự)
+    var phoneRegex = /^\d{9,11}$/;
+    if (!phoneRegex.test(phone)) { alert("Số điện thoại phải là số và có 9-11 ký tự"); return; }
+
+    if (pass !== rePass) { alert("Mật khẩu xác nhận không khớp!"); return; }
+
+    var form = $('#form-add-user')[0];
+    var formData = new FormData(form);
+
+    $.ajax({
+        type: "POST",
+        url: window.location.origin + '/NguoiDung/Insert',
+        data: formData,
+        processData: false, contentType: false, cache: false,
+        success: function (res) {
+            alert(res);
+            if (res.toLowerCase().includes("thành công")) {
+                window.location.href = '@Url.Action("LayNguoiDung", "NguoiDung")';
+            }
+        },
+        error: function () { alert("Lỗi kết nối server."); }
+    });
+</script>

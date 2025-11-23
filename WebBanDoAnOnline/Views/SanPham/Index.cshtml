@@ -1,0 +1,301 @@
+﻿@{
+    ViewBag.Title = "Thực đơn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* CSS tùy chỉnh cho Category active đẹp hơn */
+    .category-item-special {
+        background-color: #ffc107 !important; /* Màu vàng */
+        color: #000 !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+
+    .category-item-circle:hover img {
+        transform: scale(1.1);
+        transition: transform 0.3s;
+        border-color: #ffc107 !important;
+    }
+    /* CSS cho phân trang */
+    .pagination .page-item.active .page-link {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: black;
+    }
+
+    .pagination .page-link {
+        color: #333;
+    }
+</style>
+
+<!-- Khu vực Danh mục -->
+<div class="menu-categories-container mb-4 mt-3">
+    <div class="container">
+        <h3 class="mb-3 fw-bold border-bottom pb-2">Danh mục món ăn</h3>
+        <!-- ID này sẽ được JS điền dữ liệu vào -->
+        <div id="menu-categories" class="menu-categories d-flex overflow-auto gap-3 pb-2" style="scrollbar-width: thin;">
+            <!-- Các danh mục sẽ được nạp vào đây bằng JavaScript -->
+            <div class="spinner-border text-warning" role="status"><span class="visually-hidden">Loading...</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Khu vực Sản phẩm -->
+<div id="products-container" class="container mb-5">
+    <!-- Lưới sản phẩm -->
+    <div id="product_grid" class="row g-3">
+        <!-- Các thẻ sản phẩm sẽ được nạp vào đây bằng JavaScript -->
+    </div>
+
+    <!-- Thanh phân trang -->
+    <div id="pagination" class="d-flex justify-content-center mt-5"></div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+    var url_domain = window.location.origin;
+    var activeCategoryId = null;
+    var currentPage = 1;
+
+    $(document).ready(function () {
+        // 1. Lấy tham số từ khóa trên URL (nếu có)
+        const urlParams = new URLSearchParams(window.location.search);
+        const kwParam = urlParams.get('searchTerm');
+
+        // 2. Kết nối input tìm kiếm ở Layout
+        var searchInput = $("#global-search");
+
+        // 3. Bắt sự kiện gõ phím ở ô tìm kiếm (Live Search)
+        var searchTimeout;
+        searchInput.on("keyup", function () {
+            var keyword = $(this).val();
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function () {
+                // Khi người dùng tự gõ -> Reset danh mục về null để tìm toàn cục
+                activeCategoryId = null;
+                $(".category-item-special").removeClass("category-item-special bg-warning text-white").addClass("category-item-circle");
+                loadProducts(null, keyword, 1);
+            }, 500);
+        });
+
+        // --- QUAN TRỌNG: PHÂN LUỒNG XỬ LÝ ---
+        if (kwParam) {
+            // TRƯỜNG HỢP A: Đang tìm kiếm từ trang khác chuyển sang
+            searchInput.val(kwParam); // Điền lại từ khóa vào ô input
+            activeCategoryId = null;  // Không chọn danh mục nào cả
+
+            // Gọi hàm load danh mục nhưng tham số là FALSE (nghĩa là chỉ vẽ ra thôi, đừng load sản phẩm mặc định)
+            loadCategories(false);
+
+            // Load ngay sản phẩm theo từ khóa
+            loadProducts(null, kwParam, 1);
+        } else {
+            // TRƯỜNG HỢP B: Vào trang bình thường
+            // Tham số TRUE (nghĩa là load xong danh mục thì load luôn sản phẩm mặc định)
+            loadCategories(true);
+        }
+    });
+
+    // --- HÀM 1: TẢI DANH MỤC (Đã sửa thêm tham số autoLoadProducts) ---
+    function loadCategories(autoLoadProducts) {
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/DanhMuc/Lay_DSDM', // Hoặc '/SanPham/Lay_Menu' tùy code controller bạn
+            contentType: false,
+            processData: false,
+            cache: false,
+            success: function (res) {
+                var cats = (typeof res === 'string') ? JSON.parse(res) : res;
+                var container = $("#menu-categories");
+                container.empty();
+
+                // Nếu là chế độ Tự động (không phải đang tìm kiếm) thì mới set Active mặc định
+                if (autoLoadProducts && activeCategoryId === null && cats.length > 0) {
+                    var defaultCat = cats.find(c => c.MacDinh == true) || cats[0];
+                    activeCategoryId = defaultCat.MaDM;
+                }
+
+                cats.forEach(c => {
+                    var isActive = (c.MaDM == activeCategoryId);
+                    var imgUrl = c.Anh ? url_domain + c.Anh.replace('~/', '/') : "https://via.placeholder.com/100";
+
+                    // CSS class dựa trên trạng thái active
+                    var itemClass = isActive
+                        ? 'category-item-special d-flex align-items-center gap-2 p-2 rounded-pill bg-warning text-white text-decoration-none'
+                        : 'category-item-circle text-center text-decoration-none text-dark';
+
+                    var contentHtml = isActive
+                        ? `<img src="${imgUrl}" alt="${c.TenDM}" class="rounded-circle" style="width:40px; height:40px; object-fit:cover;">
+                           <span class="fw-bold">${c.TenDM}</span>`
+                        : `<div class="category-image mb-1">
+                                <img src="${imgUrl}" alt="${c.TenDM}" class="rounded-circle border" style="width:60px; height:60px; object-fit:cover;">
+                           </div>
+                           <span class="category-name small fw-bold">${c.TenDM}</span>`;
+
+                    var html = `<a href="javascript:void(0)" onclick="changeCategory(${c.MaDM})" class="${itemClass}" style="min-width: fit-content;">${contentHtml}</a>`;
+                    container.append(html);
+                });
+
+                // CHỈ tải sản phẩm mặc định nếu cờ autoLoadProducts = true
+                if (autoLoadProducts) {
+                    loadProducts(activeCategoryId, "");
+                }
+            },
+            error: function (err) {
+                console.log("Lỗi tải danh mục:", err);
+            }
+        });
+    }
+
+    // --- HÀM 2: ĐỔI DANH MỤC KHI CLICK ---
+    function changeCategory(id) {
+        activeCategoryId = id;
+        // Xóa từ khóa tìm kiếm khi bấm vào danh mục (để trải nghiệm tốt hơn)
+        $("#global-search").val("");
+
+        // Gọi lại loadCategories(false) để cập nhật lại CSS (cái nào vàng, cái nào trắng)
+        // Nhưng ta cần loadProducts ngay sau đó
+        loadCategories(false);
+
+        // Gọi API lấy sản phẩm theo danh mục mới
+        loadProducts(id, "", 1);
+    }
+
+    // --- HÀM 3: TẢI SẢN PHẨM (Giữ nguyên) ---
+    function loadProducts(maDM, searchTerm, page = 1) {
+        currentPage = page;
+        var finalSearchTerm = searchTerm || "";
+
+        var formData = new FormData();
+        // Nếu maDM null (đang tìm kiếm toàn cục) thì không gửi maDM
+        if (maDM) formData.append('maDM', maDM);
+        formData.append('searchTerm', finalSearchTerm);
+        formData.append('page', page);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/SanPham/Lay_Menu',
+            data: formData,
+            processData: false,
+            contentType: false,
+            cache: false,
+            beforeSend: function () {
+                $("#product_grid").html('<div class="text-center w-100 mt-5"><div class="spinner-border text-warning" role="status"></div></div>');
+            },
+            success: function (res) {
+                var data = (typeof res === 'string') ? JSON.parse(res) : res;
+                var products = data.Products;
+                var grid = $("#product_grid");
+                grid.empty();
+
+                if (!products || products.length === 0) {
+                    grid.html('<div class="col-12 text-center py-5 text-muted"><h5>Không tìm thấy món ăn nào phù hợp.</h5></div>');
+                    $("#pagination").html("");
+                    return;
+                }
+
+                products.forEach(function (p) {
+                    var imgUrl = p.Anh ? url_domain + p.Anh.replace('~/', '/') : "https://via.placeholder.com/300x200";
+                    var html = `
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card h-100 shadow-sm border-0 product-card">
+                            <a href="${url_domain}/SanPham/LayTTSP/${p.MaSP}" class="text-decoration-none text-dark">
+                                <div style="position: relative; overflow: hidden;">
+                                    <img src="${imgUrl}" class="card-img-top" style="height:180px; object-fit:cover; transition: 0.3s;" alt="${p.TenSP}" />
+                                </div>
+                                <div class="card-body text-center p-2">
+                                    <h6 class="card-title fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
+                                    <p class="card-text text-danger fw-bold mb-2">${formatCurrency(p.Gia)}</p>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-transparent border-0 text-center pb-3 pt-0">
+                                <button class="btn btn-outline-warning btn-sm rounded-pill w-100 fw-bold" onclick="addToCart(${p.MaSP})">
+                                    <i class="fa fa-shopping-cart"></i> Thêm
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+                    grid.append(html);
+                });
+
+                // Vẽ phân trang
+                taoPhanTrang(data.TotalPages, data.CurrentPage);
+            },
+            error: function (err) {
+                console.log("Lỗi tải sản phẩm:", err);
+                $("#product_grid").html('<div class="text-center text-danger">Lỗi kết nối server.</div>');
+            }
+        });
+    }
+
+    // --- HÀM 4: FORMAT TIỀN (Giữ nguyên) ---
+    function formatCurrency(n) {
+        return isNaN(n) ? "0 đ" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+    }
+
+    // --- HÀM 5: PHÂN TRANG (Giữ nguyên logic cũ nhưng cập nhật biến truyền vào) ---
+    function taoPhanTrang(totalPages, currentPage) {
+        if (totalPages <= 1) { $("#pagination").html(''); return; }
+
+        var kword = $("#global-search").val() || "";
+        // Nếu đang tìm kiếm thì catId phải là null để controller hiểu là tìm toàn cục
+        var catIdParam = activeCategoryId ? activeCategoryId : "null";
+        var kwordSafe = kword.replace(/'/g, "\\'");
+
+        var html = `<nav aria-label="Page navigation"><ul class="pagination shadow-sm">`;
+
+        // Nút Previous
+        var prevClass = (currentPage === 1) ? "disabled" : "";
+        html += `<li class="page-item ${prevClass}">
+                    <a class="page-link" href="javascript:void(0)" onclick="loadProducts(${catIdParam}, '${kwordSafe}', ${currentPage - 1})">&laquo;</a>
+                 </li>`;
+
+        // Số trang
+        for (let i = 1; i <= totalPages; i++) {
+            var activeClass = (i === currentPage) ? "active" : "";
+            html += `<li class="page-item ${activeClass}">
+                        <a class="page-link" href="javascript:void(0)" onclick="loadProducts(${catIdParam}, '${kwordSafe}', ${i})">${i}</a>
+                     </li>`;
+        }
+
+        // Nút Next
+        var nextClass = (currentPage === totalPages) ? "disabled" : "";
+        html += `<li class="page-item ${nextClass}">
+                    <a class="page-link" href="javascript:void(0)" onclick="loadProducts(${catIdParam}, '${kwordSafe}', ${currentPage + 1})">&raquo;</a>
+                 </li>`;
+
+        html += `</ul></nav>`;
+        $("#pagination").html(html);
+    }
+
+    // --- HÀM 6: THÊM VÀO GIỎ HÀNG (Gọi API GioHang/AddToCart) ---
+    function addToCart(id) {
+        // Tạo form data để gửi dữ liệu
+        var formData = new FormData();
+        formData.append('productId', id); // Khớp với Request["productId"] bên GioHangController
+        formData.append('quantity', 1);   // Mặc định thêm 1
+        formData.append('notes', '');     // Ghi chú rỗng
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/GioHang/AddToCart', // Gọi sang Controller Giỏ Hàng
+            data: formData,
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function (response) {
+                // Controller trả về chuỗi thông báo (string)
+                alert(response);
+
+                // Nếu bạn có icon giỏ hàng trên Header cần cập nhật số lượng, 
+                // hãy gọi hàm cập nhật đó ở đây. Ví dụ: updateCartCount();
+            },
+            error: function (err) {
+                console.log(err);
+                alert("Có lỗi xảy ra khi thêm vào giỏ hàng.");
+            }
+        });
+    }
+</script>

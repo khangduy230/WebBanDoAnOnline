@@ -4,8 +4,11 @@
       <Column Name="MaCTDH" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="MaDH" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="MaSP" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="TenSP" Type="System.String" DbType="NVarChar(150) NOT NULL" CanBeNull="false" />
       <Column Name="SoLuong" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="DonGia" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="DonGia" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
+      <Column Name="ThanhTien" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
+      <Column Name="GhiChu" Type="System.String" DbType="NVarChar(500)" CanBeNull="true" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
@@ -19,10 +22,16 @@
     <Type Name="Voucher">
       <Column Name="MaVoucher" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="TenVoucher" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
+      <Column Name="MaCode" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
       <Column Name="LoaiGiam" Type="System.String" DbType="NVarChar(10) NOT NULL" CanBeNull="false" />
       <Column Name="GiaTri" Type="System.Decimal" DbType="Decimal(10,2) NOT NULL" CanBeNull="false" />
+      <Column Name="DieuKienToiThieu" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="NgayBatDau" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="NgayKetThuc" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="SoLuotDungToiDa" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SoLuotDaSuDung" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="SoLuotConLai" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="MoTaThem" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
@@ -36,14 +45,17 @@
       <Column Name="MaDG" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="MaTK" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="MaSP" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="SoSao" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="MaDH" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SoSao" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="BinhLuan" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
       <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
-      <Association Name="TaiKhoan_DanhGia" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
+      <Association Name="DonHang_DanhGia" Member="DonHang" ThisKey="MaDH" OtherKey="MaDH" Type="DonHang" IsForeignKey="true" />
       <Association Name="SanPham_DanhGia" Member="SanPham" ThisKey="MaSP" OtherKey="MaSP" Type="SanPham" IsForeignKey="true" />
+      <Association Name="TaiKhoan_DanhGia" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.DanhMuc" Member="DanhMucs">
@@ -66,7 +78,7 @@
       <Column Name="MaTK" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="TenNguoiNhan" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
       <Column Name="SDTNhan" Type="System.String" DbType="NVarChar(15)" CanBeNull="true" />
-      <Column Name="DiaChiCuThe" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
+      <Column Name="DiaChiCuThe" Type="System.String" DbType="NVarChar(500)" CanBeNull="true" />
       <Column Name="MacDinh" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
@@ -83,16 +95,21 @@
       <Column Name="MaTK" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="MaDiaChi" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="MaVoucher" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="TongTien" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="TongTienSanPham" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
+      <Column Name="TienGiamGia" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="TongTien" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
       <Column Name="PhuongThucTT" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
       <Column Name="TrangThai" Type="System.String" DbType="NVarChar(30)" CanBeNull="true" />
+      <Column Name="GhiChu" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
       <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="DonHang_ChiTietDonHang" Member="ChiTietDonHangs" ThisKey="MaDH" OtherKey="MaDH" Type="ChiTietDonHang" />
+      <Association Name="DonHang_DanhGia" Member="DanhGias" ThisKey="MaDH" OtherKey="MaDH" Type="DanhGia" />
       <Association Name="DonHang_LichSuTrangThai" Member="LichSuTrangThais" ThisKey="MaDH" OtherKey="MaDH" Type="LichSuTrangThai" />
+      <Association Name="DonHang_ThuChi" Member="ThuChis" ThisKey="MaDH" OtherKey="MaDH" Type="ThuChi" />
       <Association Name="DiaChi_DonHang" Member="DiaChi" ThisKey="MaDiaChi" OtherKey="MaDiaChi" Type="DiaChi" IsForeignKey="true" />
       <Association Name="Voucher_DonHang" Member="Voucher" ThisKey="MaVoucher" OtherKey="MaVoucher" Type="Voucher" IsForeignKey="true" />
       <Association Name="TaiKhoan_DonHang" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
@@ -104,22 +121,25 @@
       <Column Name="MaTK" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="MaSP" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="SoLuong" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="GhiChu" Type="System.String" DbType="NVarChar(500)" CanBeNull="true" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
       <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
-      <Association Name="TaiKhoan_GioHang" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
       <Association Name="SanPham_GioHang" Member="SanPham" ThisKey="MaSP" OtherKey="MaSP" Type="SanPham" IsForeignKey="true" />
+      <Association Name="TaiKhoan_GioHang" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.LichSuTrangThai" Member="LichSuTrangThais">
     <Type Name="LichSuTrangThai">
       <Column Name="MaLichSu" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="MaDH" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="TrangThai" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="TrangThaiCu" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="TrangThaiMoi" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
       <Column Name="ThoiGian" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="MaNhanVien" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="GhiChu" Type="System.String" DbType="NVarChar(500)" CanBeNull="true" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
@@ -129,15 +149,60 @@
       <Association Name="TaiKhoan_LichSuTrangThai" Member="TaiKhoan" ThisKey="MaNhanVien" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
     </Type>
   </Table>
+  <Table Name="dbo.NganSach" Member="NganSaches">
+    <Type Name="NganSach">
+      <Column Name="MaNganSach" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="TenNganSach" Type="System.String" DbType="NVarChar(200) NOT NULL" CanBeNull="false" />
+      <Column Name="SoTienDuKien" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
+      <Column Name="SoTienThucTe" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="Thang" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Nam" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="MoTa" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.SanPham" Member="SanPhams">
+    <Type Name="SanPham">
+      <Column Name="MaSP" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="MaDM" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="TenSP" Type="System.String" DbType="NVarChar(150) NOT NULL" CanBeNull="false" />
+      <Column Name="MoTa" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="Gia" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="GiaKhuyenMai" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="NgayBatDauKM" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="NgayKetThucKM" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Anh" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="ThoiGianGiao" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="TrangThai" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
+      <Column Name="DiemDanhGia" Type="System.Double" DbType="Float" CanBeNull="true" />
+      <Column Name="SoLuotDanhGia" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Association Name="SanPham_ChiTietDonHang" Member="ChiTietDonHangs" ThisKey="MaSP" OtherKey="MaSP" Type="ChiTietDonHang" />
+      <Association Name="SanPham_DanhGia" Member="DanhGias" ThisKey="MaSP" OtherKey="MaSP" Type="DanhGia" />
+      <Association Name="SanPham_GioHang" Member="GioHangs" ThisKey="MaSP" OtherKey="MaSP" Type="GioHang" />
+      <Association Name="DanhMuc_SanPham" Member="DanhMuc" ThisKey="MaDM" OtherKey="MaDM" Type="DanhMuc" IsForeignKey="true" />
+    </Type>
+  </Table>
   <Table Name="dbo.TaiKhoan" Member="TaiKhoans">
     <Type Name="TaiKhoan">
       <Column Name="MaTK" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="HoTen" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
       <Column Name="SoDienThoai" Type="System.String" DbType="NVarChar(15) NOT NULL" CanBeNull="false" />
       <Column Name="Email" Type="System.String" DbType="NVarChar(200) NOT NULL" CanBeNull="false" />
-      <Column Name="TenTK" Type="System.String" DbType="NVarChar(15) NOT NULL" CanBeNull="false" />
-      <Column Name="MatKhau" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
+      <Column Name="TenTK" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="MatKhau" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
       <Column Name="VaiTro" Type="System.String" DbType="NVarChar(20) NOT NULL" CanBeNull="false" />
+      <Column Name="TrangThai" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
+      <Column Name="AnhDaiDien" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="NgayGiaNhap" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
@@ -148,7 +213,27 @@
       <Association Name="TaiKhoan_DonHang" Member="DonHangs" ThisKey="MaTK" OtherKey="MaTK" Type="DonHang" />
       <Association Name="TaiKhoan_GioHang" Member="GioHangs" ThisKey="MaTK" OtherKey="MaTK" Type="GioHang" />
       <Association Name="TaiKhoan_LichSuTrangThai" Member="LichSuTrangThais" ThisKey="MaTK" OtherKey="MaNhanVien" Type="LichSuTrangThai" />
+      <Association Name="TaiKhoan_ThuChi" Member="ThuChis" ThisKey="MaTK" OtherKey="MaNguoiThucHien" Type="ThuChi" />
       <Association Name="TaiKhoan_ThongBao" Member="ThongBaos" ThisKey="MaTK" OtherKey="MaTK" Type="ThongBao" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ThuChi" Member="ThuChis">
+    <Type Name="ThuChi">
+      <Column Name="MaThuChi" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="LoaiGiaoDich" Type="System.String" DbType="NVarChar(20) NOT NULL" CanBeNull="false" />
+      <Column Name="DanhMucGiaoDich" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
+      <Column Name="SoTien" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
+      <Column Name="MoTa" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="MaNguoiThucHien" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="MaDH" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="NgayGiaoDich" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
+      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Association Name="DonHang_ThuChi" Member="DonHang" ThisKey="MaDH" OtherKey="MaDH" Type="DonHang" IsForeignKey="true" />
+      <Association Name="TaiKhoan_ThuChi" Member="TaiKhoan" ThisKey="MaNguoiThucHien" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.ThongBao" Member="ThongBaos">
@@ -160,31 +245,6 @@
       <Column Name="IsRead" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
       <Column Name="CreatedAt" Type="System.DateTime" DbType="DateTime2 NOT NULL" CanBeNull="false" />
       <Association Name="TaiKhoan_ThongBao" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.SanPham" Member="SanPhams">
-    <Type Name="SanPham">
-      <Column Name="MaSP" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="MaDM" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="TenSP" Type="System.String" DbType="NVarChar(150) NOT NULL" CanBeNull="false" />
-      <Column Name="MoTa" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
-      <Column Name="Gia" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
-      <Column Name="Anh" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
-      <Column Name="ThoiGianGiao" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
-      <Column Name="TrangThai" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
-      <Column Name="DiemDanhGia" Type="System.Double" DbType="Float" CanBeNull="true" />
-      <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
-      <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
-      <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
-      <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
-      <Column Name="GiaKhuyenMai" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
-      <Column Name="NgayBatDauKM" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
-      <Column Name="NgayKetThucKM" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
-      <Association Name="SanPham_ChiTietDonHang" Member="ChiTietDonHangs" ThisKey="MaSP" OtherKey="MaSP" Type="ChiTietDonHang" />
-      <Association Name="SanPham_DanhGia" Member="DanhGias" ThisKey="MaSP" OtherKey="MaSP" Type="DanhGia" />
-      <Association Name="SanPham_GioHang" Member="GioHangs" ThisKey="MaSP" OtherKey="MaSP" Type="GioHang" />
-      <Association Name="DanhMuc_SanPham" Member="DanhMuc" ThisKey="MaDM" OtherKey="MaDM" Type="DanhMuc" IsForeignKey="true" />
     </Type>
   </Table>
 </Database>

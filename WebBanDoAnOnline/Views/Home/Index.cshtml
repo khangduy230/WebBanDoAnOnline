@@ -1,95 +1,139 @@
 ﻿@{
     ViewBag.Title = "Trang chủ";
+   
 }
 
-<!-- ============================ HERO SECTION ============================ -->
-<section class="hero-section">
+<!-- 1. HERO SECTION -->
+<section class="hero-section py-5 bg-light">
     <div class="row align-items-center">
-        <!-- Cột bên trái: Text và Form -->
-        <div class="col-lg-6">
-            <h1 class="hero-heading">
+        <div class="col-lg-6 px-5">
+            <h1 class="hero-heading fw-bold display-4 mb-3">
                 Dinh dưỡng tận nơi <br />
-                <span class="text-highlight">Thảnh thơi sống khỏe.</span>
+                <span class="text-warning">Thảnh thơi sống khỏe.</span>
             </h1>
-            <p class="hero-subheading">
-                Tự tin là nhà hàng hàng đầu về chất lượng và độ tin cậy, với 36 năm kinh nghiệm trong nghề và hàng loạt đầu bếp chất lượng từ khắp mọi miền tổ quốc. Chúng tôi sáng tạo nên những bữa ăn hàng ngày vừa đậm đà hương vị, vừa cân bằng dinh dưỡng để bạn sống khỏe mạnh hơn.
+            <p class="hero-subheading lead text-muted">
+                Hệ thống đặt món ăn trực tuyến FuTho Food. Hương vị đậm đà, giao hàng nhanh chóng.
             </p>
-            @*<div class="address-form mt-4">
-                <input type="text" class="form-control" placeholder="Nhập địa chỉ của bạn để bắt đầu khám phá ngay!" />
-                <button class="btn btn-primary-custom">Tiếp tục</button>
-            </div>*@
+            <a href="#featured-food" class="btn btn-warning btn-lg rounded-pill fw-bold text-white px-4">Đặt món ngay</a>
         </div>
-        <!-- Cột bên phải: Ảnh -->
-        <div class="col-lg-6 mt-4 mt-lg-0">
-            <img src="~/img/anhgioithieu.png" alt="Món phở bò thơm ngon" class="hero-image" />
+        <div class="col-lg-6 mt-4 mt-lg-0 text-center">
+            <img src="https://i.imgur.com/qg9cH2w.png" alt="Banner" class="img-fluid rounded shadow-lg" style="max-height: 400px;" />
         </div>
     </div>
 </section>
 
-<!-- ============================ FEATURED DISHES SECTION ============================ -->
-<section class="featured-section">
-    <h2 class="section-title">Món ăn nổi bật</h2>
-    <div class="row g-4">
-        <!-- Bắt đầu một thẻ sản phẩm (Product Card) - Bạn sẽ lặp lại khối này -->
-        <div class="col-lg-3 col-md-4 col-6">
-            <div class="product-card">
-                <img src="~/img/buncha (1).png" alt="Bún Chả" class="product-image">
-                <div class="product-info">
-                    <h5 class="product-name">Bún Chả</h5>
-                    <div class="product-meta">
-                        <span><i class="fas fa-tag"></i> 45.000đ</span>
-                        <span><i class="fas fa-shipping-fast"></i> ~20 phút</span>
-                    </div>
-                    <a href="#" class="btn btn-details">Xem chi tiết</a>
-                </div>
-            </div>
-        </div>
-        <!-- Kết thúc một thẻ sản phẩm -->
-        <!-- Thẻ sản phẩm 2 (Ví dụ) -->
-        <div class="col-lg-3 col-md-4 col-6">
-            <div class="product-card">
-                <img src="~/img/buncha (2).png" alt="Phở Bò" class="product-image">
-                <div class="product-info">
-                    <h5 class="product-name">Phở Bò</h5>
-                    <div class="product-meta">
-                        <span><i class="fas fa-tag"></i> 55.000đ</span>
-                        <span><i class="fas fa-shipping-fast"></i> ~20 phút</span>
-                    </div>
-                    <a href="#" class="btn btn-details">Xem chi tiết</a>
-                </div>
-            </div>
-        </div>
+<!-- 2. DANH SÁCH SẢN PHẨM -->
+<section id="featured-food" class="featured-section py-5 container">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h2 class="section-title fw-bold text-dark"><i class="fas fa-fire text-danger"></i> Món ăn nổi bật</h2>
+        <a href="/SanPham/Index" class="btn btn-outline-dark rounded-pill btn-sm">Xem tất cả <i class="fas fa-arrow-right"></i></a>
+    </div>
 
-        <!-- Thẻ sản phẩm 3 (Ví dụ) -->
-        <div class="col-lg-3 col-md-4 col-6">
-            <div class="product-card">
-                <img src="~/img/buncha (3).png" alt="Bún Đậu" class="product-image">
-                <div class="product-info">
-                    <h5 class="product-name">Bún Đậu Mắm Tôm</h5>
-                    <div class="product-meta">
-                        <span><i class="fas fa-tag"></i> 65.000đ</span>
-                        <span><i class="fas fa-shipping-fast"></i> ~20 phút</span>
-                    </div>
-                    <a href="#" class="btn btn-details">Xem chi tiết</a>
-                </div>
-            </div>
+    <!-- Container chứa sản phẩm -->
+    <div id="ds_sanpham" class="row g-4">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-warning" role="status"></div>
+            <div class="mt-2 text-muted">Đang tải món ngon...</div>
         </div>
-
-        <!-- Thẻ sản phẩm 4 (Ví dụ) -->
-        <div class="col-lg-3 col-md-4 col-6">
-            <div class="product-card">
-                <img src="~/img/buncha (4).png" alt="Cơm Thố" class="product-image">
-                <div class="product-info">
-                    <h5 class="product-name">Cơm Thố Bò</h5>
-                    <div class="product-meta">
-                        <span><i class="fas fa-tag"></i> 75.000đ</span>
-                        <span><i class="fas fa-shipping-fast"></i> ~20 phút</span>
-                    </div>
-                    <a href="#" class="btn btn-details">Xem chi tiết</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Hãy copy và paste các khối <div class="col-..."> để thêm các sản phẩm khác -->
     </div>
 </section>
+
+<!-- 3. JAVASCRIPT XỬ LÝ -->
+<script>
+    // Hàm định dạng tiền tệ
+    function formatMoney(n) {
+        return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + "đ";
+    }
+
+    var url_domain = '@Url.Content("~")';
+    if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
+
+    $(document).ready(function() {
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/Home/GetHomeDataJson',
+            contentType: false, processData: false, cache: false,
+            success: function (response) {
+                var dssp = JSON.parse(response);
+                var div_show = $("#ds_sanpham");
+                var html_str = "";
+
+                if (dssp.length === 0) {
+                    div_show.html('<div class="col-12 text-center text-muted">Chưa có sản phẩm nào.</div>');
+                    return;
+                }
+
+                for (var i = 0; i < dssp.length; i++) {
+                    var sp = dssp[i];
+
+                    // Xử lý ảnh: Bỏ dấu ~ nếu có
+                    var imgUrl = sp.Anh ? sp.Anh.replace('~', '') : '/img/no-image.jpg';
+
+                    // Xử lý giá
+                    var giaHienThi = "";
+                    var badge = "";
+
+                    if (sp.DangGiamGia) {
+                        var percent = Math.round((1 - sp.GiaKM / sp.GiaGoc) * 100);
+                        badge = `<span class="position-absolute top-0 start-0 bg-danger text-white badge m-2 shadow">-${percent}%</span>`;
+                        giaHienThi = `<span class="fw-bold text-danger fs-5">${formatMoney(sp.GiaKM)}</span>
+                                      <small class="text-decoration-line-through text-muted ms-1" style="font-size:0.9em">${formatMoney(sp.GiaGoc)}</small>`;
+                    } else {
+                        giaHienThi = `<span class="fw-bold text-dark fs-5">${formatMoney(sp.GiaGoc)}</span>`;
+                    }
+
+                    html_str += `
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <div class="card h-100 border-0 shadow-sm product-card">
+                            <div class="position-relative overflow-hidden rounded-top">
+                                <a href="/SanPham/Details/${sp.MaSP}">
+                                    <img src="${imgUrl}" class="card-img-top" style="height: 200px; object-fit: cover;"
+                                         onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                                </a>
+                                ${badge}
+                            </div>
+                            <div class="card-body d-flex flex-column p-3">
+                                <h5 class="card-title text-truncate mb-1">
+                                    <a href="/SanPham/Details/${sp.MaSP}" class="text-decoration-none text-dark fw-bold" title="${sp.TenSP}">${sp.TenSP}</a>
+                                </h5>
+
+                                <div class="mt-auto pt-2">
+                                    <div class="mb-2">${giaHienThi}</div>
+                                    <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
+                                        <span><i class="fas fa-clock text-warning"></i> ~15p</span>
+                                        <span><i class="fas fa-star text-warning"></i> ${sp.LuotXem}</span> <!-- Dùng LuotXem tạm cho đánh giá -->
+                                    </div>
+                                    <!-- Gọi hàm ThemVaoGio ở Layout -->
+                                    <button class="btn btn-warning w-100 fw-bold shadow-sm btn-hover-effect" onclick="ThemVaoGio(${sp.MaSP})">
+                                        <i class="fas fa-cart-plus"></i> Thêm
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+                div_show.html(html_str);
+            },
+            error: function (err) {
+                console.log(err);
+                $("#ds_sanpham").html('<div class="col-12 text-center text-danger">Lỗi tải dữ liệu server.</div>');
+            }
+        });
+    });
+</script>
+
+<style>
+    .product-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+
+    .btn-hover-effect:hover {
+        background-color: #ffca2c;
+        transform: scale(1.02);
+    }
+</style>

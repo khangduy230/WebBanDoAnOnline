@@ -1,0 +1,98 @@
+﻿@{ ViewBag.Title = "Sửa sản phẩm";
+   
+}
+
+<main class="container-fluid py-4">
+    <h3>Cập nhật thông tin sản phẩm</h3>
+    <hr />
+    <div class="card">
+        <div class="card-body">
+            <form id="form-act" enctype="multipart/form-data">
+                <input type="hidden" name="txt_MaSP_hide" value="@ViewBag.MaSP" />
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3"><label class="form-label">Tên sản phẩm</label><input type="text" id="txt_TenSP" class="form-control" name="txt_TenSP" required /></div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label class="form-label">Giá (VND)</label><input type="number" id="txt_Gia" class="form-control" name="txt_Gia" required /></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Danh mục</label><select id="slc_MaDM" name="slc_MaDM" class="form-control"></select></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Trạng thái</label>
+                            <select id="slc_TrangThai" name="slc_TrangThai" class="form-control">
+                                <option value="Con hang">Còn hàng</option>
+                                <option value="Het hang">Hết hàng</option>
+                                <option value="Tam ngung">Tạm ngưng</option>
+                            </select>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Mô tả</label><textarea id="txt_MoTa" name="txt_MoTa" class="form-control" rows="4"></textarea></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Ảnh sản phẩm</label>
+                        <img id="img_preview" src="https://via.placeholder.com/250" class="img-thumbnail mb-2 w-100" style="height: 250px; object-fit: cover;" />
+                        <input type="file" class="form-control" name="file_Anh" accept="image/*" />
+                    </div>
+                </div>
+                <hr />
+                <button type="button" id="btn_capnhat" class="btn btn-primary">Cập nhật</button>
+                <a href="@Url.Action("LaySanPham", "SanPham" )" class="btn btn-secondary">Quay lại</a>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var baseUrl = '@Url.Content("~")';
+
+    function loadProductDetails() {
+        $.post('@Url.Action("LayTTSP", "SanPham")', { id: @ViewBag.MaSP }, function (res) {
+            var sp = JSON.parse(res);
+            $("#txt_TenSP").val(sp.TenSP);
+            $("#txt_Gia").val(sp.Gia);
+            $("#txt_MoTa").val(sp.MoTa);
+            $("#slc_TrangThai").val(sp.TrangThai);
+            $("#slc_MaDM").val(sp.MaDM);
+            if (sp.Anh) $('#img_preview').attr('src', baseUrl + sp.Anh.replace('~/', ''));
+        });
+    }
+
+    function loadCategoriesAndProduct() {
+        $.post('@Url.Action("Lay_DSDM", "DanhMuc")', function (res) {
+            var cats = JSON.parse(res);
+            var select = $("#slc_MaDM");
+            cats.forEach(c => select.append(`<option value="${c.MaDM}">${c.TenDM}</option>`));
+            loadProductDetails(); // Load product details AFTER categories are loaded
+        });
+    }
+
+    $(document).ready(function() {
+        loadData();
+
+        $("#btn_save").click(function() {
+            // Validate
+            var val = parseFloat($("#txt_GiaTri").val());
+            var type = $("#slc_LoaiGiam").val();
+
+            if(val < 0) { alert("Giá trị không được âm"); return; }
+
+            // >>> MỚI THÊM: Check 100% <<<
+            if (type === "PhanTram" && val > 100) {
+                alert("Giảm theo Phần trăm không được quá 100!");
+                return;
+            }
+
+            var formData = new FormData($('#form-voucher-edit')[0]);
+            $.ajax({
+                type: "POST",
+                url: window.location.origin + '/Voucher/UpdateVoucher',
+                data: formData, processData: false, contentType: false,
+                success: function(res) {
+                    alert(res);
+                    if(res.includes("thành công")) {
+                        window.location.href = '@Url.Action("LayVoucher", "Voucher")';
+                    }
+                }
+            });
+        });
+    });
+</script>

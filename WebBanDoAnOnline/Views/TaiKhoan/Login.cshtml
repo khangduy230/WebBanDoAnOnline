@@ -1,48 +1,245 @@
-﻿@model WebBanDoAnOnline.Models.TaiKhoanViewModels.LoginViewModel
-@{
+﻿@{
     ViewBag.Title = "Đăng nhập";
-    Layout = "~/Views/Shared/_AuthLayout.cshtml"; // Đảm bảo đúng đường dẫn
+    Layout = "~/Views/Shared/_AuthLayout.cshtml"; // Bật lại Layout
 }
 
-<div class="auth-form-container">
+<style>
+    /* Chỉ giữ lại CSS cho cái Card và nội dung bên trong */
+    .login-card {
+        background: #ffffff;
+        width: 100%;
+        max-width: 420px; /* Độ rộng form */
+        padding: 40px 35px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    /* CSS cũ cho các thành phần con */
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 28px;
+    }
+
+    .logo-bold {
+        font-weight: 800;
+        color: #333;
+    }
+
+    .logo-regular {
+        font-weight: 400;
+        color: #333;
+    }
+
+    .auth-title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .custom-input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e1e5eb;
+        border-radius: 8px;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.3s;
+    }
+
+        .custom-input:focus {
+            border-color: #fd7e14;
+            box-shadow: 0 0 0 3px rgba(253, 126, 20, 0.15);
+        }
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #aaa;
+        font-size: 18px;
+    }
+
+        .toggle-password:hover {
+            color: #fd7e14;
+        }
+
+    .forgot-link-wrapper {
+        text-align: right;
+        margin-top: -10px;
+        margin-bottom: 20px;
+    }
+
+    .forgot-password-link {
+        font-size: 13px;
+        color: #fd7e14;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .btn-action {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        margin-bottom: 15px;
+        transition: background 0.3s;
+    }
+
+    .btn-login {
+        background-color: #fd7e14;
+        color: white;
+    }
+
+        .btn-login:hover {
+            background-color: #e96b02;
+        }
+
+    .btn-register {
+        background-color: #343a40;
+        color: white;
+        display: block;
+        text-align: center;
+        text-decoration: none;
+    }
+
+        .btn-register:hover {
+            background-color: #23272b;
+            color: white;
+        }
+
+    .alert-custom {
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        margin-bottom: 20px;
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+
+<!-- Nội dung Card Form -->
+<div class="login-card">
     <div class="auth-logo">
         <span class="logo-bold fst-italic">FuTho</span>
         <span class="logo-regular">Food</span>
     </div>
-    <h2>Chào mừng bạn trở lại</h2>
 
-    @if (TempData["RegisterSuccess"] != null)
-    {
-        <div class="alert alert-success" role="alert">
-            @TempData["RegisterSuccess"]
-        </div>
-    }
-    
-    @using (Html.BeginForm("Login", "TaiKhoan", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "auth-form", role = "form" }))
-    {
-        @Html.AntiForgeryToken()
-        
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <h2 class="auth-title">Chào mừng bạn trở lại</h2>
+
+    <form id="act_frm" method="post">
+        <div id="error-msg" class="alert-custom" style="display:none;"></div>
 
         <div class="form-group">
-            @Html.LabelFor(m => m.TaiKhoan, "Tài khoản")
-            @Html.TextBoxFor(m => m.TaiKhoan, new { @class = "form-control", placeholder = "Email, SĐT hoặc Tên tài khoản" })
-            @Html.ValidationMessageFor(m => m.TaiKhoan, "", new { @class = "text-danger" })
+            <label class="form-label">Tài khoản</label>
+            <input type="text" id="txt_acc" name="txt_acc" class="custom-input" placeholder="Email, SĐT hoặc Tên tài khoản" />
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(m => m.MatKhau, "Mật khẩu")
+            <label class="form-label">Mật khẩu</label>
             <div class="password-wrapper">
-                @Html.PasswordFor(m => m.MatKhau, new { @class = "form-control", placeholder = "Nhập mật khẩu" })
+                <input type="password" id="txt_pass" name="txt_pass" class="custom-input" placeholder="Nhập mật khẩu" />
                 <i class="fas fa-eye-slash toggle-password"></i>
             </div>
-            @Html.ValidationMessageFor(m => m.MatKhau, "", new { @class = "text-danger" })
         </div>
-        
-        <a href="#" class="forgot-password-link">Quên mật khẩu?</a>
 
-        <button type="submit" class="btn btn-auth-primary">Đăng nhập</button>
-        
-        @Html.ActionLink("Đăng ký", "Register", "TaiKhoan", null, new { @class = "btn btn-auth-secondary" })
-    }
+        <div class="forgot-link-wrapper">
+            <a href="#" class="forgot-password-link">Quên mật khẩu?</a>
+        </div>
+
+        <button type="button" id="btn_login" class="btn-action btn-login">Đăng nhập</button>
+        <a href="~/TaiKhoan/Register" class="btn-action btn-register">Đăng ký tài khoản mới</a>
+    </form>
 </div>
+
+<!-- Script logic giữ nguyên -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        // Xử lý sự kiện click nút Đăng nhập
+        $("#btn_login").click(function () {
+            var form = $('#act_frm')[0];
+            var formData = new FormData(form);
+
+            // Validate cơ bản
+            if ($("#txt_acc").val().trim() == "" || $("#txt_pass").val().trim() == "") {
+                $("#error-msg").text("Vui lòng nhập đầy đủ thông tin!").show();
+                return;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: window.location.origin + '/TaiKhoan/Login_act',
+                data: formData,
+                processData: false,
+                contentType: false,
+                cache: false,
+                beforeSend: function () {
+                    $("#btn_login").text("Đang xử lý...").prop("disabled", true);
+                    $("#error-msg").hide();
+                },
+                success: function (response) {
+                    // Parse JSON trả về từ Controller
+                    var rs = JSON.parse(response);
+
+                    if (rs.ErrCode == 1) {
+                        // --- THÀNH CÔNG: CHUYỂN HƯỚNG THEO URL SERVER TRẢ VỀ ---
+                        // (Server đã tính toán xem nên về Home hay Admin rồi)
+                        window.location.href = window.location.origin + rs.Url;
+                    } else {
+                        // Thất bại
+                        $("#error-msg").text(rs.Msg).fadeIn();
+                        $("#btn_login").text("Đăng nhập").prop("disabled", false);
+                    }
+                },
+                error: function (err) {
+                    console.log(err);
+                    $("#error-msg").text("Lỗi kết nối Server!").show();
+                    $("#btn_login").text("Đăng nhập").prop("disabled", false);
+                }
+            });
+        });
+
+        // Toggle ẩn/hiện mật khẩu
+        $(".toggle-password").click(function () {
+            var input = $("#txt_pass");
+            if (input.attr("type") === "password") {
+                input.attr("type", "text");
+                $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+            } else {
+                input.attr("type", "password");
+                $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+            }
+        });
+
+        // Bắt sự kiện Enter
+        $("#txt_pass").keypress(function (event) {
+            if (event.keyCode === 13) $("#btn_login").click();
+        });
+    });
+</script>

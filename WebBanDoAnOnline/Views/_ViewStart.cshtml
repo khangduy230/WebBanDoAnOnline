@@ -1,3 +1,25 @@
-﻿@{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+﻿
+@using WebBanDoAnOnline.Models
+@{
+    // 1. Mặc định là Layout khách hàng
+    string layoutFile = "~/Views/Shared/_Layout.cshtml";
+
+    // 2. Kiểm tra Session
+    // Lưu ý: HttpContext.Current.Session được dùng để truy cập Session trong ViewStart
+    var session = HttpContext.Current.Session;
+
+    if (session["TaiKhoan"] != null)
+    {
+        var user = session["TaiKhoan"] as TaiKhoan;
+
+        // 3. Nếu là Admin hoặc Nhân viên -> Đổi sang Layout Admin
+        if (user.VaiTro == "Quản lý" || user.VaiTro == "Nhân viên")
+        {
+            // Đảm bảo bạn đã tạo file _LayoutAdmin.cshtml trong thư mục Shared
+            layoutFile = "~/Views/Shared/_AdLayout.cshtml";
+        }
+    }
+
+    // 4. Gán Layout cuối cùng
+    Layout = layoutFile;
 }

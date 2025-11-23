@@ -1,0 +1,135 @@
+﻿@{
+    ViewBag.Title = "Thêm sản phẩm mới";
+    
+}
+
+<!--begin::App Content Header-->
+<div class="app-content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6"><h3 class="mb-0">Thêm mới Sản phẩm</h3></div>
+           
+        </div>
+    </div>
+</div>
+<!--end::App Content Header-->
+<!--begin::App Content-->
+<div class="app-content">
+    <div class="container-fluid">
+        <div class="card card-primary card-outline mb-4">
+            <div class="card-header">
+                <h5 class="card-title">Thông tin chi tiết</h5>
+            </div>
+
+            <div class="card-body">
+                <form id="form-add-product" enctype="multipart/form-data">
+                    <div class="row">
+                        <!-- Cột Trái: Thông tin văn bản -->
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tên sản phẩm <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txt_TenSP" name="txt_TenSP" placeholder="Nhập tên sản phẩm" required />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="txt_Gia" name="txt_Gia" min="0" placeholder="VNĐ" required />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Danh mục</label>
+                                    <select id="slc_MaDM" name="slc_MaDM" class="form-select">
+                                        <!-- Controller đã gán ViewBag.Categories -->
+                                        @if (ViewBag.Categories != null)
+                                        {
+                                            foreach (var cat in ViewBag.Categories)
+                                            {
+                                                <option value="@cat.MaDM">@cat.TenDM</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Mô tả sản phẩm</label>
+                                <textarea id="txt_MoTa" name="txt_MoTa" class="form-control" rows="6" placeholder="Mô tả chi tiết..."></textarea>
+                            </div>
+
+                            <!-- Lưu ý: Controller InsertSP đang set cứng trạng thái là "Còn hàng" nên không cần hiển thị select Trạng thái ở đây -->
+                        </div>
+
+                        <!-- Cột Phải: Ảnh -->
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Ảnh đại diện</label>
+                            <div class="card shadow-sm text-center p-3">
+                                <img id="img_preview" src="https://via.placeholder.com/300x300?text=No+Image"
+                                     class="img-fluid mb-3 rounded" style="max-height: 250px; object-fit: cover;" />
+
+                                <input type="file" class="form-control" id="file_Anh" name="file_Anh" accept="image/*" />
+                                <div class="form-text text-muted mt-2">Định dạng: .jpg, .png, .jpeg</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="@Url.Action("LaySanPham", "SanPham")" class="btn btn-secondary">Quay lại</a>
+                        <button type="button" id="btn_them" class="btn btn-success px-4">Thêm mới</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!--end::App Content-->
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        // 1. Xem trước ảnh khi chọn file
+        $("#file_Anh").change(function () {
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#img_preview').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // 2. Xử lý sự kiện Thêm mới
+        $("#btn_them").click(function () {
+        // Validate sơ bộ
+        var code = $("input[name='txt_MaCode']").val();
+        var val = parseFloat($("input[name='txt_GiaTri']").val());
+        var type = $("select[name='slc_LoaiGiam']").val(); // Lấy loại giảm
+
+        if(!code || isNaN(val)) { alert("Vui lòng nhập đủ thông tin bắt buộc"); return; }
+
+        if(val < 0) { alert("Giá trị giảm không được âm"); return; }
+
+        // >>> MỚI THÊM: Check 100% <<<
+        if (type === "PhanTram" && val > 100) {
+            alert("Nếu chọn giảm theo Phần trăm, giá trị không được quá 100!");
+            return;
+        }
+
+        var formData = new FormData($('#form-voucher-add')[0]);
+
+        $.ajax({
+            type: "POST",
+            url: window.location.origin + '/Voucher/InsertVoucher',
+            data: formData,
+            processData: false, contentType: false,
+            success: function (res) {
+                alert(res);
+                if (res.includes("thành công")) {
+                    window.location.href = '@Url.Action("LayVoucher", "Voucher")';
+                }
+            },
+            error: function() { alert("Lỗi kết nối server."); }
+               });
+    });
+</script>

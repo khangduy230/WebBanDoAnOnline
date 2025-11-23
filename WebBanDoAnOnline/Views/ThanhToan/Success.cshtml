@@ -1,12 +1,17 @@
 ﻿@{
-    ViewBag.Title = "Đặt hàng thành công";
-    var orderId = (int?)ViewBag.OrderId ?? 0;
+    ViewBag.Title = "Thành công";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<div class="container my-5 text-center">
-    <h2 class="fw-bold text-success mb-3">Đặt hàng thành công!</h2>
-    @if (orderId > 0)
-    {
-        <p>Mã đơn hàng của bạn: <strong>#@orderId</strong></p>
-    }
-    <a class="btn btn-dark mt-3" href="@Url.Action("Index","Home")">Về Trang chủ</a>
+
+<div class="container text-center py-5">
+    <div class="card shadow border-0 p-5 d-inline-block">
+        <div class="text-success mb-3" style="font-size: 4rem;">
+            <i class="fa-regular fa-circle-check"></i>
+        </div>
+        <h2 class="fw-bold text-success">Đặt hàng thành công!</h2>
+        <p class="text-muted mb-4">Cảm ơn bạn đã mua sắm tại FuTho Food.</p>
+
+        <a href="/Home/Index" class="btn btn-warning rounded-pill fw-bold px-4 me-2">Về trang chủ</a>
+        <a href="/GioHang/LichSuDonHang" class="btn btn-outline-secondary rounded-pill fw-bold px-4">Xem đơn hàng</a>
+    </div>
 </div>

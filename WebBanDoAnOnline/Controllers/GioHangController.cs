@@ -1,268 +1,184 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using WebBanDoAnOnline.Models;
+using Newtonsoft.Json;
 
 namespace WebBanDoAnOnline.Controllers
 {
     public class GioHangController : Controller
     {
-        private readonly BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext(
-            System.Configuration.ConfigurationManager.ConnectionStrings["BanDoAnOnlineConnectionString"].ConnectionString
-        );
-
-        private TaiKhoan CurrentUser => Session["TaiKhoan"] as TaiKhoan;
-
-        // Helper: Tính giá áp dụng theo KM và khung thời gian
-        private static decimal GetEffectivePrice(SanPham p, DateTime? now = null)
-        {
-            var n = now ?? DateTime.Now;
-            var giaGoc = p.Gia ?? 0m;
-            var km = p.GiaKhuyenMai ?? 0m;
-
-            var trongKhung =
-                (!p.NgayBatDauKM.HasValue || p.NgayBatDauKM.Value <= n) &&
-                (!p.NgayKetThucKM.HasValue || p.NgayKetThucKM.Value >= n);
-
-            if (giaGoc > 0 && km > 0 && km < giaGoc && trongKhung)
-                return km;
-
-            return giaGoc;
-        }
-
-        private static bool IsOnSale(SanPham p, DateTime? now = null)
-        {
-            var n = now ?? DateTime.Now;
-            var giaGoc = p.Gia ?? 0m;
-            var km = p.GiaKhuyenMai ?? 0m;
-
-            var trongKhung =
-                (!p.NgayBatDauKM.HasValue || p.NgayBatDauKM.Value <= n) &&
-                (!p.NgayKetThucKM.HasValue || p.NgayKetThucKM.Value >= n);
-
-            return giaGoc > 0 && km > 0 && km < giaGoc && trongKhung;
-        }
-
-        [Authorize]
+        // 1. GET: GioHang (Trang chủ giỏ hàng)
         public ActionResult Index()
         {
-            var user = CurrentUser;
-            if (user == null) return RedirectToAction("Login", "TaiKhoan");
-
-            var rows = (from g in db.GioHangs
-                        join p in db.SanPhams on g.MaSP equals p.MaSP
-                        where g.isDelete != 1 && p.isDelete != 1 && g.MaTK == user.MaTK
-                        select new { g, p }).ToList();
-
-            var model = rows.Select(x =>
+            if (Session["TaiKhoan"] == null)
             {
-                var giaGoc = x.p.Gia ?? 0m;
-                var giaApDung = GetEffectivePrice(x.p);
-                return new CartLineVM
-                {
-                    MaSP = x.p.MaSP,
-                    TenSP = x.p.TenSP,
-                    Gia = giaApDung,           // tương thích cũ
-                    GiaGoc = giaGoc,
-                    GiaApDung = giaApDung,
-                    OnSale = giaApDung < giaGoc,
-                    Anh = x.p.Anh,
-                    SoLuong = x.g.SoLuong ?? 1,
-                    GhiChu = x.g.Extend_Data
-                };
-            }).ToList();
-
-            return View(model);
+                return RedirectToAction("DangNhap", "TaiKhoan");
+            }
+            return View();
         }
 
+        // 2. API: Lấy danh sách (Khớp tên với View JS: Lay_DSGioHang)
         [HttpPost]
-        [AllowAnonymous]
-        [ValidateInput(false)]
-        public ActionResult Add(int productId, int quantity = 1, string notes = "")
+        public string Lay_DSGioHang()
         {
-            try
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null) return "[]";
+
+            BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+            var query = from g in db.GioHangs
+                        join p in db.SanPhams on g.MaSP equals p.MaSP
+                        where g.MaTK == user.MaTK
+                              && (g.isDelete == null || g.isDelete == 0)
+                              && (p.isDelete == null || p.isDelete == 0)
+                        select new { g, p };
+
+            if (query.Any())
             {
-                if (quantity < 1) quantity = 1;
-                notes = (notes ?? string.Empty).Trim();
-                if (notes.Length > 1000) notes = notes.Substring(0, 1000);
+                var listResult = new List<object>();
+                DateTime now = DateTime.Now;
 
-                var user = CurrentUser;
-                if (user == null)
+                foreach (var item in query)
                 {
-                    return Json(new { ok = false, requireLogin = true, message = "Vui lòng đăng nhập để thêm vào giỏ hàng." });
-                }
+                    decimal giaGoc = item.p.Gia ?? 0;
+                    decimal giaKM = item.p.GiaKhuyenMai ?? 0;
+                    decimal giaBan = giaGoc;
+                    bool isKM = false;
 
-                var sp = db.SanPhams.FirstOrDefault(x => x.MaSP == productId && x.isDelete != 1 && x.TrangThai == "Còn hàng");
-                if (sp == null)
-                    return Json(new { ok = false, message = "Sản phẩm không tồn tại hoặc đã hết hàng." });
-
-                var candidates = db.GioHangs
-                    .Where(g => g.MaTK == user.MaTK && g.MaSP == productId && g.isDelete != 1)
-                    .ToList();
-
-                var line = candidates.FirstOrDefault(g =>
-                    string.Equals(g.Extend_Data ?? string.Empty, notes, StringComparison.Ordinal));
-
-                if (line == null)
-                {
-                    db.GioHangs.InsertOnSubmit(new GioHang
+                    if (giaKM > 0 && giaKM < giaGoc)
                     {
-                        MaTK = user.MaTK,
-                        MaSP = productId,
-                        SoLuong = quantity,
-                        Extend_Data = notes,
-                        Create_at = DateTime.Now,
-                        isDelete = 0
+                        if ((!item.p.NgayBatDauKM.HasValue || item.p.NgayBatDauKM <= now) &&
+                            (!item.p.NgayKetThucKM.HasValue || item.p.NgayKetThucKM >= now))
+                        {
+                            giaBan = giaKM;
+                            isKM = true;
+                        }
+                    }
+
+                    listResult.Add(new
+                    {
+                        MaSP = item.p.MaSP,
+                        TenSP = item.p.TenSP,
+                        Anh = item.p.Anh,
+                        GiaHienTai = giaBan,
+                        GiaGoc = giaGoc,
+                        DangGiamGia = isKM,
+                        SoLuong = item.g.SoLuong ?? 1,
+                        GhiChu = item.g.GhiChu,
+                        ThanhTien = giaBan * (item.g.SoLuong ?? 1)
                     });
                 }
-                else
-                {
-                    line.SoLuong = (line.SoLuong ?? 0) + quantity;
-                    line.LastEdit_at = DateTime.Now;
-                }
-
-                db.SubmitChanges();
-
-                var lines = (from g in db.GioHangs
-                             join p in db.SanPhams on g.MaSP equals p.MaSP
-                             where g.MaTK == user.MaTK && g.isDelete != 1 && p.isDelete != 1
-                             select new { Qty = (g.SoLuong ?? 0), P = p }).ToList();
-
-                var totalQty = lines.Sum(x => x.Qty);
-                var totalAmount = lines.Sum(x => x.Qty * GetEffectivePrice(x.P));
-
-                Session["CartCount"] = totalQty;
-
-                return Json(new { ok = true, count = totalQty, total = totalAmount });
+                return JsonConvert.SerializeObject(listResult);
             }
-            catch (Exception ex)
-            {
-                return Json(new { ok = false, message = "Không thể thêm vào giỏ hàng.", detail = ex.Message });
-            }
+            return "[]";
         }
 
+        // 3. API: Cập nhật số lượng
         [HttpPost]
-        [Authorize]
-        [ValidateInput(false)]
-        public ActionResult UpdateQuantity(int productId, string notes, int quantity)
+        public string CapNhat_SoLuong()
         {
-            try
-            {
-                if (quantity < 1) quantity = 1;
+            string id_str = Request["id"];
+            string delta_str = Request["delta"];
+            var user = Session["TaiKhoan"] as TaiKhoan;
 
-                var user = CurrentUser;
-                if (user == null)
+            if (user != null && !string.IsNullOrEmpty(id_str))
+            {
+                int id = int.Parse(id_str);
+                int delta = int.Parse(delta_str);
+                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+                var item = db.GioHangs.FirstOrDefault(g => g.MaSP == id && g.MaTK == user.MaTK && (g.isDelete == 0 || g.isDelete == null));
+                if (item != null)
                 {
-                    return Json(new { ok = false, requireLogin = true, message = "Phiên đăng nhập đã hết hạn." });
+                    int newQty = (item.SoLuong ?? 1) + delta;
+                    if (newQty < 1) newQty = 1;
+                    item.SoLuong = newQty;
+                    item.LastEdit_at = DateTime.Now;
+                    db.SubmitChanges();
+                    return "OK";
                 }
-
-                notes = (notes ?? string.Empty).Trim();
-                var candidates = db.GioHangs
-                    .Where(g => g.MaTK == user.MaTK && g.MaSP == productId && g.isDelete != 1)
-                    .ToList();
-
-                var line = candidates.FirstOrDefault(g =>
-                    string.Equals(g.Extend_Data ?? string.Empty, notes, StringComparison.Ordinal));
-
-                if (line == null)
-                    return Json(new { ok = false, message = "Không tìm thấy dòng giỏ hàng." });
-
-                line.SoLuong = quantity;
-                line.LastEdit_at = DateTime.Now;
-
-                db.SubmitChanges();
-
-                var rows = (from g in db.GioHangs
-                            join p in db.SanPhams on g.MaSP equals p.MaSP
-                            where g.MaTK == user.MaTK && g.isDelete != 1 && p.isDelete != 1
-                            select new { ProductId = p.MaSP, Qty = (g.SoLuong ?? 0), P = p }).ToList();
-
-                var totalQty = rows.Sum(x => x.Qty);
-                var totalAmount = rows.Sum(x => x.Qty * GetEffectivePrice(x.P));
-                var unitPrice = GetEffectivePrice(rows.FirstOrDefault(x => x.ProductId == productId)?.P);
-                var lineTotal = unitPrice * quantity;
-
-                Session["CartCount"] = totalQty;
-
-                return Json(new { ok = true, count = totalQty, total = totalAmount, unit = unitPrice, lineTotal = lineTotal });
             }
-            catch (Exception ex)
-            {
-                return Json(new { ok = false, message = "Cập nhật số lượng thất bại.", detail = ex.Message });
-            }
+            return "Fail";
         }
 
+        // 4. API: Cập nhật Ghi chú
         [HttpPost]
-        [Authorize]
-        [ValidateInput(false)]
-        public ActionResult Remove(int productId, string notes)
+        public string CapNhat_GhiChu()
         {
-            try
+            string id_str = Request["id"];
+            string note_str = Request["ghichu"];
+            var user = Session["TaiKhoan"] as TaiKhoan;
+
+            if (user != null && !string.IsNullOrEmpty(id_str))
             {
-                var user = CurrentUser;
-                if (user == null)
+                int id = int.Parse(id_str);
+                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+                var item = db.GioHangs.FirstOrDefault(g => g.MaSP == id && g.MaTK == user.MaTK && (g.isDelete == 0 || g.isDelete == null));
+                if (item != null)
                 {
-                    return Json(new { ok = false, requireLogin = true, message = "Phiên đăng nhập đã hết hạn." });
+                    item.GhiChu = note_str;
+                    item.LastEdit_at = DateTime.Now;
+                    db.SubmitChanges();
+                    return "OK";
                 }
-
-                notes = (notes ?? string.Empty).Trim();
-                var candidates = db.GioHangs
-                    .Where(g => g.MaTK == user.MaTK && g.MaSP == productId && g.isDelete != 1)
-                    .ToList();
-
-                var line = candidates.FirstOrDefault(g =>
-                    string.Equals(g.Extend_Data ?? string.Empty, notes, StringComparison.Ordinal));
-
-                if (line == null)
-                    return Json(new { ok = false, message = "Không tìm thấy dòng giỏ hàng để xóa." });
-
-                line.isDelete = 1;
-                line.LastEdit_at = DateTime.Now;
-                db.SubmitChanges();
-
-                var lines = (from g in db.GioHangs
-                             join p in db.SanPhams on g.MaSP equals p.MaSP
-                             where g.MaTK == user.MaTK && g.isDelete != 1 && p.isDelete != 1
-                             select new { Qty = (g.SoLuong ?? 0), P = p }).ToList();
-
-                var totalQty = lines.Sum(x => x.Qty);
-                var totalAmount = lines.Sum(x => x.Qty * GetEffectivePrice(x.P));
-
-                Session["CartCount"] = totalQty;
-
-                return Json(new { ok = true, count = totalQty, total = totalAmount });
             }
-            catch (Exception ex)
-            {
-                return Json(new { ok = false, message = "Xóa khỏi giỏ hàng thất bại.", detail = ex.Message });
-            }
+            return "Fail";
         }
 
-        [HttpGet]
-        public JsonResult CartCount()
+        // 5. API: Xóa sản phẩm
+        [HttpPost]
+        public string Xoa_SP_GioHang()
         {
-            int count = 0;
+            string id_str = Request["id"];
+            var user = Session["TaiKhoan"] as TaiKhoan;
 
-            var user = CurrentUser;
-            if (user != null)
+            if (user != null && !string.IsNullOrEmpty(id_str))
             {
-                count = (from g in db.GioHangs
-                         join p in db.SanPhams on g.MaSP equals p.MaSP
-                         where g.MaTK == user.MaTK && g.isDelete != 1 && p.isDelete != 1
-                         select (g.SoLuong ?? 0)).Sum();
+                int id = int.Parse(id_str);
+                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+                var item = db.GioHangs.FirstOrDefault(g => g.MaSP == id && g.MaTK == user.MaTK && (g.isDelete == 0 || g.isDelete == null));
+                if (item != null)
+                {
+                    item.isDelete = 1;
+                    item.Delete_at = DateTime.Now;
+                    db.SubmitChanges();
+                    return "OK";
+                }
             }
-            else if (Session["CartCount"] is int c)
-            {
-                count = c;
-            }
-
-            return Json(new { ok = true, count }, JsonRequestBehavior.AllowGet);
+            return "Fail";
         }
 
-        protected override void Dispose(bool disposing)
+        // 6. API AddToCart (Cho trang sản phẩm)
+        [HttpPost]
+        public string AddToCart()
         {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
+            string id_str = Request["productId"];
+            string qty_str = Request["quantity"];
+            string note_str = Request["notes"];
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null) return "Bạn cần đăng nhập";
+
+            int id = int.Parse(id_str);
+            int qty = int.Parse(qty_str);
+
+            BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+            var cartItem = db.GioHangs.FirstOrDefault(g => g.MaSP == id && g.MaTK == user.MaTK);
+
+            if (cartItem != null)
+            {
+                if (cartItem.isDelete == 1) { cartItem.isDelete = 0; cartItem.SoLuong = qty; }
+                else { cartItem.SoLuong = (cartItem.SoLuong ?? 0) + qty; }
+                if (!string.IsNullOrEmpty(note_str)) cartItem.GhiChu = note_str;
+                cartItem.LastEdit_at = DateTime.Now;
+            }
+            else
+            {
+                GioHang newItem = new GioHang { MaTK = user.MaTK, MaSP = id, SoLuong = qty, GhiChu = note_str, Create_at = DateTime.Now, isDelete = 0 };
+                db.GioHangs.InsertOnSubmit(newItem);
+            }
+            db.SubmitChanges();
+            return "Thêm thành công";
         }
     }
 }

@@ -1,0 +1,172 @@
+﻿@{
+    ViewBag.Title = "Quản lý Người dùng";
+    
+}
+
+<main class="user-page container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div><h3 class="mb-0">Quản lý Người dùng</h3><hr /></div>
+        <div class="d-flex align-items-center">
+            <input id="txt_search_user" class="form-control me-2" style="width:220px;" placeholder="Tìm kiếm..." />
+            <a href="@Url.Action("ThemNguoiDung", "NguoiDung")" class="btn btn-warning text-white">Thêm người dùng</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Họ tên / Email</th>
+                            <th>Tài khoản / SĐT</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user_table_body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="pagination" class="d-flex justify-content-center mt-4"></div>
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var url_domain = window.location.origin;
+    var currentPage = 1;
+
+    function getInitials(name) {
+        if (!name) return 'U';
+        var parts = name.trim().split(' ');
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    function createStatusBadge(status) {
+        if (!status) return '';
+        if (status === 'Hoạt động') return '<span class="badge bg-success">Hoạt động</span>';
+        return '<span class="badge bg-danger">Bị khóa</span>';
+    }
+
+    function loadUsers(searchTerm, page = 1) {
+        currentPage = page;
+        var term = searchTerm || $("#txt_search_user").val();
+        var formData = new FormData();
+        formData.append('searchTerm', term);
+        formData.append('page', page);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/NguoiDung/Lay_DSNguoiDung',
+            data: formData, processData: false, contentType: false, cache: false,
+            success: function (res) {
+                var data = JSON.parse(res);
+                var users = data.NguoiDungs;
+                var container = $("#user_table_body");
+                container.empty();
+
+                if (users.length === 0) {
+                    container.html('<tr><td colspan="5" class="text-center py-4">Không tìm thấy người dùng nào.</td></tr>');
+                    $("#pagination").html("");
+                    return;
+                }
+
+                for (var i = 0; i < users.length; i++) {
+                    var u = users[i];
+
+                    // --- LOGIC NÚT BẤM ---
+                    var actionBtn = "";
+                    if (u.TrangThai === "Hoạt động") {
+                        // Nếu đang hoạt động -> Hiện nút Khóa (Màu đỏ)
+                        actionBtn = `<button class="btn btn-sm btn-outline-danger" onclick="toggleStatus(${u.MaTK}, 'lock')" title="Khóa tài khoản">
+                                        <i class="fas fa-lock"></i> Khóa
+                                     </button>`;
+                    } else {
+                        // Nếu đang bị khóa -> Hiện nút Mở khóa (Màu xanh)
+                        actionBtn = `<button class="btn btn-sm btn-outline-success" onclick="toggleStatus(${u.MaTK}, 'unlock')" title="Mở khóa">
+                                        <i class="fas fa-lock-open"></i> Mở
+                                     </button>`;
+                    }
+
+                    var html = `
+                    <tr class="${u.TrangThai === 'Bị khóa' ? 'table-secondary' : ''}"> <!-- Làm mờ dòng nếu bị khóa -->
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2" style="width:40px;height:40px;font-weight:bold">
+                                    ${getInitials(u.HoTen)}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">${u.HoTen}</div>
+                                    <div class="small text-muted">${u.Email || ''}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-primary">${u.TenTK}</div>
+                            <div class="small text-muted">${u.SoDienThoai || ''}</div>
+                        </td>
+                        <td><span class="fw-bold">${u.VaiTro}</span></td>
+                        <td>${createStatusBadge(u.TrangThai)}</td>
+                        <td class="text-center">
+                            <a href="/NguoiDung/SuaNguoiDung/${u.MaTK}" class="btn btn-sm btn-outline-warning me-1">Sửa</a>
+                            ${actionBtn}
+                        </td>
+                    </tr>`;
+                    container.append(html);
+                }
+                renderPagination(data.TotalPages, data.CurrentPage);
+            },
+            error: function () { alert("Lỗi tải dữ liệu"); }
+        });
+    }
+
+    // --- HÀM MỚI: KHÓA / MỞ KHÓA ---
+    function toggleStatus(id, actionType) {
+        var msg = (actionType === 'lock')
+            ? "Bạn có chắc chắn muốn KHÓA tài khoản này không?\nNgười dùng sẽ không thể đăng nhập."
+            : "Bạn có chắc chắn muốn MỞ KHÓA tài khoản này không?";
+
+        if (!confirm(msg)) return;
+
+        var formData = new FormData();
+        formData.append('id', id);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/NguoiDung/ToggleStatus',
+            data: formData, processData: false, contentType: false,
+            success: function (res) {
+                alert(res);
+                loadUsers($("#txt_search_user").val(), currentPage); // Load lại để cập nhật giao diện
+            },
+            error: function () { alert("Lỗi kết nối server."); }
+        });
+    }
+
+    function renderPagination(totalPages, current) {
+        if (totalPages <= 1) { $("#pagination").html(''); return; }
+        var html = '<nav><ul class="pagination">';
+        var prevDisable = (current == 1) ? "disabled" : "";
+        html += `<li class="page-item ${prevDisable}"><a class="page-link" href="#" onclick="loadUsers(null, ${current - 1})">&laquo;</a></li>`;
+        for (var i = 1; i <= totalPages; i++) {
+            var active = (i == current) ? "active" : "";
+            html += `<li class="page-item ${active}"><a class="page-link" href="#" onclick="loadUsers(null, ${i})">${i}</a></li>`;
+        }
+        var nextDisable = (current == totalPages) ? "disabled" : "";
+        html += `<li class="page-item ${nextDisable}"><a class="page-link" href="#" onclick="loadUsers(null, ${current + 1})">&raquo;</a></li>`;
+        html += '</ul></nav>';
+        $("#pagination").html(html);
+    }
+
+    $(document).ready(function () {
+        loadUsers("");
+        var timeout;
+        $("#txt_search_user").keyup(function () {
+            clearTimeout(timeout);
+            timeout = setTimeout(function () { loadUsers($("#txt_search_user").val(), 1); }, 500);
+        });
+    });
+</script>

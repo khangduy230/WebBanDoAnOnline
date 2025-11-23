@@ -1,0 +1,101 @@
+﻿@{
+    ViewBag.Title = "Thêm Voucher mới";
+   
+}
+
+<main class="container-fluid py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 fw-bold">Thêm mới Voucher</h5>
+        </div>
+        <div class="card-body">
+            <form id="form-voucher-add">
+                <div class="row">
+                    <!-- Cột Trái -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên voucher <span class="text-danger">*</span></label>
+                            <input type="text" name="txt_TenVoucher" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mã Code <span class="text-danger">*</span></label>
+                            <input type="text" name="txt_MaCode" class="form-control text-uppercase" placeholder="VD: SUMMER2024" required />
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Loại giảm</label>
+                                <select name="slc_LoaiGiam" class="form-select">
+                                    <option value="PhanTram">Theo Phần trăm (%)</option>
+                                    <option value="SoTien">Theo Số tiền (VND)</option>
+                                </select>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Giá trị giảm <span class="text-danger">*</span></label>
+                                <input type="number" name="txt_GiaTri" class="form-control" min="0" required />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Điều kiện tối thiểu (VND)</label>
+                            <input type="number" name="txt_DieuKienToiThieu" class="form-control" min="0" value="0" />
+                        </div>
+                    </div>
+
+                    <!-- Cột Phải -->
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Ngày bắt đầu</label>
+                                <input type="date" name="date_NgayBatDau" class="form-control" required />
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Ngày kết thúc</label>
+                                <input type="date" name="date_NgayKetThuc" class="form-control" required />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số lượt dùng tối đa (Để trống nếu không giới hạn)</label>
+                            <input type="number" name="txt_SoLuotDungToiDa" class="form-control" min="1" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả thêm</label>
+                            <textarea name="txt_MoTaThem" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="@Url.Action("LayVoucher", "Voucher")" class="btn btn-secondary">Hủy</a>
+                    <button type="button" id="btn_them" class="btn btn-success px-4">Lưu lại</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $("#btn_them").click(function () {
+        // Validate sơ bộ
+        var code = $("input[name='txt_MaCode']").val();
+        var val = $("input[name='txt_GiaTri']").val();
+
+        if(!code || !val) { alert("Vui lòng nhập đủ thông tin bắt buộc"); return; }
+        if(val < 0) { alert("Giá trị giảm không được âm"); return; }
+
+        var formData = new FormData($('#form-voucher-add')[0]);
+
+        $.ajax({
+            type: "POST",
+            url: window.location.origin + '/Voucher/InsertVoucher',
+            data: formData,
+            processData: false, contentType: false,
+            success: function (res) {
+                alert(res);
+                if (res.includes("thành công")) {
+                    window.location.href = '@Url.Action("LayVoucher", "Voucher")';
+                }
+            },
+            error: function() { alert("Lỗi kết nối server."); }
+        });
+    });
+</script>

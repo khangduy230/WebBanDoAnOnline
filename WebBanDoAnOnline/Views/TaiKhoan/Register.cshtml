@@ -1,64 +1,268 @@
-﻿@model WebBanDoAnOnline.Models.TaiKhoanViewModels.RegisterViewModel
-@{
+﻿@{
     ViewBag.Title = "Đăng ký";
     Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
 
-<div class="auth-form-container">
+<!-- Sử dụng lại CSS của trang Login để đồng bộ -->
+<style>
+    body {
+        background-color: #f4f6f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .login-card {
+        background: #ffffff;
+        width: 100%;
+        max-width: 500px; /* Rộng hơn trang login một chút */
+        padding: 40px 35px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        margin: 20px;
+    }
+
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 28px;
+    }
+
+    .logo-bold {
+        font-weight: 800;
+        color: #333;
+    }
+
+    .logo-regular {
+        font-weight: 400;
+        color: #333;
+    }
+
+    .auth-title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 25px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .custom-input {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #e1e5eb;
+        border-radius: 8px;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.3s;
+    }
+
+        .custom-input:focus {
+            border-color: #fd7e14;
+            box-shadow: 0 0 0 3px rgba(253, 126, 20, 0.15);
+        }
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #aaa;
+    }
+
+    .btn-action {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background 0.3s;
+    }
+
+    .btn-register {
+        background-color: #fd7e14;
+        color: white;
+    }
+
+        .btn-register:hover {
+            background-color: #e96b02;
+        }
+
+    .btn-back {
+        background-color: white;
+        color: #555;
+        border: 1px solid #ddd;
+        display: block;
+        text-align: center;
+        text-decoration: none;
+        margin-top: 10px;
+    }
+
+        .btn-back:hover {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+    .alert-custom {
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        margin-bottom: 20px;
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+
+<div class="login-card">
     <div class="auth-logo">
         <span class="logo-bold fst-italic">FuTho</span>
         <span class="logo-regular">Food</span>
     </div>
-    <h2>Đăng ký tài khoản mới</h2>
+    <h2 class="auth-title">Đăng ký tài khoản mới</h2>
 
-    @using (Html.BeginForm("Register", "TaiKhoan", FormMethod.Post, new { @class = "auth-form", role = "form" }))
-    {
-        @Html.AntiForgeryToken()
+    <!-- Form dùng ID để gọi AJAX -->
+    <form id="reg_frm" method="post">
 
-        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+        <!-- Khu vực báo lỗi -->
+        <div id="error-msg" class="alert-custom" style="display:none;"></div>
 
+        <!-- Họ tên -->
         <div class="form-group">
-            @Html.LabelFor(m => m.HoTen)
-            @Html.TextBoxFor(m => m.HoTen, new { @class = "form-control", placeholder = "Nhập họ và tên" })
-            @Html.ValidationMessageFor(m => m.HoTen, "", new { @class = "text-danger" })
+            <label class="form-label">Họ và tên</label>
+            <input type="text" id="txt_name" name="txt_name" class="custom-input" placeholder="Nhập họ tên của bạn" />
         </div>
 
+        <!-- Tài khoản -->
         <div class="form-group">
-            @Html.LabelFor(m => m.TenTK)
-            @Html.TextBoxFor(m => m.TenTK, new { @class = "form-control", placeholder = "Nhập tên tài khoản (vd: user123)" })
-            @Html.ValidationMessageFor(m => m.TenTK, "", new { @class = "text-danger" })
+            <label class="form-label">Tên tài khoản</label>
+            <input type="text" id="txt_user" name="txt_user" class="custom-input" placeholder="Viết liền không dấu (vd: user123)" />
         </div>
 
+        <!-- Số điện thoại -->
         <div class="form-group">
-            @Html.LabelFor(m => m.SoDienThoai)
-            @Html.TextBoxFor(m => m.SoDienThoai, new { @class = "form-control", placeholder = "Nhập số điện thoại" })
-            @Html.ValidationMessageFor(m => m.SoDienThoai, "", new { @class = "text-danger" })
+            <label class="form-label">Số điện thoại</label>
+            <input type="text" id="txt_phone" name="txt_phone" class="custom-input" placeholder="Nhập SĐT" />
         </div>
 
+        <!-- Email -->
         <div class="form-group">
-            @Html.LabelFor(m => m.Email)
-            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Nhập email" })
-            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+            <label class="form-label">Email</label>
+            <input type="email" id="txt_email" name="txt_email" class="custom-input" placeholder="example@gmail.com" />
         </div>
 
+        <!-- Mật khẩu -->
         <div class="form-group">
-            @Html.LabelFor(m => m.MatKhau)
+            <label class="form-label">Mật khẩu</label>
             <div class="password-wrapper">
-                @Html.PasswordFor(m => m.MatKhau, new { @class = "form-control", placeholder = "Nhập mật khẩu (tối thiểu 6 ký tự)" })
+                <input type="password" id="txt_pass" name="txt_pass" class="custom-input" placeholder="Tối thiểu 6 ký tự" />
                 <i class="fas fa-eye-slash toggle-password"></i>
             </div>
-            @Html.ValidationMessageFor(m => m.MatKhau, "", new { @class = "text-danger" })
         </div>
 
+        <!-- Nhập lại mật khẩu -->
         <div class="form-group">
-            @Html.LabelFor(m => m.ConfirmMatKhau)
+            <label class="form-label">Xác nhận mật khẩu</label>
             <div class="password-wrapper">
-                @Html.PasswordFor(m => m.ConfirmMatKhau, new { @class = "form-control", placeholder = "Nhập lại mật khẩu" })
+                <input type="password" id="txt_repass" name="txt_repass" class="custom-input" placeholder="Nhập lại mật khẩu bên trên" />
                 <i class="fas fa-eye-slash toggle-password"></i>
             </div>
-            @Html.ValidationMessageFor(m => m.ConfirmMatKhau, "", new { @class = "text-danger" })
         </div>
 
-        <button type="submit" class="btn btn-auth-primary">Đăng ký</button>
-    }
+        <button type="button" id="btn_register" class="btn-action btn-register">Đăng ký ngay</button>
+        <a href="/TaiKhoan/Login" class="btn-action btn-back">Quay lại đăng nhập</a>
+    </form>
 </div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        // Xử lý nút Đăng ký
+        $("#btn_register").click(function () {
+            // 1. Validate phía Client trước
+            var name = $("#txt_name").val().trim();
+            var user = $("#txt_user").val().trim();
+            var pass = $("#txt_pass").val();
+            var repass = $("#txt_repass").val();
+
+            if (name == "" || user == "" || pass == "") {
+                showError("Vui lòng nhập đầy đủ thông tin bắt buộc!");
+                return;
+            }
+            if (pass !== repass) {
+                showError("Mật khẩu xác nhận không khớp!");
+                return;
+            }
+
+            // 2. Gửi AJAX
+            var form = $('#reg_frm')[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                type: "POST",
+                url: window.location.origin + '/TaiKhoan/Register_act', // Gọi tới action xử lý đăng ký
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function() {
+                    $("#btn_register").text("Đang xử lý...").prop("disabled", true);
+                    $("#error-msg").hide();
+                },
+                success: function (response) {
+                    var rs = JSON.parse(response);
+                    if (rs.ErrCode == 1) {
+                        alert("Đăng ký thành công! Vui lòng đăng nhập.");
+                        window.location.href = "/TaiKhoan/Login";
+                    } else {
+                        showError(rs.Msg);
+                        $("#btn_register").text("Đăng ký ngay").prop("disabled", false);
+                    }
+                },
+                error: function () {
+                    showError("Lỗi kết nối Server.");
+                    $("#btn_register").text("Đăng ký ngay").prop("disabled", false);
+                }
+            });
+        });
+
+        // Hàm hiển thị lỗi
+        function showError(msg) {
+            $("#error-msg").text(msg).fadeIn();
+        }
+
+        // Toggle ẩn/hiện password (áp dụng cho cả 2 ô mật khẩu)
+        $(".toggle-password").click(function() {
+            // Tìm ô input nằm cùng cấp cha với icon này
+            var input = $(this).siblings("input");
+            if (input.attr("type") === "password") {
+                input.attr("type", "text");
+                $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+            } else {
+                input.attr("type", "password");
+                $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+            }
+        });
+    });
+</script>

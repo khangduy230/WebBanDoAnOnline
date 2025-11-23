@@ -1,259 +1,290 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using WebBanDoAnOnline.Models;
+using Newtonsoft.Json;
 
 namespace WebBanDoAnOnline.Controllers
 {
-    [Authorize]
     public class ThanhToanController : Controller
     {
-        private readonly BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext(
-            System.Configuration.ConfigurationManager.ConnectionStrings["BanDoAnOnlineConnectionString"].ConnectionString
-        );
-
-        private TaiKhoan CurrentUser => Session["TaiKhoan"] as TaiKhoan;
-
-        private static decimal GiaApDung(SanPham p, DateTime? now = null)
-        {
-            var n = now ?? DateTime.Now;
-            var goc = p.Gia ?? 0m;
-            var km = p.GiaKhuyenMai ?? 0m;
-            var trongKhung =
-                (!p.NgayBatDauKM.HasValue || p.NgayBatDauKM.Value <= n) &&
-                (!p.NgayKetThucKM.HasValue || p.NgayKetThucKM.Value >= n);
-            return (goc > 0 && km > 0 && km < goc && trongKhung) ? km : goc;
-        }
-
-        private static bool DangGiamGia(SanPham p, DateTime? now = null)
-        {
-            var n = now ?? DateTime.Now;
-            var goc = p.Gia ?? 0m;
-            var km = p.GiaKhuyenMai ?? 0m;
-            var trongKhung =
-                (!p.NgayBatDauKM.HasValue || p.NgayBatDauKM.Value <= n) &&
-                (!p.NgayKetThucKM.HasValue || p.NgayKetThucKM.Value >= n);
-            return goc > 0 && km > 0 && km < goc && trongKhung;
-        }
-
-        // GET: /ThanhToan
+        // 1. Mở trang thanh toán (Chỉ trả về View rỗng)
         public ActionResult Index()
         {
-            var user = CurrentUser;
-            if (user == null) return RedirectToAction("Login", "TaiKhoan");
-
-            var rows = (from g in db.GioHangs
-                        join p in db.SanPhams on g.MaSP equals p.MaSP
-                        where g.isDelete != 1 && p.isDelete != 1 && g.MaTK == user.MaTK
-                        select new { g, p }).ToList();
-
-            if (!rows.Any()) return RedirectToAction("Index", "GioHang");
-
-            var vm = new TrangThanhToanVM
+            if (Session["TaiKhoan"] == null)
             {
-                DanhSach = rows.Select(x => new DongThanhToanVM
-                {
-                    MaSP = x.p.MaSP,
-                    TenSP = x.p.TenSP,
-                    Anh = x.p.Anh,
-                    DonGia = GiaApDung(x.p),
-                    GiaGoc = x.p.Gia ?? 0m,
-                    OnSale = DangGiamGia(x.p),
-                    SoLuong = x.g.SoLuong ?? 1,
-                    GhiChu = x.g.Extend_Data
-                }).ToList()
-            };
-
-            vm.TongTienHang = vm.DanhSach.Sum(i => i.ThanhTien);
-            vm.PhiGiaoHang = 25000m;
-            vm.PhuPhi = 3000m;
-            vm.GiamGia = 0m;
-            vm.TongThanhToan = vm.TongTienHang + vm.PhiGiaoHang + vm.PhuPhi - vm.GiamGia;
-
-            // ĐỊA CHỈ: an toàn khi rỗng
-            var dsDiaChi = db.DiaChis
-                             .Where(d => d.MaTK == user.MaTK && d.isDelete != 1)
-                             .OrderByDescending(d => d.MacDinh == true)
-                             .ToList();
-
-            vm.DanhSachDiaChi = dsDiaChi;
-            if (dsDiaChi.Any())
-            {
-                vm.MaDiaChiDaChon = dsDiaChi.FirstOrDefault(d => d.MacDinh == true)?.MaDiaChi
-                                    ?? dsDiaChi.First().MaDiaChi;
+                return RedirectToAction("Login", "TaiKhoan");
             }
-            else
-            {
-                vm.MaDiaChiDaChon = null; // chưa có địa chỉ
-            }
-
-            ViewBag.Title = "Thanh toán";
-            return View(vm);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult ApplyVoucher(string code, decimal subtotal)
-        {
-            try
-            {
-                code = (code ?? string.Empty).Trim().ToUpperInvariant();
-                if (subtotal <= 0) return Json(new { ok = true, discount = 0 });
-
-                decimal discount = 0m;
-                if (!string.IsNullOrWhiteSpace(code))
-                {
-                    if (string.Equals(code, "GIAM30", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (subtotal >= 100000m) discount = 30000m;
-                    }
-                    else
-                    {
-                        var vc = db.Vouchers.FirstOrDefault(v => v.isDelete != 1 && v.TenVoucher.ToUpper() == code);
-                        if (vc != null)
-                        {
-                            if (string.Equals(vc.LoaiGiam, "AMOUNT", StringComparison.OrdinalIgnoreCase))
-                                discount = Math.Min(vc.GiaTri, subtotal);
-                            else if (string.Equals(vc.LoaiGiam, "PERCENT", StringComparison.OrdinalIgnoreCase))
-                                discount = Math.Min(Math.Round(subtotal * vc.GiaTri / 100m, 0), subtotal);
-                        }
-                    }
-                }
-                return Json(new { ok = true, discount });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { ok = false, message = "Áp dụng voucher thất bại.", detail = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult PlaceOrder(int addressId, string payMethod, string note, string voucherCode)
-        {
-            try
-            {
-                var user = CurrentUser;
-                if (user == null) return Json(new { ok = false, requireLogin = true });
-
-                var diaChi = db.DiaChis.FirstOrDefault(d => d.MaDiaChi == addressId && d.MaTK == user.MaTK && d.isDelete != 1);
-                if (diaChi == null) return Json(new { ok = false, message = "Địa chỉ không hợp lệ." });
-
-                var rows = (from g in db.GioHangs
-                            join p in db.SanPhams on g.MaSP equals p.MaSP
-                            where g.isDelete != 1 && p.isDelete != 1 && g.MaTK == user.MaTK
-                            select new { g, p }).ToList();
-
-                if (!rows.Any()) return Json(new { ok = false, message = "Giỏ hàng trống." });
-
-                var items = rows.Select(x => new
-                {
-                    x.p.MaSP,
-                    Price = GiaApDung(x.p),
-                    Qty = (x.g.SoLuong ?? 1),
-                    Notes = x.g.Extend_Data
-                }).ToList();
-
-                var subtotal = items.Sum(i => i.Price * i.Qty);
-                var shipping = 25000m;
-                var service = 3000m;
-
-                decimal discount = 0m;
-                int? maVoucher = null;
-                var code = (voucherCode ?? string.Empty).Trim();
-                if (!string.IsNullOrEmpty(code))
-                {
-                    if (string.Equals(code, "GIAM30", StringComparison.OrdinalIgnoreCase) && subtotal >= 100000m)
-                        discount = 30000m;
-                    else
-                    {
-                        var vc = db.Vouchers.FirstOrDefault(v => v.isDelete != 1 && v.TenVoucher.ToUpper() == code.ToUpper());
-                        if (vc != null)
-                        {
-                            if (string.Equals(vc.LoaiGiam, "AMOUNT", StringComparison.OrdinalIgnoreCase))
-                                discount = Math.Min(vc.GiaTri, subtotal);
-                            else if (string.Equals(vc.LoaiGiam, "PERCENT", StringComparison.OrdinalIgnoreCase))
-                                discount = Math.Min(Math.Round(subtotal * vc.GiaTri / 100m, 0), subtotal);
-
-                            maVoucher = vc.MaVoucher;
-                            if (vc.SoLuotConLai.HasValue && vc.SoLuotConLai.Value <= 0)
-                                return Json(new { ok = false, message = "Voucher đã hết lượt sử dụng." });
-                        }
-                    }
-                }
-
-                var grand = subtotal + shipping + service - discount;
-                if (grand <= 0) grand = 0;
-
-                var dh = new DonHang
-                {
-                    MaTK = user.MaTK,
-                    MaDiaChi = diaChi.MaDiaChi,
-                    MaVoucher = maVoucher,
-                    TongTien = grand,
-                    PhuongThucTT = (payMethod == "BANK" ? "Ngân hàng" : "Tiền mặt"),
-                    TrangThai = "Chờ xác nhận",
-                    Create_at = DateTime.Now,
-                    isDelete = 0,
-                    Extend_Data = note
-                };
-                db.DonHangs.InsertOnSubmit(dh);
-                db.SubmitChanges();
-
-                foreach (var it in items)
-                {
-                    db.ChiTietDonHangs.InsertOnSubmit(new ChiTietDonHang
-                    {
-                        MaDH = dh.MaDH,
-                        MaSP = it.MaSP,
-                        SoLuong = it.Qty,
-                        DonGia = it.Price,
-                        Extend_Data = it.Notes,
-                        Create_at = DateTime.Now,
-                        isDelete = 0
-                    });
-                }
-
-                db.LichSuTrangThais.InsertOnSubmit(new LichSuTrangThai
-                {
-                    MaDH = dh.MaDH,
-                    TrangThai = "Đặt hàng",
-                    ThoiGian = DateTime.Now,
-                    Create_at = DateTime.Now,
-                    isDelete = 0
-                });
-
-                if (maVoucher.HasValue)
-                {
-                    var vc = db.Vouchers.FirstOrDefault(v => v.MaVoucher == maVoucher.Value);
-                    if (vc != null && vc.SoLuotConLai.HasValue && vc.SoLuotConLai.Value > 0)
-                        vc.SoLuotConLai = vc.SoLuotConLai.Value - 1;
-                }
-
-                foreach (var r in rows) { r.g.isDelete = 1; r.g.LastEdit_at = DateTime.Now; }
-                db.SubmitChanges();
-
-                Session["CartCount"] = 0;
-
-                return Json(new { ok = true, orderId = dh.MaDH, redirect = Url.Action("Success", "ThanhToan", new { id = dh.MaDH }) });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { ok = false, message = "Đặt hàng thất bại.", detail = ex.Message });
-            }
-        }
-
-        public ActionResult Success(int id)
-        {
-            ViewBag.Title = "Đặt hàng thành công";
-            ViewBag.OrderId = id;
             return View();
         }
 
-        protected override void Dispose(bool disposing)
+        // 2. Trang báo thành công
+        public ActionResult Success()
         {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
+            return View();
         }
+
+        // =============================================
+        // API 1: Lấy dữ liệu render trang thanh toán
+        // =============================================
+       
+        // Trong ThanhToanController.cs
+
+     
+        public string LayThongTinThanhToan()
+        {
+            BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null) return "LOGIN_REQUIRED";
+
+            // 1. Lấy danh sách địa chỉ (Giữ nguyên)
+            var dsDiaChi = db.DiaChis
+                                .Where(d => d.MaTK == user.MaTK && (d.isDelete == null || d.isDelete == 0))
+                                .Select(d => new { d.MaDiaChi, d.TenNguoiNhan, d.SDTNhan, d.DiaChiCuThe, d.MacDinh })
+                                .OrderByDescending(d => d.MacDinh).ToList();
+
+            // 2. Lấy giỏ hàng & Tính tiền (Giữ nguyên logic cũ)
+            var cartItems = (from g in db.GioHangs
+                             join p in db.SanPhams on g.MaSP equals p.MaSP
+                             where g.MaTK == user.MaTK && (g.isDelete == 0 || g.isDelete == null)
+                             select new { g, p }).ToList();
+
+            decimal tongTienHang = 0;
+            var listProducts = new List<object>();
+            DateTime now = DateTime.Now;
+
+            foreach (var item in cartItems)
+            {
+                decimal giaGoc = item.p.Gia ?? 0;
+                decimal giaKM = item.p.GiaKhuyenMai ?? 0;
+                decimal giaBan = giaGoc;
+
+                if (giaKM > 0 && giaKM < giaGoc &&
+                    (!item.p.NgayBatDauKM.HasValue || item.p.NgayBatDauKM <= now) &&
+                    (!item.p.NgayKetThucKM.HasValue || item.p.NgayKetThucKM >= now))
+                {
+                    giaBan = giaKM;
+                }
+
+                decimal thanhTien = giaBan * (item.g.SoLuong ?? 1);
+                tongTienHang += thanhTien;
+
+                listProducts.Add(new { TenSP = item.p.TenSP, SoLuong = item.g.SoLuong, DonGia = giaBan, ThanhTien = thanhTien });
+            }
+
+            decimal phiShip = (tongTienHang > 500000) ? 0 : 25000;
+
+            // --- THÊM MỚI: LẤY DANH SÁCH VOUCHER ---
+            var dsVoucher = db.Vouchers
+                .Where(v => (v.isDelete == null || v.isDelete == 0) // Chưa xóa
+                            && v.NgayBatDau <= now                  // Đã bắt đầu
+                            && v.NgayKetThuc >= now                 // Chưa hết hạn
+                            && (v.SoLuotConLai > 0 || v.SoLuotConLai == null)) // Còn lượt
+                .Select(v => new
+                {
+                    v.MaCode,
+                    v.TenVoucher,
+                    v.GiaTri,
+                    v.LoaiGiam,
+                    v.DieuKienToiThieu,
+                    v.MoTaThem,
+                    HanSuDung = v.NgayKetThuc
+                })
+                .OrderBy(v => v.DieuKienToiThieu)
+                .ToList();
+
+            var result = new
+            {
+                DiaChi = dsDiaChi,
+                SanPham = listProducts,
+                TongTienHang = tongTienHang,
+                PhiShip = phiShip,
+                TongThanhToan = tongTienHang + phiShip,
+
+                // Trả về danh sách voucher
+                DanhSachVoucher = dsVoucher
+            };
+
+            return JsonConvert.SerializeObject(result);
+        }
+
+        // =============================================
+        // API 2: Kiểm tra Voucher
+        // =============================================
+        [HttpPost]
+        public string KiemTraVoucher()
+        {
+            string code = Request["code"];
+            string total_str = Request["total"]; // Tổng tiền hàng hiện tại
+
+            if (string.IsNullOrEmpty(code)) return JsonConvert.SerializeObject(new { ok = false, msg = "Chưa nhập mã" });
+
+            decimal subtotal = decimal.Parse(total_str);
+            BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+
+            // Tìm voucher còn hạn, còn lượt dùng
+            DateTime now = DateTime.Now;
+            var vc = db.Vouchers.FirstOrDefault(v => v.MaCode == code
+                                                  && v.NgayBatDau <= now
+                                                  && v.NgayKetThuc >= now
+                                                  && (v.SoLuotConLai > 0 || v.SoLuotConLai == null)
+                                                  && (v.isDelete == 0 || v.isDelete == null));
+
+            if (vc != null)
+            {
+                // Kiểm tra điều kiện tối thiểu
+                if (vc.DieuKienToiThieu > 0 && subtotal < vc.DieuKienToiThieu)
+                {
+                    return JsonConvert.SerializeObject(new { ok = false, msg = "Đơn hàng chưa đủ " + vc.DieuKienToiThieu?.ToString("#,0") + "đ để dùng mã này." });
+                }
+
+                decimal discount = 0;
+                if (vc.LoaiGiam == "Tiền")
+                {
+                    discount = vc.GiaTri;
+                }
+                else // Phần trăm
+                {
+                    discount = (subtotal * vc.GiaTri) / 100;
+                }
+
+                // Đảm bảo không giảm quá tổng tiền
+                if (discount > subtotal) discount = subtotal;
+
+                return JsonConvert.SerializeObject(new { ok = true, discount = discount, msg = "Áp dụng thành công!" });
+            }
+
+            return JsonConvert.SerializeObject(new { ok = false, msg = "Mã giảm giá không tồn tại hoặc đã hết hạn." });
+        }
+
+        // =============================================
+        // API 3: Đặt hàng (PlaceOrder)
+        // =============================================
+        [HttpPost]
+        public string DatHang()
+        {
+            try
+            {
+                var user = Session["TaiKhoan"] as TaiKhoan;
+                if (user == null) return "LOGIN_REQUIRED";
+
+                // 1. Nhận tham số từ FormData
+                string addressId_str = Request["addressId"];
+                string payMethod = Request["payMethod"];
+                string note = Request["note"];
+                string voucherCode = Request["voucherCode"];
+
+                if (string.IsNullOrEmpty(addressId_str)) return "Vui lòng chọn địa chỉ giao hàng.";
+                int addressId = int.Parse(addressId_str);
+
+                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+
+                // 2. Lấy lại giỏ hàng để tính toán lần cuối (Backend phải tự tính lại tiền)
+                var cartItems = db.GioHangs.Where(g => g.MaTK == user.MaTK && (g.isDelete == 0 || g.isDelete == null)).ToList();
+                if (!cartItems.Any()) return "Giỏ hàng trống, không thể thanh toán.";
+
+                decimal subTotal = 0;
+                DateTime now = DateTime.Now;
+
+                foreach (var item in cartItems)
+                {
+                    var sp = db.SanPhams.Single(p => p.MaSP == item.MaSP);
+                    decimal gia = sp.Gia ?? 0;
+
+                    // Check giá KM
+                    if (sp.GiaKhuyenMai > 0 && sp.GiaKhuyenMai < gia &&
+                        (!sp.NgayBatDauKM.HasValue || sp.NgayBatDauKM <= now) &&
+                        (!sp.NgayKetThucKM.HasValue || sp.NgayKetThucKM >= now))
+                    {
+                        gia = sp.GiaKhuyenMai ?? 0;
+                    }
+                    subTotal += gia * (item.SoLuong ?? 1);
+                }
+
+                // 3. Tính phí & Voucher
+                decimal shipping = (subTotal > 500000) ? 0 : 25000;
+                decimal discount = 0;
+                int? maVoucher = null;
+
+                if (!string.IsNullOrEmpty(voucherCode))
+                {
+                    var vc = db.Vouchers.FirstOrDefault(v => v.MaCode == voucherCode);
+                    if (vc != null)
+                    {
+                        if (vc.LoaiGiam == "Tiền") discount = vc.GiaTri;
+                        else discount = (subTotal * vc.GiaTri) / 100;
+
+                        if (discount > subTotal) discount = subTotal;
+                        maVoucher = vc.MaVoucher;
+
+                        // Trừ lượt dùng voucher
+                        if (vc.SoLuotConLai > 0) vc.SoLuotConLai -= 1;
+                        vc.SoLuotDaSuDung = (vc.SoLuotDaSuDung ?? 0) + 1;
+                    }
+                }
+
+                // 4. Tạo Đơn hàng
+                DonHang dh = new DonHang();
+                dh.MaTK = user.MaTK;
+                dh.MaDiaChi = addressId;
+                dh.MaVoucher = maVoucher;
+                dh.TongTienSanPham = subTotal;
+                dh.TienGiamGia = discount;
+                dh.TongTien = subTotal + shipping - discount;
+                dh.PhuongThucTT = (payMethod == "BANK") ? "Chuyển khoản" : "Tiền mặt (COD)";
+                dh.TrangThai = "Chờ xác nhận";
+                dh.GhiChu = note;
+                dh.Create_at = DateTime.Now;
+                dh.isDelete = 0;
+
+                db.DonHangs.InsertOnSubmit(dh);
+                db.SubmitChanges(); // Lấy MaDH
+
+                // 5. Lưu Chi tiết đơn hàng
+                foreach (var item in cartItems)
+                {
+                    var sp = db.SanPhams.Single(p => p.MaSP == item.MaSP);
+                    ChiTietDonHang ct = new ChiTietDonHang();
+                    ct.MaDH = dh.MaDH;
+                    ct.MaSP = item.MaSP;
+                    ct.TenSP = sp.TenSP;
+                    ct.SoLuong = item.SoLuong;
+
+                    // Lấy giá tại thời điểm mua
+                    decimal giaFinal = sp.Gia ?? 0;
+                    if (sp.GiaKhuyenMai > 0 && sp.GiaKhuyenMai < giaFinal) giaFinal = sp.GiaKhuyenMai ?? 0;
+
+                    ct.DonGia = giaFinal;
+                    ct.ThanhTien = giaFinal * (ct.SoLuong ?? 1);
+                    ct.GhiChu = item.GhiChu;
+                    ct.Create_at = DateTime.Now;
+
+                    db.ChiTietDonHangs.InsertOnSubmit(ct);
+
+                    // Xóa giỏ hàng (Xóa mềm hoặc cứng tùy bạn, ở đây dùng xóa cứng cho gọn DB giỏ)
+                    // Hoặc xóa mềm: item.isDelete = 1;
+                    db.GioHangs.DeleteOnSubmit(item);
+                }
+
+                // 6. Lưu lịch sử trạng thái
+                LichSuTrangThai ls = new LichSuTrangThai();
+                ls.MaDH = dh.MaDH;
+                ls.TrangThaiMoi = "Chờ xác nhận";
+                ls.ThoiGian = DateTime.Now;
+                ls.GhiChu = "Khách hàng đặt đơn mới";
+                db.LichSuTrangThais.InsertOnSubmit(ls);
+
+                db.SubmitChanges();
+
+                return "SUCCESS";
+            }
+            catch (Exception ex)
+            {
+                return "Lỗi: " + ex.Message;
+            }
+        }
+
     }
 }
