@@ -1,0 +1,333 @@
+﻿@{
+    ViewBag.Title = "Khuyến mãi";
+    Layout = "~/Views/Shared/_LayoutCaiDat.cshtml";
+}
+
+<style>
+    .voucher-input-section {
+        background: #fff;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .voucher-input-wrapper {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .voucher-code-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: border-color 0.3s ease;
+    }
+
+        .voucher-code-input:focus {
+            outline: none;
+            border-color: #F58634;
+        }
+
+        .voucher-code-input::placeholder {
+            color: #999;
+        }
+
+    .btn-save-voucher {
+        background-color: #F58634;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+        .btn-save-voucher:hover {
+            background-color: #e67e00;
+        }
+
+    /* Voucher card */
+    .voucher-card {
+        background: #fff;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+        .voucher-card:hover:not(.disabled-voucher) {
+            border-color: #F58634;
+            box-shadow: 0 4px 12px rgba(245, 134, 52, 0.15);
+        }
+
+        .voucher-card.disabled-voucher {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .voucher-icon {
+        font-size: 2rem;
+        color: #F58634;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .voucher-info {
+        flex: 1;
+    }
+
+    .voucher-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 4px;
+    }
+
+    .voucher-expiry {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+
+    .voucher-quantity {
+        font-size: 0.85rem;
+        color: #F58634;
+        font-weight: 600;
+    }
+
+        .voucher-quantity.low-stock {
+            color: #dc3545;
+        }
+
+    .voucher-code-display {
+        background-color: #f8f9fa;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    /* Badge trạng thái */
+    .voucher-status {
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 12px;
+    }
+
+    .status-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-expired {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-used {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    /* Empty state */
+    .empty-voucher {
+        background: #fff;
+        border: 2px dashed #ddd;
+        border-radius: 12px;
+        padding: 40px 20px;
+        text-align: center;
+        color: #6c757d;
+    }
+
+        .empty-voucher i {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+
+        .empty-voucher p {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+    /* Loading */
+    .voucher-loading {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+        .voucher-loading .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: #F58634;
+        }
+</style>
+
+<h4 class="mb-4">Mã khuyến mãi của tôi</h4>
+
+<!-- Ô nhập mã voucher -->
+<div class="voucher-input-section">
+    <div class="voucher-input-wrapper">
+        <input type="text"
+               id="voucherCodeInput"
+               class="voucher-code-input"
+               placeholder="Nhập mã voucher tại đây"
+               maxlength="50">
+        <button class="btn-save-voucher" onclick="luuVoucher()">
+            <i class="fas fa-save"></i> Lưu voucher
+        </button>
+    </div>
+</div>
+
+<!-- Danh sách voucher -->
+<div id="voucher-list">
+    <div class="voucher-loading">
+        <div class="spinner-border" role="status"></div>
+        <p class="mt-3 text-muted">Đang tải danh sách voucher...</p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var url_domain = window.location.origin;
+
+        $(document).ready(function () {
+            loadVoucherList();
+
+            // Enter để lưu voucher
+            $('#voucherCodeInput').keypress(function (e) {
+                if (e.which === 13) {
+                    luuVoucher();
+                }
+            });
+        });
+
+        function loadVoucherList() {
+            $.ajax({
+                type: "POST",
+                url: url_domain + '/CaiDat/GetVoucherList',
+                contentType: false,
+                processData: false,
+                cache: false,
+                success: function (response) {
+                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                    if (res.success) {
+                        renderVoucherList(res.data);
+                    } else {
+                        $('#voucher-list').html('<div class="alert alert-danger">' + res.message + '</div>');
+                    }
+                },
+                error: function () {
+                    $('#voucher-list').html('<div class="alert alert-danger">Lỗi khi tải danh sách voucher</div>');
+                }
+            });
+        }
+
+        function renderVoucherList(data) {
+            if (data.length === 0) {
+                $('#voucher-list').html(`
+                        <div class="empty-voucher">
+                            <i class="fas fa-ticket-alt"></i>
+                            <p>Chưa có voucher khả dụng</p>
+                        </div>
+                    `);
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < data.length; i++) {
+                var v = data[i];
+
+                // Xác định status badge và class
+                var statusHtml = '';
+                var cardClass = '';
+                var quantityHtml = '';
+
+                if (v.TrangThai === 'HetHan') {
+                    statusHtml = '<span class="voucher-status status-expired">Hết hạn</span>';
+                    cardClass = 'disabled-voucher';
+                } else if (v.TrangThai === 'HetLuot') {
+                    statusHtml = '<span class="voucher-status status-used">Hết lượt</span>';
+                    cardClass = 'disabled-voucher';
+                } else {
+                    // Còn hạn - Hiển thị số lượng
+                    statusHtml = '<span class="voucher-status status-active">Còn hạn</span>';
+
+                    var qtyClass = v.SoLuotConLai <= 10 ? 'low-stock' : '';
+                    quantityHtml = '<div class="voucher-quantity ' + qtyClass + '">' +
+                        '<i class="fas fa-box"></i> Còn lại: ' + v.SoLuotConLai + ' lượt' +
+                        '</div>';
+                }
+
+                html += `
+                        <div class="voucher-card ${cardClass}">
+                            <div class="voucher-icon">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <div class="voucher-info">
+                                <div class="voucher-title">${v.TenVoucher}</div>
+                                <div class="voucher-expiry">
+                                    <i class="far fa-clock"></i> Thời gian khả dụng: ${v.ThoiGian}
+                                </div>
+                                ${quantityHtml}
+                            </div>
+                            <div class="voucher-code-display">${v.MaCode}</div>
+                            ${statusHtml}
+                        </div>
+                    `;
+            }
+            $('#voucher-list').html(html);
+        }
+
+        function luuVoucher() {
+            var code = $('#voucherCodeInput').val().trim();
+
+            if (!code) {
+                alert('Vui lòng nhập mã voucher');
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('maCode', code);
+
+            $.ajax({
+                type: "POST",
+                url: url_domain + '/CaiDat/LuuVoucher',
+                data: formData,
+                contentType: false,
+                processData: false,
+                cache: false,
+                success: function (response) {
+                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                    alert(res.message);
+                    if (res.success) {
+                        $('#voucherCodeInput').val('');
+                        loadVoucherList();
+                    }
+                },
+                error: function () {
+                    alert('Lỗi kết nối server');
+                }
+            });
+        }
+    </script>
+}

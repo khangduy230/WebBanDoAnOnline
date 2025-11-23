@@ -1,0 +1,781 @@
+﻿@{
+    ViewBag.Title = "Đơn mua";
+    Layout = "~/Views/Shared/_LayoutCaiDat.cshtml";
+}
+
+<style>
+    /* Progress Timeline Styles */
+    .order-timeline {
+        position: relative;
+        padding: 30px 0;
+        margin-bottom: 30px;
+    }
+
+    .timeline-container {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .timeline-line {
+        position: absolute;
+        top: 30px;
+        left: 10%;
+        right: 10%;
+        height: 4px;
+        background: #e0e0e0;
+        z-index: 0;
+    }
+
+    .timeline-progress {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: linear-gradient(90deg, #F58634, #ff9d4d);
+        transition: width 0.5s ease;
+        border-radius: 2px;
+    }
+
+    .timeline-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .timeline-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: white;
+        border: 4px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+        font-size: 24px;
+        color: #999;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .timeline-step.active .timeline-icon {
+        border-color: #F58634;
+        background: #FFF3E0;
+        color: #F58634;
+        box-shadow: 0 4px 12px rgba(245, 134, 52, 0.3);
+        animation: pulse 2s infinite;
+    }
+
+    .timeline-step.completed .timeline-icon {
+        border-color: #4CAF50;
+        background: #4CAF50;
+        color: white;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 4px 12px rgba(245, 134, 52, 0.3);
+        }
+        50% {
+            box-shadow: 0 4px 20px rgba(245, 134, 52, 0.5);
+        }
+    }
+
+    .timeline-label {
+        font-size: 13px;
+        color: #666;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+
+    .timeline-step.active .timeline-label {
+        color: #F58634;
+        font-weight: 600;
+    }
+
+    .timeline-step.completed .timeline-label {
+        color: #4CAF50;
+    }
+
+    .timeline-time {
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
+    }
+
+    /* Order Card Styles */
+    .order-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transition: box-shadow 0.3s;
+    }
+
+    .order-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px dashed #e0e0e0;
+    }
+
+    .order-code {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .order-code strong {
+        font-size: 16px;
+        color: #333;
+    }
+
+    .order-code small {
+        color: #666;
+        font-size: 12px;
+    }
+
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badge.pending {
+        background: #FFF3E0;
+        color: #F58634;
+    }
+
+    .status-badge.shipping {
+        background: #E3F2FD;
+        color: #2196F3;
+    }
+
+    .status-badge.delivering {
+        background: #F3E5F5;
+        color: #9C27B0;
+    }
+
+    .status-badge.completed {
+        background: #E8F5E9;
+        color: #4CAF50;
+    }
+
+    .status-badge.cancelled {
+        background: #FFEBEE;
+        color: #F44336;
+    }
+
+    /* Order Info Grid */
+    .order-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .info-label {
+        font-size: 12px;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .info-value {
+        font-size: 14px;
+        color: #333;
+        font-weight: 600;
+    }
+
+    /* Product List */
+    .product-list {
+        margin-bottom: 20px;
+    }
+
+    .product-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .product-item:last-child {
+        border-bottom: none;
+    }
+
+    .product-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+
+    .product-info {
+        flex: 1;
+    }
+
+    .product-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 6px;
+    }
+
+    .product-quantity {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .product-price {
+        text-align: right;
+        font-size: 16px;
+        font-weight: 700;
+        color: #F58634;
+    }
+
+    /* Order Total */
+    .order-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        border-top: 2px solid #e0e0e0;
+        margin-top: 16px;
+    }
+
+    .total-label {
+        font-size: 16px;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .total-amount {
+        font-size: 24px;
+        font-weight: 700;
+        color: #F58634;
+    }
+
+    /* Filter Tabs */
+    .filter-tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .filter-tab {
+        padding: 10px 24px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.3s;
+        font-weight: 500;
+        color: #666;
+        position: relative;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .filter-tab:hover {
+        background: #f5f5f5;
+        color: #333;
+    }
+
+    .filter-tab.active {
+        color: #F58634;
+        font-weight: 600;
+    }
+
+    .filter-tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #F58634;
+    }
+
+    .filter-tab .badge {
+        background: #F58634;
+        color: white;
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 11px;
+        margin-left: 6px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 80px;
+        margin-bottom: 24px;
+        opacity: 0.3;
+    }
+
+    .empty-state h5 {
+        color: #666;
+        margin-bottom: 12px;
+    }
+
+    .empty-state p {
+        color: #999;
+        margin-bottom: 24px;
+    }
+
+    .btn-shop-now {
+        background: #F58634;
+        color: white;
+        padding: 12px 32px;
+        border-radius: 24px;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-shop-now:hover {
+        background: #e67e00;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 134, 52, 0.3);
+    }
+
+    /* Action Buttons */
+    .order-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .btn-action {
+        flex: 1;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+        background: white;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-action:hover {
+        border-color: #F58634;
+        color: #F58634;
+    }
+
+    .btn-action.primary {
+        background: #F58634;
+        color: white;
+        border-color: #F58634;
+    }
+
+    .btn-action.primary:hover {
+        background: #e67e00;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .timeline-container {
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .timeline-line {
+            left: 30px;
+            right: auto;
+            width: 4px;
+            height: calc(100% - 60px);
+            top: 30px;
+        }
+
+        .timeline-step {
+            display: flex;
+            align-items: center;
+            text-align: left;
+            gap: 16px;
+        }
+
+        .timeline-icon {
+            margin: 0;
+        }
+
+        .order-info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-tabs {
+            gap: 8px;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+    }
+</style>
+
+<h4 class="mb-4">Đơn mua của tôi</h4>
+
+<!-- Filter tabs -->
+<div class="filter-tabs">
+    <button class="filter-tab active" data-status="all">
+        <i class="fas fa-list"></i> Tất cả
+    </button>
+    <button class="filter-tab" data-status="pending">
+        <i class="fas fa-clock"></i> Đang chuẩn bị
+    </button>
+    <button class="filter-tab" data-status="shipping">
+        <i class="fas fa-motorcycle"></i> Shipper nhận hàng
+    </button>
+    <button class="filter-tab" data-status="delivering">
+        <i class="fas fa-shipping-fast"></i> Đang giao
+    </button>
+    <button class="filter-tab" data-status="completed">
+        <i class="fas fa-check-circle"></i> Hoàn thành
+    </button>
+</div>
+
+<!-- Order list container -->
+<div id="order-list">
+    <div class="text-center py-5">
+        <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var currentStatus = 'all';
+
+        $(document).ready(function () {
+            loadOrders(currentStatus);
+
+            // Handle filter tab clicks
+            $('.filter-tab').click(function () {
+                $('.filter-tab').removeClass('active');
+                $(this).addClass('active');
+                currentStatus = $(this).data('status');
+                loadOrders(currentStatus);
+            });
+        });
+
+        function loadOrders(status) {
+            var formData = new FormData();
+            formData.append('status', status);
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetOrders", "CaiDat")',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    var res = JSON.parse(response);
+                    if (res.success) {
+                        renderOrders(res.data);
+                    } else {
+                        $('#order-list').html('<div class="alert alert-danger">' + res.message + '</div>');
+                    }
+                },
+                error: function () {
+                    $('#order-list').html('<div class="alert alert-danger">Lỗi kết nối server</div>');
+                }
+            });
+        }
+
+        function renderOrders(orders) {
+            var html = '';
+
+            if (orders.length === 0) {
+                html = `
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-bag"></i>
+                        <h5>Chưa có đơn hàng nào</h5>
+                        <p>Hãy khám phá và đặt món ngon ngay thôi!</p>
+                        <a href="/SanPham/Index" class="btn-shop-now">
+                            <i class="fas fa-utensils"></i> Đặt món ngay
+                        </a>
+                    </div>
+                `;
+            } else {
+                orders.forEach(function (order) {
+                    var statusInfo = getStatusInfo(order.TrangThai);
+                    var timelineSteps = getTimelineSteps(order.TrangThai);
+
+                    html += `
+                        <div class="order-card">
+                            <!-- Order Header -->
+                            <div class="order-header">
+                                <div class="order-code">
+                                    <strong>Mã vận đơn: ${order.MaVanDon}</strong>
+                                    <small><i class="far fa-calendar"></i> ${order.NgayTao}</small>
+                                </div>
+                                <span class="status-badge ${statusInfo.class}">
+                                    <i class="${statusInfo.icon}"></i> ${statusInfo.text}
+                                </span>
+                            </div>
+
+                            <!-- Timeline Progress -->
+                            <div class="order-timeline">
+                                <div class="timeline-container">
+                                    <div class="timeline-line">
+                                        <div class="timeline-progress" style="width: ${timelineSteps.progress}%"></div>
+                                    </div>
+                                    ${timelineSteps.steps.map(step => `
+                                        <div class="timeline-step ${step.class}">
+                                            <div class="timeline-icon">
+                                                <i class="${step.icon}"></i>
+                                            </div>
+                                            <div class="timeline-label">${step.label}</div>
+                                            ${step.time ? `<div class="timeline-time">${step.time}</div>` : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <!-- Order Info Grid -->
+                            <div class="order-info-grid">
+                                <div class="info-item">
+                                    <span class="info-label"><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng</span>
+                                    <span class="info-value">${order.DiaChiGiaoHang.replace(/\n/g, ', ')}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label"><i class="fas fa-box"></i> Số lượng món</span>
+                                    <span class="info-value">${order.SanPhams.length} món</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label"><i class="fas fa-credit-card"></i> Phương thức thanh toán</span>
+                                    <span class="info-value">Tiền mặt (COD)</span>
+                                </div>
+                            </div>
+
+                            <!-- Product List -->
+                            <div class="product-list">
+                                ${order.SanPhams.map(sp => `
+                                    <div class="product-item">
+                                        <img src="${sp.Anh || '/Content/Images/default-food.jpg'}"
+                                             class="product-img"
+                                             alt="${sp.TenSP}"
+                                             onerror="this.src='/Content/Images/default-food.jpg'">
+                                        <div class="product-info">
+                                            <div class="product-name">${sp.TenSP}</div>
+                                            <div class="product-quantity">
+                                                <i class="fas fa-times"></i> ${sp.SoLuong}
+                                            </div>
+                                        </div>
+                                        <div class="product-price">
+                                            ${formatCurrency(sp.DonGia)}đ
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <!-- Order Total -->
+                            <div class="order-total">
+                                <span class="total-label">Tổng cộng:</span>
+                                <span class="total-amount">${formatCurrency(order.TongTien)}đ</span>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="order-actions">
+                                ${getActionButtons(order.TrangThai, order.MaDH)}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            $('#order-list').html(html);
+        }
+
+        function getStatusInfo(trangThai) {
+            var statusMap = {
+                'Đơn hàng đang được chuẩn bị': {
+                    class: 'pending',
+                    icon: 'fas fa-clock',
+                    text: 'Đang chuẩn bị'
+                },
+                'Shipper nhận hàng thành công': {
+                    class: 'shipping',
+                    icon: 'fas fa-motorcycle',
+                    text: 'Shipper đã nhận'
+                },
+                'Đang giao hàng': {
+                    class: 'delivering',
+                    icon: 'fas fa-shipping-fast',
+                    text: 'Đang giao hàng'
+                },
+                'Nhận hàng': {
+                    class: 'completed',
+                    icon: 'fas fa-check-circle',
+                    text: 'Đã hoàn thành'
+                }
+            };
+
+            return statusMap[trangThai] || {
+                class: 'pending',
+                icon: 'fas fa-info-circle',
+                text: trangThai
+            };
+        }
+
+        function getTimelineSteps(trangThai) {
+            var steps = [
+                {
+                    icon: 'fas fa-receipt',
+                    label: 'Đơn hàng<br>đã đặt',
+                    class: 'completed',
+                    time: ''
+                },
+                {
+                    icon: 'fas fa-box',
+                    label: 'Đang<br>chuẩn bị',
+                    class: '',
+                    time: ''
+                },
+                {
+                    icon: 'fas fa-motorcycle',
+                    label: 'Shipper<br>nhận hàng',
+                    class: '',
+                    time: ''
+                },
+                {
+                    icon: 'fas fa-shipping-fast',
+                    label: 'Đang<br>giao hàng',
+                    class: '',
+                    time: ''
+                },
+                {
+                    icon: 'fas fa-check-circle',
+                    label: 'Hoàn<br>thành',
+                    class: '',
+                    time: ''
+                }
+            ];
+
+            var currentStep = 0;
+            var progress = 0;
+
+            switch (trangThai) {
+                case 'Đơn hàng đang được chuẩn bị':
+                    currentStep = 1;
+                    progress = 25;
+                    break;
+                case 'Shipper nhận hàng thành công':
+                    currentStep = 2;
+                    progress = 50;
+                    break;
+                case 'Đang giao hàng':
+                    currentStep = 3;
+                    progress = 75;
+                    break;
+                case 'Nhận hàng':
+                    currentStep = 4;
+                    progress = 100;
+                    break;
+            }
+
+            for (var i = 0; i < steps.length; i++) {
+                if (i < currentStep) {
+                    steps[i].class = 'completed';
+                } else if (i === currentStep) {
+                    steps[i].class = 'active';
+                }
+            }
+
+            return { steps: steps, progress: progress };
+        }
+
+        function getActionButtons(trangThai, maDH) {
+            var buttons = '';
+
+            if (trangThai === 'Đơn hàng đang được chuẩn bị') {
+                buttons = `
+                    <button class="btn-action" onclick="contactShop(${maDH})">
+                        <i class="fas fa-phone"></i> Liên hệ cửa hàng
+                    </button>
+                `;
+            } else if (trangThai === 'Đang giao hàng' || trangThai === 'Shipper nhận hàng thành công') {
+                buttons = `
+                    <button class="btn-action" onclick="trackOrder(${maDH})">
+                        <i class="fas fa-map-marked-alt"></i> Theo dõi đơn hàng
+                    </button>
+                    <button class="btn-action" onclick="contactShipper(${maDH})">
+                        <i class="fas fa-phone-alt"></i> Liên hệ Shipper
+                    </button>
+                `;
+            } else if (trangThai === 'Nhận hàng') {
+                buttons = `
+                    <button class="btn-action primary" onclick="reorder(${maDH})">
+                        <i class="fas fa-redo"></i> Đặt lại
+                    </button>
+                    <button class="btn-action" onclick="rateOrder(${maDH})">
+                        <i class="fas fa-star"></i> Đánh giá
+                    </button>
+                `;
+            }
+
+            return buttons;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN').format(amount);
+        }
+
+        // Action functions
+        function contactShop(maDH) {
+            alert('Liên hệ cửa hàng cho đơn hàng #' + maDH);
+        }
+
+        function trackOrder(maDH) {
+            alert('Theo dõi đơn hàng #' + maDH);
+        }
+
+        function contactShipper(maDH) {
+            alert('Liên hệ Shipper cho đơn hàng #' + maDH);
+        }
+
+        function reorder(maDH) {
+            alert('Đặt lại đơn hàng #' + maDH);
+        }
+
+        function rateOrder(maDH) {
+            alert('Đánh giá đơn hàng #' + maDH);
+        }
+    </script>
+}

@@ -160,8 +160,8 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end mt-2">
                                 <li class="dropdown-header">Xin chào, <span id="user-fullname"></span></li>
-                                <li><a class="dropdown-item" href="#"><i class="fa-regular fa-user me-2"></i> Tài khoản</a></li>
-                                <li><a class="dropdown-item" href="/GioHang/LichSuDonHang"><i class="fa-solid fa-receipt me-2"></i> Đơn mua</a></li>
+                                <li><a class="dropdown-item" href="/CaiDat/HoSo"><i class="fa-regular fa-user me-2"></i> Tài khoản</a></li>
+                                <li><a class="dropdown-item" href="/CaiDat/DonMua"><i class="fa-solid fa-receipt me-2"></i> Đơn mua</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <!-- Form đăng xuất thuần HTML/JS -->
@@ -335,5 +335,7 @@
             });
         }
     </script>
+    @* ✅ THÊM DÒNG NÀY ĐỂ RENDER SCRIPTS TỪ CÁC VIEW CON *@
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

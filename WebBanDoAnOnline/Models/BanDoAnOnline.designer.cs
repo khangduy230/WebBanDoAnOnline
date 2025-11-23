@@ -1144,9 +1144,10 @@ namespace WebBanDoAnOnline.Models
 		private EntityRef<SanPham> _SanPham;
 		
 		private EntityRef<TaiKhoan> _TaiKhoan;
-		
-    #region Extensibility Method Definitions
-    partial void OnLoaded();
+        internal DateTime Update_at;
+
+        #region Extensibility Method Definitions
+        partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
     partial void OnCreated();
     partial void OnMaDGChanging(int value);
@@ -2155,8 +2156,12 @@ namespace WebBanDoAnOnline.Models
 				}
 			}
 		}
-		
-		public event PropertyChangingEventHandler PropertyChanging;
+
+        public string DiaChi1 { get; internal set; }
+        public string SDT { get; internal set; }
+        public DateTime Update_at { get; internal set; }
+
+        public event PropertyChangingEventHandler PropertyChanging;
 		
 		public event PropertyChangedEventHandler PropertyChanged;
 		
@@ -2752,8 +2757,10 @@ namespace WebBanDoAnOnline.Models
 				}
 			}
 		}
-		
-		public event PropertyChangingEventHandler PropertyChanging;
+
+        public DateTime Update_at { get; internal set; }
+
+        public event PropertyChangingEventHandler PropertyChanging;
 		
 		public event PropertyChangedEventHandler PropertyChanged;
 		
@@ -2851,9 +2858,10 @@ namespace WebBanDoAnOnline.Models
 		private EntityRef<SanPham> _SanPham;
 		
 		private EntityRef<TaiKhoan> _TaiKhoan;
-		
-    #region Extensibility Method Definitions
-    partial void OnLoaded();
+        internal DateTime Update_at;
+
+        #region Extensibility Method Definitions
+        partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
     partial void OnCreated();
     partial void OnMaGioChanging(int value);

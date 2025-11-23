@@ -1,0 +1,347 @@
+﻿@{
+    ViewBag.Title = "Vô hiệu hóa tài khoản";
+    Layout = "~/Views/Shared/_LayoutCaiDat.cshtml";
+}
+
+<style>
+    .delete-account-section {
+        background: #fff;
+        border-radius: 12px;
+        padding: 30px;
+    }
+
+    .warning-box {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+        .warning-box .warning-icon {
+            font-size: 3rem;
+            color: #ffc107;
+            margin-bottom: 15px;
+        }
+
+        .warning-box h4 {
+            color: #856404;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .warning-box ul {
+            color: #856404;
+            margin-bottom: 0;
+            padding-left: 20px;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+            .warning-box ul li {
+                margin-bottom: 8px;
+                line-height: 1.6;
+            }
+
+    .danger-box {
+        background: #f8d7da;
+        border: 2px solid #dc3545;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+        .danger-box .danger-icon {
+            font-size: 3rem;
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+
+        .danger-box h4 {
+            color: #721c24;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .danger-box p {
+            color: #721c24;
+            margin-bottom: 0;
+            font-size: 1rem;
+        }
+
+    .confirmation-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+
+        .confirmation-section h5 {
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+    .form-check-custom {
+        background: #fff;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+    }
+
+        .form-check-custom:hover {
+            border-color: #dc3545;
+        }
+
+        .form-check-custom input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .form-check-custom label {
+            cursor: pointer;
+            margin: 0;
+            font-weight: 500;
+            color: #333;
+            flex: 1;
+        }
+
+    .password-input-group {
+        margin-bottom: 20px;
+    }
+
+        .password-input-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .password-input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+            .password-input-group input:focus {
+                outline: none;
+                border-color: #dc3545;
+            }
+
+    .btn-delete-account {
+        background-color: #dc3545;
+        color: white;
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        font-size: 1.1rem;
+    }
+
+        .btn-delete-account:hover:not(:disabled) {
+            background-color: #c82333;
+        }
+
+        .btn-delete-account:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+    .btn-cancel {
+        background-color: #6c757d;
+        color: white;
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        font-size: 1.1rem;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+        .btn-cancel:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+</style>
+
+<div class="delete-account-section">
+    <h4 class="mb-4" style="color: #dc3545; font-weight: 700;">
+        <i class="fas fa-user-slash"></i> Vô hiệu hóa tài khoản
+    </h4>
+
+    <!-- Cảnh báo quan trọng -->
+    <div class="warning-box">
+        <div class="warning-icon">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h4>Những gì sẽ xảy ra khi vô hiệu hóa tài khoản:</h4>
+        <ul>
+            <li><strong>Không thể đăng nhập</strong> vào hệ thống nữa</li>
+            <li><strong>Email và số điện thoại</strong> sẽ bị "khóa" - không thể dùng để đăng ký tài khoản mới</li>
+            <li><strong>Giỏ hàng hiện tại</strong> sẽ bị ẩn</li>
+            <li><strong>Địa chỉ đã lưu</strong> sẽ bị ẩn</li>
+            <li><strong>Lịch sử đơn hàng</strong> sẽ bị ẩn</li>
+            <li><strong>Đánh giá sản phẩm</strong> sẽ bị ẩn</li>
+        </ul>
+    </div>
+
+    <!-- Cảnh báo nguy hiểm -->
+    <div class="danger-box">
+        <div class="danger-icon">
+            <i class="fas fa-ban"></i>
+        </div>
+        <h4>CẢNH BÁO QUAN TRỌNG</h4>
+        <p>
+            Sau khi vô hiệu hóa, bạn <strong>SẼ KHÔNG THỂ ĐĂNG NHẬP</strong> lại được.
+            Email và số điện thoại của bạn cũng <strong>KHÔNG THỂ DÙNG ĐỂ TẠO TÀI KHOẢN MỚI</strong>.
+        </p>
+    </div>
+
+    <!-- Form xác nhận -->
+    <div class="confirmation-section">
+        <h5><i class="fas fa-clipboard-check"></i> Xác nhận yêu cầu</h5>
+
+        <!-- Checkbox xác nhận -->
+        <div class="form-check-custom">
+            <input type="checkbox" id="confirm1" class="confirm-checkbox">
+            <label for="confirm1">
+                Tôi hiểu rằng <strong>không thể đăng nhập</strong> vào tài khoản này nữa
+            </label>
+        </div>
+
+        <div class="form-check-custom">
+            <input type="checkbox" id="confirm2" class="confirm-checkbox">
+            <label for="confirm2">
+                Tôi hiểu rằng <strong>email và số điện thoại</strong> của tôi sẽ không thể dùng để đăng ký lại
+            </label>
+        </div>
+
+        <div class="form-check-custom">
+            <input type="checkbox" id="confirm3" class="confirm-checkbox">
+            <label for="confirm3">
+                Tôi xác nhận muốn <strong>vô hiệu hóa tài khoản</strong> này
+            </label>
+        </div>
+
+        <!-- Nhập mật khẩu để xác nhận -->
+        <div class="password-input-group mt-4">
+            <label for="confirmPassword">
+                <i class="fas fa-key"></i> Nhập mật khẩu để xác nhận:
+            </label>
+            <input type="password"
+                   id="confirmPassword"
+                   class="form-control"
+                   placeholder="Nhập mật khẩu của bạn">
+        </div>
+    </div>
+
+    <!-- Nút hành động -->
+    <div class="row g-3">
+        <div class="col-md-6">
+            <a href="@Url.Action("HoSo", "CaiDat")" class="btn-cancel">
+                <i class="fas fa-arrow-left"></i> Hủy bỏ
+            </a>
+        </div>
+        <div class="col-md-6">
+            <button id="btnDeleteAccount"
+                    class="btn-delete-account"
+                    disabled
+                    onclick="voHieuHoaTaiKhoan()">
+                <i class="fas fa-user-slash"></i> VÔ HIỆU HÓA TÀI KHOẢN
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var url_domain = window.location.origin;
+
+        $(document).ready(function () {
+            // Kiểm tra tất cả checkbox và password để enable/disable nút
+            $('.confirm-checkbox, #confirmPassword').on('change keyup', function () {
+                var allChecked = $('#confirm1').is(':checked') &&
+                    $('#confirm2').is(':checked') &&
+                    $('#confirm3').is(':checked');
+                var hasPassword = $('#confirmPassword').val().trim().length > 0;
+
+                $('#btnDeleteAccount').prop('disabled', !(allChecked && hasPassword));
+            });
+        });
+
+        function voHieuHoaTaiKhoan() {
+            // Xác nhận lần 1
+            if (!confirm('BẠN CÓ CHẮC CHẮN MUỐN VÔ HIỆU HÓA TÀI KHOẢN?\n\nBạn sẽ không thể đăng nhập lại và email/SĐT không thể dùng để đăng ký mới!')) {
+                return;
+            }
+
+            // Xác nhận lần 2
+            if (!confirm('XÁC NHẬN LẦN CUỐI!\n\nSau khi vô hiệu hóa, bạn SẼ MẤT QUYỀN TRUY CẬP vào tài khoản này.\n\nBẠN CÓ THỰC SỰ MUỐN TIẾP TỤC?')) {
+                return;
+            }
+
+            var password = $('#confirmPassword').val().trim();
+
+            if (!password) {
+                alert('Vui lòng nhập mật khẩu để xác nhận');
+                return;
+            }
+
+            // Disable nút để tránh click nhiều lần
+            $('#btnDeleteAccount').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+
+            var formData = new FormData();
+            formData.append('password', password);
+
+            $.ajax({
+                type: "POST",
+                url: url_domain + '/CaiDat/XacNhanXoaTaiKhoan',
+                data: formData,
+                contentType: false,
+                processData: false,
+                cache: false,
+                success: function (response) {
+                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+
+                    if (res.success) {
+                        alert(res.message + '\n\nBạn sẽ được chuyển về trang chủ.');
+                        // Chuyển về trang chủ
+                        window.location.href = '/Home/Index';
+                    } else {
+                        alert(res.message);
+                        // Enable lại nút nếu thất bại
+                        $('#btnDeleteAccount').prop('disabled', false).html('<i class="fas fa-user-slash"></i> VÔ HIỆU HÓA TÀI KHOẢN');
+                    }
+                },
+                error: function () {
+                    alert('Lỗi kết nối server. Vui lòng thử lại sau.');
+                    $('#btnDeleteAccount').prop('disabled', false).html('<i class="fas fa-user-slash"></i> VÔ HIỆU HÓA TÀI KHOẢN');
+                }
+            });
+        }
+    </script>
+}

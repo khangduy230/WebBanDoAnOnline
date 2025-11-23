@@ -1,0 +1,214 @@
+﻿@{
+    ViewBag.Title = "Bảo mật";
+    Layout = "~/Views/Shared/_LayoutCaiDat.cshtml";
+}
+
+<style>
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+    .form-control-custom {
+        width: 100%;
+        max-width: 400px;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+        .form-control-custom:focus {
+            outline: none;
+            border-color: #F58634;
+        }
+
+    .btn-change-password {
+        background-color: #F58634;
+        color: white;
+        border: none;
+        padding: 12px 40px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 10px;
+    }
+
+        .btn-change-password:hover {
+            background-color: #e67e00;
+        }
+
+    .password-strength {
+        margin-top: 5px;
+        font-size: 0.85rem;
+        display: none;
+    }
+
+        .password-strength.weak {
+            color: #dc3545;
+            display: block;
+        }
+
+        .password-strength.medium {
+            color: #ffc107;
+            display: block;
+        }
+
+        .password-strength.strong {
+            color: #28a745;
+            display: block;
+        }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: none;
+    }
+
+    @@media (max-width: 768px) {
+        .form-control-custom {
+            max-width: 100%;
+        }
+    }
+</style>
+
+<h4 class="mb-4">Đổi mật khẩu</h4>
+
+<form id="passwordForm">
+    <!-- Mật khẩu hiện tại -->
+    <div class="form-group">
+        <label for="currentPassword">Nhập mật khẩu hiện tại</label>
+        <input type="password" id="currentPassword" class="form-control-custom" placeholder="******" required>
+        <div id="currentPasswordError" class="error-message">Mật khẩu hiện tại không đúng</div>
+    </div>
+
+    <!-- Mật khẩu mới -->
+    <div class="form-group">
+        <label for="newPassword">Nhập mật khẩu mới</label>
+        <input type="password" id="newPassword" class="form-control-custom" placeholder="******" required>
+        <div id="passwordStrength" class="password-strength"></div>
+        <div id="newPasswordError" class="error-message">Mật khẩu phải có ít nhất 6 ký tự</div>
+    </div>
+
+    <!-- Xác nhận mật khẩu mới -->
+    <div class="form-group">
+        <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+        <input type="password" id="confirmPassword" class="form-control-custom" placeholder="******" required>
+        <div id="confirmPasswordError" class="error-message">Mật khẩu xác nhận không khớp</div>
+    </div>
+
+    <!-- Button -->
+    <button type="submit" class="btn-change-password">Đổi mật khẩu</button>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var url_domain = window.location.origin;
+
+            // Kiểm tra độ mạnh mật khẩu
+            $('#newPassword').on('input', function () {
+                var password = $(this).val();
+                var strength = checkPasswordStrength(password);
+                var strengthElem = $('#passwordStrength');
+
+                strengthElem.removeClass('weak medium strong');
+
+                if (password.length === 0) {
+                    strengthElem.hide();
+                } else if (strength === 'weak') {
+                    strengthElem.addClass('weak').text('⚠️ Mật khẩu yếu').show();
+                } else if (strength === 'medium') {
+                    strengthElem.addClass('medium').text('⚠️ Mật khẩu trung bình').show();
+                } else {
+                    strengthElem.addClass('strong').text('✓ Mật khẩu mạnh').show();
+                }
+            });
+
+            // Xử lý submit form
+            $('#passwordForm').submit(function (e) {
+                e.preventDefault();
+
+                // Reset error messages
+                $('.error-message').hide();
+
+                var currentPassword = $('#currentPassword').val();
+                var newPassword = $('#newPassword').val();
+                var confirmPassword = $('#confirmPassword').val();
+
+                // Validation
+                var isValid = true;
+
+                if (newPassword.length < 6) {
+                    $('#newPasswordError').show();
+                    isValid = false;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    $('#confirmPasswordError').show();
+                    isValid = false;
+                }
+
+                if (!isValid) return;
+
+                // Gửi request đổi mật khẩu
+                var formData = new FormData();
+                formData.append('CurrentPassword', currentPassword);
+                formData.append('NewPassword', newPassword);
+                formData.append('ConfirmPassword', confirmPassword);
+
+                $.ajax({
+                    type: "POST",
+                    url: url_domain + '/CaiDat/ChangePassword',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    success: function (response) {
+                        var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                        if (res.success) {
+                            alert('Đổi mật khẩu thành công!');
+                            $('#passwordForm')[0].reset();
+                            $('#passwordStrength').hide();
+                        } else {
+                            if (res.message.indexOf('hiện tại') !== -1) {
+                                $('#currentPasswordError').text(res.message).show();
+                            } else {
+                                alert(res.message);
+                            }
+                        }
+                    },
+                    error: function (err) {
+                        alert('Lỗi kết nối server!');
+                        console.error('Lỗi:', err);
+                    }
+                });
+            });
+
+            // Hàm kiểm tra độ mạnh mật khẩu
+            function checkPasswordStrength(password) {
+                var strength = 0;
+
+                if (password.length >= 6) strength++;
+                if (password.length >= 10) strength++;
+                if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+                if (/[0-9]/.test(password)) strength++;
+                if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+                if (strength <= 2) return 'weak';
+                if (strength <= 3) return 'medium';
+                return 'strong';
+            }
+        });
+    </script>
+}

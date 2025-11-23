@@ -1,0 +1,376 @@
+﻿@{
+    ViewBag.Title = "Thông Tin Tài Khoản";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <!-- SIDEBAR -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <img id="sidebar-avatar" src="https://i.imgur.com/4Ym2k5N.png" 
+                         alt="Avatar" class="rounded-circle mb-3" 
+                         style="width: 100px; height: 100px; object-fit: cover;">
+                    <h5 id="sidebar-fullname" class="fw-bold mb-1">Đang tải...</h5>
+                    <p id="sidebar-email" class="text-muted small mb-0">email@example.com</p>
+                </div>
+            </div>
+
+            <div class="list-group mt-3 shadow-sm border-0">
+                <a href="#profile" class="list-group-item list-group-item-action active" 
+                   data-bs-toggle="tab">
+                    <i class="fa-regular fa-user me-2"></i> Hồ Sơ
+                </a>
+                <a href="#security" class="list-group-item list-group-item-action" 
+                   data-bs-toggle="tab">
+                    <i class="fa-solid fa-shield-halved me-2"></i> Bảo Mật
+                </a>
+                <a href="#addresses" class="list-group-item list-group-item-action" 
+                   data-bs-toggle="tab">
+                    <i class="fa-solid fa-location-dot me-2"></i> Địa Chỉ
+                </a>
+                <a href="#notifications" class="list-group-item list-group-item-action" 
+                   data-bs-toggle="tab">
+                    <i class="fa-regular fa-bell me-2"></i> Thông Báo
+                </a>
+            </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="col-lg-9 col-md-8">
+            <div class="tab-content">
+
+                <!-- TAB 1: HỒ SƠ -->
+                <div class="tab-pane fade show active" id="profile">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold mb-4">
+                                <i class="fa-regular fa-user text-warning me-2"></i>Thông Tin Cá Nhân
+                            </h4>
+
+                            <form id="form-profile">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Họ và tên</label>
+                                        <input type="text" class="form-control" id="input-fullname" placeholder="Nguyễn Văn A">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Số điện thoại</label>
+                                        <input type="tel" class="form-control" id="input-phone" placeholder="0971123456">
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label class="form-label fw-semibold">Email</label>
+                                        <input type="email" class="form-control" id="input-email" placeholder="email@example.com" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Ngày sinh</label>
+                                        <input type="date" class="form-control" id="input-birthdate">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Giới tính</label>
+                                        <select class="form-select" id="input-gender">
+                                            <option value="Nam">Nam</option>
+                                            <option value="Nữ">Nữ</option>
+                                            <option value="Khác">Khác</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label class="form-label fw-semibold">Ảnh đại diện</label>
+                                        <input type="file" class="form-control" id="input-avatar" accept="image/*">
+                                        <small class="text-muted">Chọn ảnh để thay đổi (JPG, PNG - Tối đa 2MB)</small>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-warning px-4 fw-semibold">
+                                    <i class="fa-solid fa-save me-2"></i>Lưu Thay Đổi
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: BẢO MẬT -->
+                <div class="tab-pane fade" id="security">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold mb-4">
+                                <i class="fa-solid fa-shield-halved text-warning me-2"></i>Đổi Mật Khẩu
+                            </h4>
+
+                            <form id="form-password">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Mật khẩu hiện tại</label>
+                                    <input type="password" class="form-control" id="input-current-pass" placeholder="••••••••">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Mật khẩu mới</label>
+                                    <input type="password" class="form-control" id="input-new-pass" placeholder="••••••••">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Xác nhận mật khẩu mới</label>
+                                    <input type="password" class="form-control" id="input-confirm-pass" placeholder="••••••••">
+                                </div>
+
+                                <button type="submit" class="btn btn-warning px-4 fw-semibold">
+                                    <i class="fa-solid fa-key me-2"></i>Cập Nhật Mật Khẩu
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: ĐỊA CHỈ -->
+                <div class="tab-pane fade" id="addresses">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4 class="fw-bold mb-0">
+                                    <i class="fa-solid fa-location-dot text-warning me-2"></i>Địa Chỉ Của Tôi
+                                </h4>
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalAddress">
+                                    <i class="fa-solid fa-plus me-1"></i>Thêm Địa Chỉ
+                                </button>
+                            </div>
+
+                            <div id="list-addresses">
+                                <div class="text-center py-4 text-muted">
+                                    <i class="fa-solid fa-box-open fa-3x mb-3 opacity-25"></i>
+                                    <p>Chưa có địa chỉ nào. Hãy thêm địa chỉ mới!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: THÔNG BÁO -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold mb-4">
+                                <i class="fa-regular fa-bell text-warning me-2"></i>Cài Đặt Thông Báo
+                            </h4>
+
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="switch-email" checked>
+                                <label class="form-check-label fw-semibold" for="switch-email">
+                                    Nhận thông báo qua Email
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="switch-promo" checked>
+                                <label class="form-check-label fw-semibold" for="switch-promo">
+                                    Nhận thông báo khuyến mãi
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="switch-order">
+                                <label class="form-check-label fw-semibold" for="switch-order">
+                                    Nhận thông báo đơn hàng
+                                </label>
+                            </div>
+
+                            <button class="btn btn-warning px-4 fw-semibold mt-3">
+                                <i class="fa-solid fa-save me-2"></i>Lưu Cài Đặt
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL THÊM ĐỊA CHỈ -->
+<div class="modal fade" id="modalAddress" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Thêm Địa Chỉ Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-address">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Họ tên người nhận</label>
+                        <input type="text" class="form-control" id="addr-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Số điện thoại</label>
+                        <input type="tel" class="form-control" id="addr-phone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Địa chỉ chi tiết</label>
+                        <textarea class="form-control" id="addr-detail" rows="3" required></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="addr-default">
+                        <label class="form-check-label" for="addr-default">
+                            Đặt làm địa chỉ mặc định
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-warning" onclick="saveAddress()">Lưu Địa Chỉ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item.active {
+        background-color: #F58634;
+        border-color: #F58634;
+    }
+    .btn-warning {
+        background-color: #F58634 !important;
+        border-color: #F58634 !important;
+        color: #fff !important;
+    }
+    .btn-warning:hover {
+        background-color: #e07022 !important;
+        border-color: #e07022 !important;
+    }
+    .text-warning {
+        color: #F58634 !important;
+    }
+</style>
+
+<script>
+    var urlDomain = window.location.origin;
+
+    $(document).ready(function () {
+        // Load thông tin user
+        loadUserInfo();
+        loadAddresses();
+    });
+
+    // Load thông tin user từ session/API
+    function loadUserInfo() {
+        $.post(urlDomain + '/QuanLyTaiKhoan/GetUserInfo', function (res) {
+            var data = JSON.parse(res);
+            if (data.success) {
+                var user = data.user;
+                $('#sidebar-avatar').attr('src', user.Avatar || 'https://i.imgur.com/4Ym2k5N.png');
+                $('#sidebar-fullname').text(user.HoTen);
+                $('#sidebar-email').text(user.Email);
+
+                $('#input-fullname').val(user.HoTen);
+                $('#input-phone').val(user.SDT);
+                $('#input-email').val(user.Email);
+                $('#input-birthdate').val(user.NgaySinh);
+                $('#input-gender').val(user.GioiTinh);
+            }
+        });
+    }
+
+    // Lưu thông tin hồ sơ
+    $('#form-profile').submit(function (e) {
+        e.preventDefault();
+        var formData = new FormData();
+        formData.append('HoTen', $('#input-fullname').val());
+        formData.append('SDT', $('#input-phone').val());
+        formData.append('NgaySinh', $('#input-birthdate').val());
+        formData.append('GioiTinh', $('#input-gender').val());
+
+        var avatarFile = $('#input-avatar')[0].files[0];
+        if (avatarFile) formData.append('Avatar', avatarFile);
+
+        $.ajax({
+            type: 'POST',
+            url: urlDomain + '/QuanLyTaiKhoan/UpdateProfile',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (res) {
+                alert(res);
+                loadUserInfo();
+            }
+        });
+    });
+
+    // Đổi mật khẩu
+    $('#form-password').submit(function (e) {
+        e.preventDefault();
+        var current = $('#input-current-pass').val();
+        var newPass = $('#input-new-pass').val();
+        var confirm = $('#input-confirm-pass').val();
+
+        if (newPass !== confirm) {
+            alert('Mật khẩu xác nhận không khớp!');
+            return;
+        }
+
+        $.post(urlDomain + '/QuanLyTaiKhoan/ChangePassword', {
+            CurrentPassword: current,
+            NewPassword: newPass
+        }, function (res) {
+            alert(res);
+            $('#form-password')[0].reset();
+        });
+    });
+
+    // Load danh sách địa chỉ
+    function loadAddresses() {
+        $.post(urlDomain + '/QuanLyTaiKhoan/GetAddresses', function (res) {
+            var data = JSON.parse(res);
+            if (data.success && data.addresses.length > 0) {
+                var html = '';
+                data.addresses.forEach(function (addr) {
+                    html += `
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="fw-bold">${addr.HoTen}</h6>
+                                        <p class="mb-1">${addr.SDT}</p>
+                                        <p class="text-muted">${addr.DiaChi}</p>
+                                        ${addr.MacDinh ? '<span class="badge bg-warning">Mặc định</span>' : ''}
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteAddress(${addr.Id})">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                $('#list-addresses').html(html);
+            }
+        });
+    }
+
+    // Lưu địa chỉ mới
+    function saveAddress() {
+        var name = $('#addr-name').val();
+        var phone = $('#addr-phone').val();
+        var detail = $('#addr-detail').val();
+        var isDefault = $('#addr-default').is(':checked');
+
+        $.post(urlDomain + '/QuanLyTaiKhoan/AddAddress', {
+            HoTen: name,
+            SDT: phone,
+            DiaChi: detail,
+            MacDinh: isDefault
+        }, function (res) {
+            alert(res);
+            $('#modalAddress').modal('hide');
+            $('#form-address')[0].reset();
+            loadAddresses();
+        });
+    }
+
+    // Xóa địa chỉ
+    function deleteAddress(id) {
+        if (!confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
+        $.post(urlDomain + '/QuanLyTaiKhoan/DeleteAddress', { id: id }, function (res) {
+            alert(res);
+            loadAddresses();
+        });
+    }
+</script>

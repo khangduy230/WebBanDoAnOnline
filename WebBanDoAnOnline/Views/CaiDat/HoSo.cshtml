@@ -1,0 +1,197 @@
+﻿@{
+    ViewBag.Title = "Hồ sơ";
+    Layout = "~/Views/Shared/_LayoutCaiDat.cshtml";
+}
+
+<style>
+    .profile-avatar {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .avatar-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #F58634;
+        margin-bottom: 15px;
+    }
+
+    .btn-change-avatar {
+        background-color: #F58634;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.2s;
+    }
+
+        .btn-change-avatar:hover {
+            background-color: #e67e00;
+        }
+
+    #avatarInput {
+        display: none;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+        .form-control-custom:focus {
+            outline: none;
+            border-color: #F58634;
+        }
+
+    .btn-save {
+        background-color: #F58634;
+        color: white;
+        border: none;
+        padding: 12px 40px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 20px;
+    }
+
+        .btn-save:hover {
+            background-color: #e67e00;
+        }
+</style>
+
+<h4 class="mb-4">Thông tin cá nhân</h4>
+
+<!-- Avatar Section -->
+<div class="profile-avatar">
+    <img id="avatarPreview" src="https://i.imgur.com/4Ym2k5N.png" alt="Avatar" class="avatar-img">
+    <br>
+    <button type="button" class="btn-change-avatar" onclick="$('#avatarInput').click()">
+        <i class="fas fa-camera"></i> Thay đổi ảnh đại diện
+    </button>
+    <input type="file" id="avatarInput" accept="image/*">
+</div>
+
+<!-- Profile Form -->
+<form id="profileForm">
+    <div class="form-group">
+        <label for="fullName">Họ và tên</label>
+        <input type="text" id="fullName" class="form-control-custom" placeholder="Nguyễn Văn A" required>
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" class="form-control-custom" placeholder="example@email.com" required>
+    </div>
+
+    <div class="form-group">
+        <label for="phone">Số điện thoại</label>
+        <input type="tel" id="phone" class="form-control-custom" placeholder="0123456789" required>
+    </div>
+
+    <button type="submit" class="btn-save">Lưu thay đổi</button>
+</form>
+
+@section Scripts {
+    <script>
+        var selectedAvatar = null;
+        var url_domain = window.location.origin;
+
+        $(document).ready(function () {
+            // Load profile data
+            loadProfile();
+
+            // Avatar change preview
+            $('#avatarInput').change(function (e) {
+                var file = e.target.files[0];
+                if (file) {
+                    selectedAvatar = file;
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        $('#avatarPreview').attr('src', e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Form submit
+            $('#profileForm').submit(function (e) {
+                e.preventDefault();
+                saveProfile();
+            });
+        });
+
+        function loadProfile() {
+            $.ajax({
+                type: "POST",
+                url: url_domain + '/CaiDat/GetProfile',
+                contentType: false,
+                processData: false,
+                cache: false,
+                success: function (response) {
+                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                    if (res.success) {
+                        $('#fullName').val(res.data.HoTen || '');
+                        $('#email').val(res.data.Email || '');
+                        $('#phone').val(res.data.SoDienThoai || '');
+                        $('#avatarPreview').attr('src', res.data.Avatar || 'https://i.imgur.com/4Ym2k5N.png');
+                    }
+                },
+                error: function () {
+                    alert('Lỗi khi tải thông tin!');
+                }
+            });
+        }
+
+        function saveProfile() {
+            var formData = new FormData();
+            formData.append('HoTen', $('#fullName').val());
+            formData.append('Email', $('#email').val());
+            formData.append('SoDienThoai', $('#phone').val());
+
+            if (selectedAvatar) {
+                formData.append('Avatar', selectedAvatar);
+            }
+
+            $.ajax({
+                type: "POST",
+                url: url_domain + '/CaiDat/SaveProfile',
+                data: formData,
+                contentType: false,
+                processData: false,
+                cache: false,
+                success: function (response) {
+                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                    if (res.success) {
+                        alert('Cập nhật thành công!');
+                        selectedAvatar = null;
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    alert('Lỗi kết nối server!');
+                }
+            });
+        }
+    </script>
+}
