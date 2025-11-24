@@ -3223,9 +3223,11 @@ namespace WebBanDoAnOnline.Models
 		private EntityRef<DonHang> _DonHang;
 		
 		private EntityRef<TaiKhoan> _TaiKhoan;
-		
-    #region Extensibility Method Definitions
-    partial void OnLoaded();
+        internal DateTime NgayCapNhat;
+        internal string NguoiThucHien;
+
+        #region Extensibility Method Definitions
+        partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
     partial void OnCreated();
     partial void OnMaLichSuChanging(int value);

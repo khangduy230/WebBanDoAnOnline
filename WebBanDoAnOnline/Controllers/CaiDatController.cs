@@ -175,7 +175,7 @@ namespace WebBanDoAnOnline.Controllers
                 loadOptions.LoadWith<ChiTietDonHang>(ct => ct.SanPham);
                 db.LoadOptions = loadOptions;
 
-                // Lấy danh sách đơn hàng của user
+                // ✅ CHỈ LẤY ĐƠN HÀNG CHƯA BỊ HỦY (isDelete = 0 hoặc null)
                 var query = db.DonHangs.Where(d => d.MaTK == sessionUser.MaTK && (d.isDelete == null || d.isDelete == 0));
 
                 // Lọc theo trạng thái
@@ -184,7 +184,10 @@ namespace WebBanDoAnOnline.Controllers
                     switch (statusFilter)
                     {
                         case "pending":
-                            query = query.Where(d => d.TrangThai == "Đơn hàng đang được chuẩn bị");
+                            query = query.Where(d => d.TrangThai == "Chờ xác nhận");
+                            break;
+                        case "confirmed":
+                            query = query.Where(d => d.TrangThai == "Đã xác nhận");
                             break;
                         case "shipping":
                             query = query.Where(d => d.TrangThai == "Shipper nhận hàng thành công");
@@ -204,17 +207,20 @@ namespace WebBanDoAnOnline.Controllers
                 // ✅ Map sang object JSON - Xử lý sau khi đã ToList()
                 var data = orders.Select(d =>
                 {
-                    // ✅ LẤY THÔNG TIN ĐỊA CHỈ - SỬA TÊN PROPERTIES CHO ĐÚNG VỚI MODEL
+                    // ✅ LẤY THÔNG TIN NGƯỜI NHẬN VÀ ĐỊA CHỈ
+                    var tenNguoiNhan = "Chưa có thông tin";
+                    var sdtNguoiNhan = "";
                     var diaChiText = "Chưa có địa chỉ";
+
                     if (d.DiaChi != null)
                     {
-                        // Giả sử model DiaChi có các property: TenNguoiNhan, SDT, DiaChi
-                        // Bạn cần kiểm tra chính xác tên trong file BanDoAnOnline.designer.cs
-                        var tenNguoiNhan = d.DiaChi.TenNguoiNhan ?? "";
-                        var sdt = d.DiaChi.SDT ?? "";
-                        var diaChi = d.DiaChi.DiaChi1 ?? ""; // Thường có suffix "1" nếu tên trùng với class
-                        diaChiText = string.Format("{0} - {1}\n{2}", tenNguoiNhan, sdt, diaChi);
+                        tenNguoiNhan = d.DiaChi.TenNguoiNhan ?? "Chưa có tên";
+                        sdtNguoiNhan = d.DiaChi.SDTNhan ?? "";
+                        diaChiText = d.DiaChi.DiaChiCuThe ?? "Chưa có địa chỉ";
                     }
+
+                    // ✅ LẤY GHI CHÚ
+                    var ghiChu = string.IsNullOrEmpty(d.GhiChu) ? "" : d.GhiChu;
 
                     // Lấy danh sách sản phẩm
                     var sanPhams = d.ChiTietDonHangs
@@ -241,7 +247,7 @@ namespace WebBanDoAnOnline.Controllers
                                 soLuong = ct.SoLuong.Value;
                             }
 
-                            donGia = ct.DonGia; // No need to check for .HasValue or use .Value, since DonGia is of type decimal (not nullable)
+                            donGia = ct.DonGia;
 
                             return new
                             {
@@ -258,9 +264,17 @@ namespace WebBanDoAnOnline.Controllers
                         MaDH = d.MaDH,
                         MaVanDon = "AJX" + d.MaDH.ToString("D5") + "M",
                         TrangThai = d.TrangThai ?? "Chưa xác nhận",
-                        TongTien = d.TongTien, // ✅ TongTien là decimal, không cần .HasValue
+                        TongTien = d.TongTien,
                         NgayTao = d.Create_at.HasValue ? d.Create_at.Value.ToString("dd/MM/yyyy HH:mm") : "",
+
+                        // ✅ THÊM THÔNG TIN NGƯỜI NHẬN
+                        TenNguoiNhan = tenNguoiNhan,
+                        SDTNguoiNhan = sdtNguoiNhan,
                         DiaChiGiaoHang = diaChiText,
+
+                        // ✅ THÊM GHI CHÚ
+                        GhiChu = ghiChu,
+
                         SanPhams = sanPhams
                     };
                 }).ToList();
@@ -771,7 +785,7 @@ namespace WebBanDoAnOnline.Controllers
                     {
                         isDeleteProp.SetValue(tb, (byte)1);
                     }
-                    
+
                     // Kiểm tra nếu có thuộc tính Update_at
                     var updateAtProp = tb.GetType().GetProperty("Update_at");
                     if (updateAtProp != null)
@@ -799,7 +813,7 @@ namespace WebBanDoAnOnline.Controllers
                         {
                             isDeleteProp.SetValue(ct, (byte)1);
                         }
-                        
+
                         var updateAtProp = ct.GetType().GetProperty("Update_at");
                         if (updateAtProp != null)
                         {
@@ -816,7 +830,7 @@ namespace WebBanDoAnOnline.Controllers
                         {
                             isDeleteProp.SetValue(ls, (byte)1);
                         }
-                        
+
                         var updateAtProp = ls.GetType().GetProperty("Update_at");
                         if (updateAtProp != null)
                         {
@@ -836,10 +850,80 @@ namespace WebBanDoAnOnline.Controllers
                 Session.Clear();
                 Session.Abandon();
 
-                return Newtonsoft.Json.JsonConvert.SerializeObject(new { 
-                    success = true, 
-                    message = "Tài khoản của bạn đã bị vô hiệu hóa.\n\nEmail và số điện thoại của bạn sẽ không thể sử dụng để đăng ký lại." 
+                return Newtonsoft.Json.JsonConvert.SerializeObject(new
+                {
+                    success = true,
+                    message = "Tài khoản của bạn đã bị vô hiệu hóa.\n\nEmail và số điện thoại của bạn sẽ không thể sử dụng để đăng ký lại."
                 });
+            }
+            catch (Exception ex)
+            {
+                return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+        // POST: Hủy đơn hàng
+        [HttpPost]
+        public string CancelOrder()
+        {
+            try
+            {
+                if (Session["TaiKhoan"] == null)
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Vui lòng đăng nhập!" });
+
+                var sessionUser = Session["TaiKhoan"] as TaiKhoan;
+
+                string maDH_str = Request["maDH"];
+                if (string.IsNullOrEmpty(maDH_str))
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Thiếu mã đơn hàng!" });
+
+                int maDH = int.Parse(maDH_str);
+
+                var donHang = db.DonHangs.SingleOrDefault(dh => dh.MaDH == maDH && (dh.isDelete == null || dh.isDelete == 0));
+
+                if (donHang == null)
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Không tìm thấy đơn hàng!" });
+
+                // Kiểm tra đơn hàng có thuộc về user đang đăng nhập không
+                if (donHang.MaTK != sessionUser.MaTK)
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Bạn không có quyền hủy đơn hàng này!" });
+
+                // Chỉ cho phép hủy đơn khi đang ở trạng thái "Chờ xác nhận"
+                if (donHang.TrangThai != "Chờ xác nhận")
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Chỉ có thể hủy đơn hàng đang chờ xác nhận!" });
+
+                // Lưu trạng thái cũ
+                string trangThaiCu = donHang.TrangThai;
+
+                // ✅ CẬP NHẬT: Đặt trạng thái "Đã hủy" VÀ isDelete = 1
+                donHang.TrangThai = "Đã hủy";
+                donHang.isDelete = 1;  // ✅ Đánh dấu đã xóa mềm - sẽ không hiển thị ở bất kỳ tab nào
+                donHang.Update_at = DateTime.Now;
+
+                // Thêm lịch sử trạng thái (nếu cần tracking)
+                try
+                {
+                    var lichSu = new LichSuTrangThai
+                    {
+                        MaDH = maDH,
+                        TrangThaiCu = trangThaiCu,
+                        TrangThaiMoi = "Đã hủy",
+                        NgayCapNhat = DateTime.Now,
+                        GhiChu = "Khách hàng hủy đơn",
+                        NguoiThucHien = sessionUser.HoTen ?? "Khách hàng",
+                        Create_at = DateTime.Now,
+                        isDelete = 0
+                    };
+                    db.LichSuTrangThais.InsertOnSubmit(lichSu);
+                }
+                catch
+                {
+                    // Nếu bảng LichSuTrangThai không đầy đủ cột, bỏ qua
+                }
+
+                db.SubmitChanges();
+
+                return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = true, message = "Hủy đơn hàng thành công!" });
             }
             catch (Exception ex)
             {

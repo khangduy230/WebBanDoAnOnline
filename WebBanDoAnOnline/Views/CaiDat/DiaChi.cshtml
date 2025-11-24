@@ -1,9 +1,65 @@
 ﻿@{
     ViewBag.Title = "Địa chỉ";
-    Layout = "~/Views/Shared/_LayoutCaiDat.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
+    .settings-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .settings-sidebar {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .settings-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .settings-menu li {
+            margin-bottom: 5px;
+        }
+
+        .settings-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+            .settings-menu a:hover {
+                background: #f9f9f9;
+                color: #F58634;
+            }
+
+            .settings-menu a.active {
+                background: #FFF3E0;
+                color: #F58634;
+                font-weight: 600;
+            }
+
+            .settings-menu a i {
+                width: 24px;
+                margin-right: 12px;
+                font-size: 18px;
+            }
+
+    .settings-content {
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
     .address-card {
         background: #fff;
         border: 2px solid #e9ecef;
@@ -128,7 +184,7 @@
             display: flex;
         }
 
-    .modal-content {
+    .modal-content-custom {
         width: 500px;
         max-width: 90%;
         background-color: white;
@@ -237,22 +293,75 @@
         }
 </style>
 
-<h4 class="mb-4">Địa chỉ nhận hàng</h4>
+<div class="settings-container">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="settings-sidebar">
+                <ul class="settings-menu">
+                    <li>
+                        <a href="@Url.Action("HoSo", "CaiDat")">
+                            <i class="fas fa-user"></i>
+                            <span>Hồ sơ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("BaoMat", "CaiDat")">
+                            <i class="fas fa-lock"></i>
+                            <span>Bảo mật</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("DiaChi", "CaiDat")" class="active">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Địa chỉ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("DonMua", "CaiDat")">
+                            <i class="fas fa-shopping-bag"></i>
+                            <span>Đơn mua</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("KhuyenMai", "CaiDat")">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Khuyến mãi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("XoaTaiKhoan", "CaiDat")">
+                            <i class="fas fa-user-slash"></i>
+                            <span>Xóa tài khoản</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
-<button class="btn-add-new" onclick="openModal()">
-    <i class="fas fa-plus"></i> Thêm địa chỉ mới
-</button>
+        <!-- Content -->
+        <div class="col-md-9">
+            <div class="settings-content">
+                <h4 class="mb-4">Địa chỉ nhận hàng</h4>
 
-<div id="address-list">
-    <div class="text-center py-5">
-        <span class="spinner-border text-warning"></span>
-        <p class="mt-2 text-muted">Đang tải...</p>
+                <button class="btn-add-new" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Thêm địa chỉ mới
+                </button>
+
+                <div id="address-list">
+                    <div class="text-center py-5">
+                        <span class="spinner-border text-warning"></span>
+                        <p class="mt-2 text-muted">Đang tải...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- Modal thêm/sửa địa chỉ -->
 <div class="modal-overlay" id="modalOverlay">
-    <div class="modal-content" id="modalContent">
+    <div class="modal-content-custom" id="modalContent">
         <div class="modal-header">
             <h3 id="modalTitle">Thêm địa chỉ mới</h3>
         </div>
@@ -287,9 +396,8 @@
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        var url_domain = window.location.origin;
+@section scripts {
+    <script>var url_domain = window.location.origin;
         var isEditMode = false;
 
         $(document).ready(function () {
@@ -402,8 +510,20 @@
         }
 
         function saveAddress() {
-            var formData = new FormData($('#addressForm')[0]);
-            formData.append('MacDinh', $('#macDinh').is(':checked'));
+            // ✅ KHÔNG DÙNG FormData từ form, tạo FormData mới và append thủ công
+            var formData = new FormData();
+
+            // Thêm MaDC nếu đang edit
+            if (isEditMode) {
+                formData.append('MaDC', $('#maDC').val());
+            }
+
+            formData.append('TenNguoiNhan', $('#tenNguoiNhan').val());
+            formData.append('SDT', $('#sdt').val());
+            formData.append('DiaChi', $('#diaChi').val());
+
+            // ✅ QUAN TRỌNG: Gửi đúng giá trị boolean dưới dạng string
+            formData.append('MacDinh', $('#macDinh').is(':checked') ? 'true' : 'false');
 
             var url = isEditMode ? '/CaiDat/SuaDiaChi' : '/CaiDat/ThemDiaChi';
 
@@ -484,6 +604,5 @@
                     alert('Lỗi kết nối server');
                 }
             });
-        }
-    </script>
+        }</script>
 }

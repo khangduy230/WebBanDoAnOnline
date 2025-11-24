@@ -1,9 +1,65 @@
 ﻿@{
     ViewBag.Title = "Vô hiệu hóa tài khoản";
-    Layout = "~/Views/Shared/_LayoutCaiDat.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
+    .settings-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .settings-sidebar {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .settings-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .settings-menu li {
+            margin-bottom: 5px;
+        }
+
+        .settings-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+            .settings-menu a:hover {
+                background: #f9f9f9;
+                color: #F58634;
+            }
+
+            .settings-menu a.active {
+                background: #FFF3E0;
+                color: #F58634;
+                font-weight: 600;
+            }
+
+            .settings-menu a i {
+                width: 24px;
+                margin-right: 12px;
+                font-size: 18px;
+            }
+
+    .settings-content {
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
     .delete-account-section {
         background: #fff;
         border-radius: 12px;
@@ -188,98 +244,150 @@
         }
 </style>
 
-<div class="delete-account-section">
-    <h4 class="mb-4" style="color: #dc3545; font-weight: 700;">
-        <i class="fas fa-user-slash"></i> Vô hiệu hóa tài khoản
-    </h4>
-
-    <!-- Cảnh báo quan trọng -->
-    <div class="warning-box">
-        <div class="warning-icon">
-            <i class="fas fa-exclamation-circle"></i>
-        </div>
-        <h4>Những gì sẽ xảy ra khi vô hiệu hóa tài khoản:</h4>
-        <ul>
-            <li><strong>Không thể đăng nhập</strong> vào hệ thống nữa</li>
-            <li><strong>Email và số điện thoại</strong> sẽ bị "khóa" - không thể dùng để đăng ký tài khoản mới</li>
-            <li><strong>Giỏ hàng hiện tại</strong> sẽ bị ẩn</li>
-            <li><strong>Địa chỉ đã lưu</strong> sẽ bị ẩn</li>
-            <li><strong>Lịch sử đơn hàng</strong> sẽ bị ẩn</li>
-            <li><strong>Đánh giá sản phẩm</strong> sẽ bị ẩn</li>
-        </ul>
-    </div>
-
-    <!-- Cảnh báo nguy hiểm -->
-    <div class="danger-box">
-        <div class="danger-icon">
-            <i class="fas fa-ban"></i>
-        </div>
-        <h4>CẢNH BÁO QUAN TRỌNG</h4>
-        <p>
-            Sau khi vô hiệu hóa, bạn <strong>SẼ KHÔNG THỂ ĐĂNG NHẬP</strong> lại được.
-            Email và số điện thoại của bạn cũng <strong>KHÔNG THỂ DÙNG ĐỂ TẠO TÀI KHOẢN MỚI</strong>.
-        </p>
-    </div>
-
-    <!-- Form xác nhận -->
-    <div class="confirmation-section">
-        <h5><i class="fas fa-clipboard-check"></i> Xác nhận yêu cầu</h5>
-
-        <!-- Checkbox xác nhận -->
-        <div class="form-check-custom">
-            <input type="checkbox" id="confirm1" class="confirm-checkbox">
-            <label for="confirm1">
-                Tôi hiểu rằng <strong>không thể đăng nhập</strong> vào tài khoản này nữa
-            </label>
-        </div>
-
-        <div class="form-check-custom">
-            <input type="checkbox" id="confirm2" class="confirm-checkbox">
-            <label for="confirm2">
-                Tôi hiểu rằng <strong>email và số điện thoại</strong> của tôi sẽ không thể dùng để đăng ký lại
-            </label>
+<div class="settings-container">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="settings-sidebar">
+                <ul class="settings-menu">
+                    <li>
+                        <a href="@Url.Action("HoSo", "CaiDat")">
+                            <i class="fas fa-user"></i>
+                            <span>Hồ sơ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("BaoMat", "CaiDat")">
+                            <i class="fas fa-lock"></i>
+                            <span>Bảo mật</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("DiaChi", "CaiDat")">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Địa chỉ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("DonMua", "CaiDat")">
+                            <i class="fas fa-shopping-bag"></i>
+                            <span>Đơn mua</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("KhuyenMai", "CaiDat")">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Khuyến mãi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("XoaTaiKhoan", "CaiDat")" class="active">
+                            <i class="fas fa-user-slash"></i>
+                            <span>Xóa tài khoản</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
 
-        <div class="form-check-custom">
-            <input type="checkbox" id="confirm3" class="confirm-checkbox">
-            <label for="confirm3">
-                Tôi xác nhận muốn <strong>vô hiệu hóa tài khoản</strong> này
-            </label>
-        </div>
+        <!-- Content -->
+        <div class="col-md-9">
+            <div class="settings-content">
+                <div class="delete-account-section">
+                    <h4 class="mb-4" style="color: #dc3545; font-weight: 700;">
+                        <i class="fas fa-user-slash"></i> Vô hiệu hóa tài khoản
+                    </h4>
 
-        <!-- Nhập mật khẩu để xác nhận -->
-        <div class="password-input-group mt-4">
-            <label for="confirmPassword">
-                <i class="fas fa-key"></i> Nhập mật khẩu để xác nhận:
-            </label>
-            <input type="password"
-                   id="confirmPassword"
-                   class="form-control"
-                   placeholder="Nhập mật khẩu của bạn">
-        </div>
-    </div>
+                    <!-- Cảnh báo quan trọng -->
+                    <div class="warning-box">
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <h4>Những gì sẽ xảy ra khi vô hiệu hóa tài khoản:</h4>
+                        <ul>
+                            <li><strong>Không thể đăng nhập</strong> vào hệ thống nữa</li>
+                            <li><strong>Email và số điện thoại</strong> sẽ bị "khóa" - không thể dùng để đăng ký tài khoản mới</li>
+                            <li><strong>Giỏ hàng hiện tại</strong> sẽ bị ẩn</li>
+                            <li><strong>Địa chỉ đã lưu</strong> sẽ bị ẩn</li>
+                            <li><strong>Lịch sử đơn hàng</strong> sẽ bị ẩn</li>
+                            <li><strong>Đánh giá sản phẩm</strong> sẽ bị ẩn</li>
+                        </ul>
+                    </div>
 
-    <!-- Nút hành động -->
-    <div class="row g-3">
-        <div class="col-md-6">
-            <a href="@Url.Action("HoSo", "CaiDat")" class="btn-cancel">
-                <i class="fas fa-arrow-left"></i> Hủy bỏ
-            </a>
-        </div>
-        <div class="col-md-6">
-            <button id="btnDeleteAccount"
-                    class="btn-delete-account"
-                    disabled
-                    onclick="voHieuHoaTaiKhoan()">
-                <i class="fas fa-user-slash"></i> VÔ HIỆU HÓA TÀI KHOẢN
-            </button>
+                    <!-- Cảnh báo nguy hiểm -->
+                    <div class="danger-box">
+                        <div class="danger-icon">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                        <h4>CẢNH BÁO QUAN TRỌNG</h4>
+                        <p>
+                            Sau khi vô hiệu hóa, bạn <strong>SẼ KHÔNG THỂ ĐĂNG NHẬP</strong> lại được.
+                            Email và số điện thoại của bạn cũng <strong>KHÔNG THỂ DÙNG ĐỂ TẠO TÀI KHOẢN MỚI</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Form xác nhận -->
+                    <div class="confirmation-section">
+                        <h5><i class="fas fa-clipboard-check"></i> Xác nhận yêu cầu</h5>
+
+                        <!-- Checkbox xác nhận -->
+                        <div class="form-check-custom">
+                            <input type="checkbox" id="confirm1" class="confirm-checkbox">
+                            <label for="confirm1">
+                                Tôi hiểu rằng <strong>không thể đăng nhập</strong> vào tài khoản này nữa
+                            </label>
+                        </div>
+
+                        <div class="form-check-custom">
+                            <input type="checkbox" id="confirm2" class="confirm-checkbox">
+                            <label for="confirm2">
+                                Tôi hiểu rằng <strong>email và số điện thoại</strong> của tôi sẽ không thể dùng để đăng ký lại
+                            </label>
+                        </div>
+
+                        <div class="form-check-custom">
+                            <input type="checkbox" id="confirm3" class="confirm-checkbox">
+                            <label for="confirm3">
+                                Tôi xác nhận muốn <strong>vô hiệu hóa tài khoản</strong> này
+                            </label>
+                        </div>
+
+                        <!-- Nhập mật khẩu để xác nhận -->
+                        <div class="password-input-group mt-4">
+                            <label for="confirmPassword">
+                                <i class="fas fa-key"></i> Nhập mật khẩu để xác nhận:
+                            </label>
+                            <input type="password"
+                                   id="confirmPassword"
+                                   class="form-control"
+                                   placeholder="Nhập mật khẩu của bạn">
+                        </div>
+                    </div>
+
+                    <!-- Nút hành động -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="@Url.Action("HoSo", "CaiDat")" class="btn-cancel">
+                                <i class="fas fa-arrow-left"></i> Hủy bỏ
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <button id="btnDeleteAccount"
+                                    class="btn-delete-account"
+                                    disabled
+                                    onclick="voHieuHoaTaiKhoan()">
+                                <i class="fas fa-user-slash"></i> VÔ HIỆU HÓA TÀI KHOẢN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        var url_domain = window.location.origin;
+@section scripts {
+    <script>var url_domain = window.location.origin;
 
         $(document).ready(function () {
             // Kiểm tra tất cả checkbox và password để enable/disable nút
@@ -342,6 +450,5 @@
                     $('#btnDeleteAccount').prop('disabled', false).html('<i class="fas fa-user-slash"></i> VÔ HIỆU HÓA TÀI KHOẢN');
                 }
             });
-        }
-    </script>
+        }</script>
 }

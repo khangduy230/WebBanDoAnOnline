@@ -8,14 +8,77 @@
         cursor: pointer;
         border: 2px solid #eee;
         padding: 15px;
-        border-radius: 8px;
-        transition: 0.2s;
+        border-radius: 12px;
+        transition: all 0.3s ease;
         width: 100%;
+        position: relative;
+        background: #fff;
     }
 
-        .address-card:hover, .address-card.active {
+        .address-card:hover {
             border-color: #ffc107;
             background-color: #fffcf5;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .address-card.active {
+            border-color: #ffc107;
+            background-color: #fffcf5;
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+
+            .address-card.active::before {
+                content: '\f00c';
+                font-family: 'Font Awesome 5 Free';
+                font-weight: 900;
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: #ffc107;
+                color: white;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+            }
+
+    .address-badge {
+        display: inline-block;
+        background: #28a745;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+
+    .btn-add-address {
+        border: 2px dashed #ffc107;
+        background: #fffcf5;
+        color: #ffc107;
+        padding: 15px;
+        border-radius: 12px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s;
+        font-weight: 600;
+    }
+
+        .btn-add-address:hover {
+            background: #ffc107;
+            color: white;
+            border-color: #ffc107;
+        }
+
+        .btn-add-address i {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 8px;
         }
 
     .btn-pay.active {
@@ -33,6 +96,132 @@
             border-color: #ffc107;
             background-color: #fffcf5;
         }
+
+    /* Modal styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+    .modal-content-custom {
+        width: 500px;
+        max-width: 90%;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        padding: 24px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+            .form-group input:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: #ffc107;
+            }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+        .form-check input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .form-check label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .btn-cancel {
+        background-color: #6c757d;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+        .btn-cancel:hover {
+            background-color: #5a6268;
+        }
+
+    .btn-save {
+        background-color: #ffc107;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+        .btn-save:hover {
+            background-color: #e0a800;
+        }
 </style>
 
 <div class="checkout-page container my-4">
@@ -46,7 +235,11 @@
             <div class="col-lg-8">
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body">
-                        <h5 class="fw-bold mb-3">Địa chỉ nhận hàng</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">
+                                <i class="fas fa-map-marker-alt text-warning"></i> Địa chỉ nhận hàng
+                            </h5>
+                        </div>
                         <div id="list-address" class="d-flex flex-column gap-2"></div>
                     </div>
                 </div>
@@ -77,7 +270,7 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <h5 class="fw-bold mb-3">Ghi chú</h5>
-                        <textarea id="note-input" class="form-control" rows="3"></textarea>
+                        <textarea id="note-input" class="form-control" rows="3" placeholder="Ghi chú cho người bán..."></textarea>
                     </div>
                 </div>
             </div>
@@ -107,40 +300,96 @@
         <div class="card shadow border-0 p-5 d-inline-block">
             <div class="text-success mb-3" style="font-size:4rem"><i class="fa-regular fa-circle-check"></i></div>
             <h2 class="fw-bold text-success">Đặt hàng thành công!</h2>
-            <p class="text-muted mb-4">Cảm ơn bạn đã mua sắm tại FuTho Food.</p>
-            <a href="/Home/Index" class="btn btn-warning text-white rounded-pill px-4">Về trang chủ</a>
+            <p class="text-muted mb-4">Cảm ơn bạn đã mua sắm tại FuTho Food.<br>Đơn hàng của bạn đang được xử lý.</p>
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="/CaiDat/DonMua" class="btn btn-warning text-white rounded-pill px-4">
+                    <i class="fas fa-clipboard-list"></i> Theo dõi đơn hàng
+                </a>
+                <a href="/Home/Index" class="btn btn-outline-warning rounded-pill px-4">
+                    <i class="fas fa-home"></i> Về trang chủ
+                </a>
+            </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal thêm/sửa địa chỉ -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content-custom" id="modalContent">
+        <div class="modal-header">
+            <h3 id="modalTitle">Thêm địa chỉ mới</h3>
+        </div>
+        <form id="addressForm">
+            <input type="hidden" id="maDC" name="MaDC">
+
+            <div class="form-group">
+                <label for="tenNguoiNhan">Họ và tên <span class="text-danger">*</span></label>
+                <input type="text" id="tenNguoiNhan" name="TenNguoiNhan" placeholder="Nguyễn Văn A" required>
+            </div>
+
+            <div class="form-group">
+                <label for="sdt">Số điện thoại <span class="text-danger">*</span></label>
+                <input type="tel" id="sdt" name="SDT" placeholder="0987654321" required>
+            </div>
+
+            <div class="form-group">
+                <label for="diaChi">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                <textarea id="diaChi" name="DiaChi" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" required></textarea>
+            </div>
+
+            <div class="form-check">
+                <input type="checkbox" id="macDinh" name="MacDinh">
+                <label for="macDinh">Đặt làm địa chỉ mặc định</label>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeModal()">Hủy</button>
+                <button type="submit" class="btn-save">Lưu</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
     var url_domain = '@Url.Content("~")'; if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
-    var currentPayMethod="COD", selectedAddressId=0, subTotal=0, shippingFee=0, discount=0, voucherCodeApplied="";
+    var currentPayMethod = "COD", selectedAddressId = 0, subTotal = 0, shippingFee = 0, discount = 0, voucherCodeApplied = "";
+    var isEditMode = false;
+    var hasAddresses = false;
 
     function formatMoney(n) { return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + "đ"; }
 
-    $(document).ready(function(){ LoadInfo(); });
+    $(document).ready(function () {
+        LoadInfo();
 
-    function LoadInfo(){
+        // Form submit cho modal địa chỉ
+        $('#addressForm').submit(function (e) {
+            e.preventDefault();
+            saveAddress();
+        });
+
+        // Đóng modal khi click vào overlay
+        $('#modalOverlay').on('click', function (e) {
+            if (e.target.id === 'modalOverlay') {
+                closeModal();
+            }
+        });
+
+        // Ngăn sự kiện click từ modal-content lan ra overlay
+        $('#modalContent').on('click', function (e) {
+            e.stopPropagation();
+        });
+    });
+
+    function LoadInfo() {
         $.ajax({
-            type:"POST", url: url_domain+'/ThanhToan/LayThongTinThanhToan', processData:false, contentType:false,
-            success: function(res){
-                if(res==="LOGIN_REQUIRED") { window.location.href="/TaiKhoan/Login"; return; }
-                var d=JSON.parse(res);
-                subTotal=d.TongTienHang; shippingFee=d.PhiShip;
+            type: "POST", url: url_domain + '/ThanhToan/LayThongTinThanhToan', processData: false, contentType: false,
+            success: function (res) {
+                if (res === "LOGIN_REQUIRED") { window.location.href = "/TaiKhoan/Login"; return; }
+                var d = JSON.parse(res);
+                subTotal = d.TongTienHang; shippingFee = d.PhiShip;
 
-                // Địa chỉ
-                var htmlAddr = "";
-                if(d.DiaChi.length===0) htmlAddr='<div class="alert alert-warning">Chưa có địa chỉ. <a href="/CaiDat/DiaChi">Thêm</a></div>';
-                else {
-                    d.DiaChi.forEach((a, i) => {
-                        if(i===0) selectedAddressId=a.MaDiaChi;
-                        var active = (i===0) ? "active" : "";
-                        htmlAddr += `<div class="address-card ${active}" onclick="ChonDiaChi(${a.MaDiaChi}, this)">
-                            <div class="fw-bold">${a.TenNguoiNhan} (${a.SDTNhan})</div><div class="small text-muted">${a.DiaChiCuThe}</div></div>`;
-                    });
-                }
-                $("#list-address").html(htmlAddr);
+                // ✅ Render địa chỉ với nút thêm mới
+                renderAddressList(d.DiaChi);
 
                 // Sản phẩm
                 var htmlCart = "";
@@ -154,14 +403,14 @@
 
                 // Voucher Inline
                 var htmlV = "";
-                if(!d.Vouchers.length) htmlV='<div class="text-muted small">Không có mã.</div>';
+                if (!d.Vouchers.length) htmlV = '<div class="text-muted small">Không có mã.</div>';
                 else {
                     d.Vouchers.forEach(v => {
-                        var min = v.DieuKienToiThieu||0;
-                        var ok = subTotal>=min;
+                        var min = v.DieuKienToiThieu || 0;
+                        var ok = subTotal >= min;
                         var cls = ok ? "" : "opacity-50 bg-light";
                         var click = ok ? `onclick="ChonVoucherInline('${v.MaCode}', this)"` : "";
-                        var txt = v.LoaiGiam==="Tiền" ? formatMoney(v.GiaTri) : v.GiaTri+"%";
+                        var txt = v.LoaiGiam === "Tiền" ? formatMoney(v.GiaTri) : v.GiaTri + "%";
                         htmlV += `<div class="border rounded p-2 mb-2 voucher-item ${cls}" ${click}>
                             <div class="d-flex justify-content-between"><span class="fw-bold text-danger">${v.MaCode}</span>
                             ${ok ? '<span class="badge bg-success">Dùng được</span>' : '<span class="badge bg-secondary">Chưa đủ ĐK</span>'}</div>
@@ -177,47 +426,160 @@
         });
     }
 
-    function UpdateUI(){
+    // ✅ HÀM RENDER DANH SÁCH ĐỊA CHỈ
+    function renderAddressList(diaChiList) {
+        var htmlAddr = "";
+
+        if (diaChiList.length === 0) {
+            hasAddresses = false;
+            // ✅ Hiển thị nút thêm địa chỉ lớn khi chưa có địa chỉ
+            htmlAddr = `
+                <div class="btn-add-address" onclick="openModal()">
+                    <i class="fas fa-plus-circle"></i>
+                    <div>Thêm địa chỉ nhận hàng</div>
+                    <small class="text-muted">Bạn chưa có địa chỉ giao hàng</small>
+                </div>`;
+        } else {
+            hasAddresses = true;
+            diaChiList.forEach((a, i) => {
+                if (i === 0) selectedAddressId = a.MaDiaChi;
+                var active = (i === 0) ? "active" : "";
+                var badge = a.MacDinh ? '<span class="address-badge">Mặc định</span>' : '';
+
+                htmlAddr += `
+                    <div class="address-card ${active}" onclick="ChonDiaChi(${a.MaDiaChi}, this)">
+                        <div class="fw-bold mb-2">
+                            <i class="fas fa-user"></i> ${a.TenNguoiNhan}
+                            ${badge}
+                        </div>
+                        <div class="small text-muted mb-1">
+                            <i class="fas fa-phone"></i> ${a.SDTNhan}
+                        </div>
+                        <div class="small text-muted">
+                            <i class="fas fa-map-marker-alt"></i> ${a.DiaChiCuThe}
+                        </div>
+                    </div>`;
+            });
+
+            // ✅ Thêm nút + nhỏ để thêm địa chỉ mới khi đã có địa chỉ
+            htmlAddr += `
+                <div class="btn-add-address" onclick="openModal()" style="padding: 10px;">
+                    <i class="fas fa-plus" style="font-size: 16px; display: inline; margin-right: 8px; margin-bottom: 0;"></i>
+                    <span>Thêm địa chỉ mới</span>
+                </div>`;
+        }
+
+        $("#list-address").html(htmlAddr);
+    }
+
+    // ✅ HÀM MỞ MODAL THÊM ĐỊA CHỈ
+    function openModal() {
+        isEditMode = false;
+        $('#modalTitle').text('Thêm địa chỉ mới');
+        $('#addressForm')[0].reset();
+        $('#maDC').val('');
+        $('#modalOverlay').addClass('show');
+
+        setTimeout(function () {
+            $('#tenNguoiNhan').focus();
+        }, 300);
+    }
+
+    // ✅ HÀM ĐÓNG MODAL
+    function closeModal() {
+        $('#modalOverlay').removeClass('show');
+    }
+
+    // ✅ HÀM LƯU ĐỊA CHỈ
+    function saveAddress() {
+        var formData = new FormData();
+
+        if (isEditMode) {
+            formData.append('MaDC', $('#maDC').val());
+        }
+
+        formData.append('TenNguoiNhan', $('#tenNguoiNhan').val());
+        formData.append('SDT', $('#sdt').val());
+        formData.append('DiaChi', $('#diaChi').val());
+        formData.append('MacDinh', $('#macDinh').is(':checked') ? 'true' : 'false');
+
+        var url = isEditMode ? '/CaiDat/SuaDiaChi' : '/CaiDat/ThemDiaChi';
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + url,
+            data: formData,
+            contentType: false,
+            processData: false,
+            cache: false,
+            success: function (response) {
+                var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                if (res.success) {
+                    alert(res.message);
+                    closeModal();
+                    // ✅ Reload lại thông tin thanh toán để cập nhật danh sách địa chỉ
+                    LoadInfo();
+                } else {
+                    alert(res.message);
+                }
+            },
+            error: function () {
+                alert('Lỗi kết nối server');
+            }
+        });
+    }
+
+    function UpdateUI() {
         $("#lbl-subtotal").text(formatMoney(subTotal));
         $("#lbl-shipping").text(formatMoney(shippingFee));
-        $("#lbl-discount").text("-"+formatMoney(discount));
-        $("#lbl-total").text(formatMoney(subTotal+shippingFee-discount));
+        $("#lbl-discount").text("-" + formatMoney(discount));
+        $("#lbl-total").text(formatMoney(subTotal + shippingFee - discount));
     }
 
-    function ChonDiaChi(id, el){ selectedAddressId=id; $(".address-card").removeClass("active"); $(el).addClass("active"); }
-    function ChonPhuongThuc(m, el){
-        currentPayMethod=m; $(".btn-pay").removeClass("active"); $(el).addClass("active");
-        if(m==="BANK") { alert("Chức năng đang bảo trì."); ChonPhuongThuc('COD', $(".btn-pay").first()); }
-    }
-    function ChonVoucherInline(code){ $("#voucher-input").val(code); ApDungVoucher(); }
+    function ChonDiaChi(id, el) { selectedAddressId = id; $(".address-card").removeClass("active"); $(el).addClass("active"); }
 
-    function ApDungVoucher(){
-        var code=$("#voucher-input").val(); if(!code) return;
-        var fd=new FormData(); fd.append('code',code); fd.append('total',subTotal);
-        $.ajax({ type:"POST", url: url_domain+'/ThanhToan/KiemTraVoucher', data:fd, processData:false, contentType:false,
-            success: function(res){
-                var d=JSON.parse(res);
-                if(d.ok) { discount=d.discount; voucherCodeApplied=code; $("#voucher-msg").html('<span class="text-success">'+d.msg+'</span>'); }
-                else { discount=0; voucherCodeApplied=""; $("#voucher-msg").html('<span class="text-danger">'+d.msg+'</span>'); }
+    function ChonPhuongThuc(m, el) {
+        currentPayMethod = m; $(".btn-pay").removeClass("active"); $(el).addClass("active");
+        if (m === "BANK") { alert("Chức năng đang bảo trì."); ChonPhuongThuc('COD', $(".btn-pay").first()); }
+    }
+
+    function ChonVoucherInline(code) { $("#voucher-input").val(code); ApDungVoucher(); }
+
+    function ApDungVoucher() {
+        var code = $("#voucher-input").val(); if (!code) return;
+        var fd = new FormData(); fd.append('code', code); fd.append('total', subTotal);
+        $.ajax({
+            type: "POST", url: url_domain + '/ThanhToan/KiemTraVoucher', data: fd, processData: false, contentType: false,
+            success: function (res) {
+                var d = JSON.parse(res);
+                if (d.ok) { discount = d.discount; voucherCodeApplied = code; $("#voucher-msg").html('<span class="text-success">' + d.msg + '</span>'); }
+                else { discount = 0; voucherCodeApplied = ""; $("#voucher-msg").html('<span class="text-danger">' + d.msg + '</span>'); }
                 UpdateUI();
             }
         });
     }
 
-    function DatHang(){
-        if(selectedAddressId===0) { alert("Chọn địa chỉ"); return; }
-        $("#btn-place-order").prop("disabled",true).text("ĐANG XỬ LÝ...");
-        var fd=new FormData();
-        fd.append('addressId',selectedAddressId); fd.append('payMethod',currentPayMethod);
-        fd.append('note',$("#note-input").val()); fd.append('voucherCode',voucherCodeApplied);
+    function DatHang() {
+        if (selectedAddressId === 0) {
+            alert("Vui lòng chọn hoặc thêm địa chỉ giao hàng");
+            if (!hasAddresses) {
+                openModal(); // Mở modal nếu chưa có địa chỉ
+            }
+            return;
+        }
+        $("#btn-place-order").prop("disabled", true).text("ĐANG XỬ LÝ...");
+        var fd = new FormData();
+        fd.append('addressId', selectedAddressId); fd.append('payMethod', currentPayMethod);
+        fd.append('note', $("#note-input").val()); fd.append('voucherCode', voucherCodeApplied);
 
-        $.ajax({ type:"POST", url: url_domain+'/ThanhToan/DatHang', data:fd, processData:false, contentType:false,
-            success: function(res){
-                if(res==="SUCCESS"){
+        $.ajax({
+            type: "POST", url: url_domain + '/ThanhToan/DatHang', data: fd, processData: false, contentType: false,
+            success: function (res) {
+                if (res === "SUCCESS") {
                     $("#checkout-main-section").hide(); $("#checkout-success-section").fadeIn();
-                    if($("#cart-badge").length) $("#cart-badge").text("0").hide();
-                } else if(res==="LOGIN_REQUIRED") window.location.href="/CaiDat/DiaChi";
-                else { alert(res); $("#btn-place-order").prop("disabled",false).text("ĐẶT HÀNG"); }
+                    if ($("#cart-badge").length) $("#cart-badge").text("0").hide();
+                } else if (res === "LOGIN_REQUIRED") window.location.href = "/TaiKhoan/Login";
+                else { alert(res); $("#btn-place-order").prop("disabled", false).text("ĐẶT HÀNG"); }
             }
         });
     }

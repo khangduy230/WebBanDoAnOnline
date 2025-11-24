@@ -1,9 +1,65 @@
 ﻿@{
     ViewBag.Title = "Đơn mua";
-    Layout = "~/Views/Shared/_LayoutCaiDat.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
+    .settings-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .settings-sidebar {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .settings-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .settings-menu li {
+            margin-bottom: 5px;
+        }
+
+        .settings-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+            .settings-menu a:hover {
+                background: #f9f9f9;
+                color: #F58634;
+            }
+
+            .settings-menu a.active {
+                background: #FFF3E0;
+                color: #F58634;
+                font-weight: 600;
+            }
+
+            .settings-menu a i {
+                width: 24px;
+                margin-right: 12px;
+                font-size: 18px;
+            }
+
+    .settings-content {
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
     /* Progress Timeline Styles */
     .order-timeline {
         position: relative;
@@ -80,6 +136,7 @@
         0%, 100% {
             box-shadow: 0 4px 12px rgba(245, 134, 52, 0.3);
         }
+
         50% {
             box-shadow: 0 4px 20px rgba(245, 134, 52, 0.5);
         }
@@ -118,9 +175,9 @@
         transition: box-shadow 0.3s;
     }
 
-    .order-card:hover {
-        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    }
+        .order-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
 
     .order-header {
         display: flex;
@@ -137,15 +194,15 @@
         gap: 4px;
     }
 
-    .order-code strong {
-        font-size: 16px;
-        color: #333;
-    }
+        .order-code strong {
+            font-size: 16px;
+            color: #333;
+        }
 
-    .order-code small {
-        color: #666;
-        font-size: 12px;
-    }
+        .order-code small {
+            color: #666;
+            font-size: 12px;
+        }
 
     .status-badge {
         padding: 6px 16px;
@@ -157,30 +214,30 @@
         gap: 6px;
     }
 
-    .status-badge.pending {
-        background: #FFF3E0;
-        color: #F58634;
-    }
+        .status-badge.pending {
+            background: #FFF3E0;
+            color: #F58634;
+        }
 
-    .status-badge.shipping {
-        background: #E3F2FD;
-        color: #2196F3;
-    }
+        .status-badge.confirmed {
+            background: #E3F2FD;
+            color: #2196F3;
+        }
 
-    .status-badge.delivering {
-        background: #F3E5F5;
-        color: #9C27B0;
-    }
+        .status-badge.shipping {
+            background: #F3E5F5;
+            color: #9C27B0;
+        }
 
-    .status-badge.completed {
-        background: #E8F5E9;
-        color: #4CAF50;
-    }
+        .status-badge.completed {
+            background: #E8F5E9;
+            color: #4CAF50;
+        }
 
-    .status-badge.cancelled {
-        background: #FFEBEE;
-        color: #F44336;
-    }
+        .status-badge.cancelled {
+            background: #FFEBEE;
+            color: #F44336;
+        }
 
     /* Order Info Grid */
     .order-info-grid {
@@ -224,9 +281,9 @@
         border-bottom: 1px solid #f0f0f0;
     }
 
-    .product-item:last-child {
-        border-bottom: none;
-    }
+        .product-item:last-child {
+            border-bottom: none;
+        }
 
     .product-img {
         width: 80px;
@@ -304,34 +361,34 @@
         border-radius: 8px 8px 0 0;
     }
 
-    .filter-tab:hover {
-        background: #f5f5f5;
-        color: #333;
-    }
+        .filter-tab:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
 
-    .filter-tab.active {
-        color: #F58634;
-        font-weight: 600;
-    }
+        .filter-tab.active {
+            color: #F58634;
+            font-weight: 600;
+        }
 
-    .filter-tab.active::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: #F58634;
-    }
+            .filter-tab.active::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: #F58634;
+            }
 
-    .filter-tab .badge {
-        background: #F58634;
-        color: white;
-        border-radius: 12px;
-        padding: 2px 8px;
-        font-size: 11px;
-        margin-left: 6px;
-    }
+        .filter-tab .badge {
+            background: #F58634;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 11px;
+            margin-left: 6px;
+        }
 
     /* Empty State */
     .empty-state {
@@ -340,21 +397,21 @@
         color: #999;
     }
 
-    .empty-state i {
-        font-size: 80px;
-        margin-bottom: 24px;
-        opacity: 0.3;
-    }
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 24px;
+            opacity: 0.3;
+        }
 
-    .empty-state h5 {
-        color: #666;
-        margin-bottom: 12px;
-    }
+        .empty-state h5 {
+            color: #666;
+            margin-bottom: 12px;
+        }
 
-    .empty-state p {
-        color: #999;
-        margin-bottom: 24px;
-    }
+        .empty-state p {
+            color: #999;
+            margin-bottom: 24px;
+        }
 
     .btn-shop-now {
         background: #F58634;
@@ -367,12 +424,12 @@
         transition: all 0.3s;
     }
 
-    .btn-shop-now:hover {
-        background: #e67e00;
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(245, 134, 52, 0.3);
-    }
+        .btn-shop-now:hover {
+            background: #e67e00;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 134, 52, 0.3);
+        }
 
     /* Action Buttons */
     .order-actions {
@@ -392,20 +449,31 @@
         transition: all 0.3s;
     }
 
-    .btn-action:hover {
-        border-color: #F58634;
-        color: #F58634;
-    }
+        .btn-action:hover {
+            border-color: #F58634;
+            color: #F58634;
+        }
 
-    .btn-action.primary {
-        background: #F58634;
-        color: white;
-        border-color: #F58634;
-    }
+        .btn-action.primary {
+            background: #F58634;
+            color: white;
+            border-color: #F58634;
+        }
 
-    .btn-action.primary:hover {
-        background: #e67e00;
-    }
+            .btn-action.primary:hover {
+                background: #e67e00;
+            }
+
+        .btn-action.cancel {
+            background: #FFEBEE;
+            color: #F44336;
+            border-color: #F44336;
+        }
+
+            .btn-action.cancel:hover {
+                background: #F44336;
+                color: white;
+            }
 
     /* Responsive */
     @@media (max-width: 768px) {
@@ -448,39 +516,92 @@
     }
 </style>
 
-<h4 class="mb-4">Đơn mua của tôi</h4>
+<div class="settings-container">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="settings-sidebar">
+                <ul class="settings-menu">
+                    <li>
+                        <a href="@Url.Action("HoSo", "CaiDat")">
+                            <i class="fas fa-user"></i>
+                            <span>Hồ sơ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("BaoMat", "CaiDat")">
+                            <i class="fas fa-lock"></i>
+                            <span>Bảo mật</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("DiaChi", "CaiDat")">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Địa chỉ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("DonMua", "CaiDat")" class="active">
+                            <i class="fas fa-shopping-bag"></i>
+                            <span>Đơn mua</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("KhuyenMai", "CaiDat")">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Khuyến mãi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("XoaTaiKhoan", "CaiDat")">
+                            <i class="fas fa-user-slash"></i>
+                            <span>Xóa tài khoản</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
-<!-- Filter tabs -->
-<div class="filter-tabs">
-    <button class="filter-tab active" data-status="all">
-        <i class="fas fa-list"></i> Tất cả
-    </button>
-    <button class="filter-tab" data-status="pending">
-        <i class="fas fa-clock"></i> Đang chuẩn bị
-    </button>
-    <button class="filter-tab" data-status="shipping">
-        <i class="fas fa-motorcycle"></i> Shipper nhận hàng
-    </button>
-    <button class="filter-tab" data-status="delivering">
-        <i class="fas fa-shipping-fast"></i> Đang giao
-    </button>
-    <button class="filter-tab" data-status="completed">
-        <i class="fas fa-check-circle"></i> Hoàn thành
-    </button>
-</div>
+        <!-- Content -->
+        <div class="col-md-9">
+            <div class="settings-content">
+                <h4 class="mb-4">Đơn mua của tôi</h4>
 
-<!-- Order list container -->
-<div id="order-list">
-    <div class="text-center py-5">
-        <div class="spinner-border text-warning" role="status">
-            <span class="visually-hidden">Đang tải...</span>
+                <!-- Filter tabs -->
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-status="all">
+                        <i class="fas fa-list"></i> Tất cả
+                    </button>
+                    <button class="filter-tab" data-status="pending">
+                        <i class="fas fa-clock"></i> Chờ xác nhận
+                    </button>
+                    <button class="filter-tab" data-status="confirmed">
+                        <i class="fas fa-check"></i> Đã xác nhận
+                    </button>
+                    <button class="filter-tab" data-status="shipping">
+                        <i class="fas fa-shipping-fast"></i> Đang giao
+                    </button>
+                    <button class="filter-tab" data-status="completed">
+                        <i class="fas fa-check-circle"></i> Đã nhận hàng
+                    </button>
+                </div>
+
+                <!-- Order list container -->
+                <div id="order-list">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        var currentStatus = 'all';
+@section scripts {
+    <script>var currentStatus = 'all';
+        var url_domain = window.location.origin;
 
         $(document).ready(function () {
             loadOrders(currentStatus);
@@ -500,12 +621,12 @@
 
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("GetOrders", "CaiDat")',
+                url: url_domain + '/CaiDat/GetOrders',
                 data: formData,
                 contentType: false,
                 processData: false,
                 success: function (response) {
-                    var res = JSON.parse(response);
+                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     if (res.success) {
                         renderOrders(res.data);
                     } else {
@@ -523,100 +644,117 @@
 
             if (orders.length === 0) {
                 html = `
-                    <div class="empty-state">
-                        <i class="fas fa-shopping-bag"></i>
-                        <h5>Chưa có đơn hàng nào</h5>
-                        <p>Hãy khám phá và đặt món ngon ngay thôi!</p>
-                        <a href="/SanPham/Index" class="btn-shop-now">
-                            <i class="fas fa-utensils"></i> Đặt món ngay
-                        </a>
-                    </div>
-                `;
+            <div class="empty-state">
+                <i class="fas fa-shopping-bag"></i>
+                <h5>Chưa có đơn hàng nào</h5>
+                <p>Hãy khám phá và đặt món ngon ngay thôi!</p>
+                <a href="/SanPham/Index" class="btn-shop-now">
+                    <i class="fas fa-utensils"></i> Đặt món ngay
+                </a>
+            </div>
+        `;
             } else {
                 orders.forEach(function (order) {
                     var statusInfo = getStatusInfo(order.TrangThai);
                     var timelineSteps = getTimelineSteps(order.TrangThai);
 
                     html += `
-                        <div class="order-card">
-                            <!-- Order Header -->
-                            <div class="order-header">
-                                <div class="order-code">
-                                    <strong>Mã vận đơn: ${order.MaVanDon}</strong>
-                                    <small><i class="far fa-calendar"></i> ${order.NgayTao}</small>
-                                </div>
-                                <span class="status-badge ${statusInfo.class}">
-                                    <i class="${statusInfo.icon}"></i> ${statusInfo.text}
-                                </span>
-                            </div>
+                <div class="order-card">
+                    <!-- Order Header -->
+                    <div class="order-header">
+                        <div class="order-code">
+                            <strong>Mã vận đơn: ${order.MaVanDon}</strong>
+                            <small><i class="far fa-calendar"></i> ${order.NgayTao}</small>
+                        </div>
+                        <span class="status-badge ${statusInfo.class}">
+                            <i class="${statusInfo.icon}"></i> ${statusInfo.text}
+                        </span>
+                    </div>
 
-                            <!-- Timeline Progress -->
-                            <div class="order-timeline">
-                                <div class="timeline-container">
-                                    <div class="timeline-line">
-                                        <div class="timeline-progress" style="width: ${timelineSteps.progress}%"></div>
+                    <!-- Timeline Progress -->
+                    <div class="order-timeline">
+                        <div class="timeline-container">
+                            <div class="timeline-line">
+                                <div class="timeline-progress" style="width: ${timelineSteps.progress}%"></div>
+                            </div>
+                            ${timelineSteps.steps.map(step => `
+                                <div class="timeline-step ${step.class}">
+                                    <div class="timeline-icon">
+                                        <i class="${step.icon}"></i>
                                     </div>
-                                    ${timelineSteps.steps.map(step => `
-                                        <div class="timeline-step ${step.class}">
-                                            <div class="timeline-icon">
-                                                <i class="${step.icon}"></i>
-                                            </div>
-                                            <div class="timeline-label">${step.label}</div>
-                                            ${step.time ? `<div class="timeline-time">${step.time}</div>` : ''}
-                                        </div>
-                                    `).join('')}
+                                    <div class="timeline-label">${step.label}</div>
+                                    ${step.time ? `<div class="timeline-time">${step.time}</div>` : ''}
                                 </div>
-                            </div>
+                            `).join('')}
+                        </div>
+                    </div>
 
-                            <!-- Order Info Grid -->
-                            <div class="order-info-grid">
-                                <div class="info-item">
-                                    <span class="info-label"><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng</span>
-                                    <span class="info-value">${order.DiaChiGiaoHang.replace(/\n/g, ', ')}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label"><i class="fas fa-box"></i> Số lượng món</span>
-                                    <span class="info-value">${order.SanPhams.length} món</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label"><i class="fas fa-credit-card"></i> Phương thức thanh toán</span>
-                                    <span class="info-value">Tiền mặt (COD)</span>
-                                </div>
-                            </div>
+                    <!-- Order Info Grid -->
+                    <div class="order-info-grid">
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-user"></i> Người nhận</span>
+                            <span class="info-value">${order.TenNguoiNhan}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-phone"></i> Số điện thoại</span>
+                            <span class="info-value">${order.SDTNguoiNhan || 'Chưa có'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng</span>
+                            <span class="info-value">${order.DiaChiGiaoHang}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-credit-card"></i> Phương thức thanh toán</span>
+                            <span class="info-value">Tiền mặt (COD)</span>
+                        </div>
+                    </div>
 
-                            <!-- Product List -->
-                            <div class="product-list">
-                                ${order.SanPhams.map(sp => `
-                                    <div class="product-item">
-                                        <img src="${sp.Anh || '/Content/Images/default-food.jpg'}"
-                                             class="product-img"
-                                             alt="${sp.TenSP}"
-                                             onerror="this.src='/Content/Images/default-food.jpg'">
-                                        <div class="product-info">
-                                            <div class="product-name">${sp.TenSP}</div>
-                                            <div class="product-quantity">
-                                                <i class="fas fa-times"></i> ${sp.SoLuong}
-                                            </div>
-                                        </div>
-                                        <div class="product-price">
-                                            ${formatCurrency(sp.DonGia)}đ
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-
-                            <!-- Order Total -->
-                            <div class="order-total">
-                                <span class="total-label">Tổng cộng:</span>
-                                <span class="total-amount">${formatCurrency(order.TongTien)}đ</span>
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="order-actions">
-                                ${getActionButtons(order.TrangThai, order.MaDH)}
+                    ${order.GhiChu ? `
+                    <!-- Ghi chú -->
+                    <div class="order-note" style="margin-bottom: 20px; padding: 12px 16px; background: #fffbf0; border-left: 4px solid #F58634; border-radius: 4px;">
+                        <div style="display: flex; gap: 8px; align-items: start;">
+                            <i class="fas fa-sticky-note" style="color: #F58634; margin-top: 2px;"></i>
+                            <div>
+                                <strong style="color: #F58634;">Ghi chú:</strong>
+                                <p style="margin: 4px 0 0 0; color: #666;">${order.GhiChu}</p>
                             </div>
                         </div>
-                    `;
+                    </div>
+                    ` : ''}
+
+                    <!-- Product List -->
+                    <div class="product-list">
+                        ${order.SanPhams.map(sp => `
+                            <div class="product-item">
+                                <img src="${sp.Anh || '/Content/Images/default-food.jpg'}"
+                                     class="product-img"
+                                     alt="${sp.TenSP}"
+                                     onerror="this.src='/Content/Images/default-food.jpg'">
+                                <div class="product-info">
+                                    <div class="product-name">${sp.TenSP}</div>
+                                    <div class="product-quantity">
+                                        <i class="fas fa-times"></i> ${sp.SoLuong}
+                                    </div>
+                                </div>
+                                <div class="product-price">
+                                    ${formatCurrency(sp.DonGia)}đ
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Order Total -->
+                    <div class="order-total">
+                        <span class="total-label">Tổng cộng:</span>
+                        <span class="total-amount">${formatCurrency(order.TongTien)}đ</span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="order-actions">
+                        ${getActionButtons(order.TrangThai, order.MaDH)}
+                    </div>
+                </div>
+            `;
                 });
             }
 
@@ -625,25 +763,25 @@
 
         function getStatusInfo(trangThai) {
             var statusMap = {
-                'Đơn hàng đang được chuẩn bị': {
+                'Chờ xác nhận': {
                     class: 'pending',
                     icon: 'fas fa-clock',
-                    text: 'Đang chuẩn bị'
+                    text: 'Chờ xác nhận'
                 },
-                'Shipper nhận hàng thành công': {
+                'Đã xác nhận': {
+                    class: 'confirmed',
+                    icon: 'fas fa-check',
+                    text: 'Đã xác nhận'
+                },
+                'Đang giao': {
                     class: 'shipping',
-                    icon: 'fas fa-motorcycle',
-                    text: 'Shipper đã nhận'
-                },
-                'Đang giao hàng': {
-                    class: 'delivering',
                     icon: 'fas fa-shipping-fast',
-                    text: 'Đang giao hàng'
+                    text: 'Đang giao'
                 },
-                'Nhận hàng': {
+                'Đã nhận hàng': {
                     class: 'completed',
                     icon: 'fas fa-check-circle',
-                    text: 'Đã hoàn thành'
+                    text: 'Đã nhận hàng'
                 }
             };
 
@@ -663,14 +801,8 @@
                     time: ''
                 },
                 {
-                    icon: 'fas fa-box',
-                    label: 'Đang<br>chuẩn bị',
-                    class: '',
-                    time: ''
-                },
-                {
-                    icon: 'fas fa-motorcycle',
-                    label: 'Shipper<br>nhận hàng',
+                    icon: 'fas fa-check',
+                    label: 'Đã<br>xác nhận',
                     class: '',
                     time: ''
                 },
@@ -682,7 +814,7 @@
                 },
                 {
                     icon: 'fas fa-check-circle',
-                    label: 'Hoàn<br>thành',
+                    label: 'Đã nhận<br>hàng',
                     class: '',
                     time: ''
                 }
@@ -692,20 +824,20 @@
             var progress = 0;
 
             switch (trangThai) {
-                case 'Đơn hàng đang được chuẩn bị':
+                case 'Chờ xác nhận':
+                    currentStep = 0;
+                    progress = 0;
+                    break;
+                case 'Đã xác nhận':
                     currentStep = 1;
-                    progress = 25;
+                    progress = 33;
                     break;
-                case 'Shipper nhận hàng thành công':
+                case 'Đang giao':
                     currentStep = 2;
-                    progress = 50;
+                    progress = 66;
                     break;
-                case 'Đang giao hàng':
+                case 'Đã nhận hàng':
                     currentStep = 3;
-                    progress = 75;
-                    break;
-                case 'Nhận hàng':
-                    currentStep = 4;
                     progress = 100;
                     break;
             }
@@ -724,30 +856,39 @@
         function getActionButtons(trangThai, maDH) {
             var buttons = '';
 
-            if (trangThai === 'Đơn hàng đang được chuẩn bị') {
+            if (trangThai === 'Chờ xác nhận') {
                 buttons = `
-                    <button class="btn-action" onclick="contactShop(${maDH})">
-                        <i class="fas fa-phone"></i> Liên hệ cửa hàng
-                    </button>
-                `;
-            } else if (trangThai === 'Đang giao hàng' || trangThai === 'Shipper nhận hàng thành công') {
+                            <button class="btn-action" onclick="contactShop(${maDH})">
+                                <i class="fas fa-phone"></i> Liên hệ cửa hàng
+                            </button>
+                            <button class="btn-action cancel" onclick="cancelOrder(${maDH})">
+                                <i class="fas fa-times-circle"></i> Hủy đơn hàng
+                            </button>
+                        `;
+            } else if (trangThai === 'Đã xác nhận') {
                 buttons = `
-                    <button class="btn-action" onclick="trackOrder(${maDH})">
-                        <i class="fas fa-map-marked-alt"></i> Theo dõi đơn hàng
-                    </button>
-                    <button class="btn-action" onclick="contactShipper(${maDH})">
-                        <i class="fas fa-phone-alt"></i> Liên hệ Shipper
-                    </button>
-                `;
-            } else if (trangThai === 'Nhận hàng') {
+                            <button class="btn-action" onclick="contactShop(${maDH})">
+                                <i class="fas fa-phone"></i> Liên hệ cửa hàng
+                            </button>
+                        `;
+            } else if (trangThai === 'Đang giao') {
                 buttons = `
-                    <button class="btn-action primary" onclick="reorder(${maDH})">
-                        <i class="fas fa-redo"></i> Đặt lại
-                    </button>
-                    <button class="btn-action" onclick="rateOrder(${maDH})">
-                        <i class="fas fa-star"></i> Đánh giá
-                    </button>
-                `;
+                            <button class="btn-action" onclick="trackOrder(${maDH})">
+                                <i class="fas fa-map-marked-alt"></i> Theo dõi đơn hàng
+                            </button>
+                            <button class="btn-action" onclick="contactShipper(${maDH})">
+                                <i class="fas fa-phone-alt"></i> Liên hệ Shipper
+                            </button>
+                        `;
+            } else if (trangThai === 'Đã nhận hàng') {
+                buttons = `
+                            <button class="btn-action primary" onclick="reorder(${maDH})">
+                                <i class="fas fa-redo"></i> Đặt lại
+                            </button>
+                            <button class="btn-action" onclick="rateOrder(${maDH})">
+                                <i class="fas fa-star"></i> Đánh giá
+                            </button>
+                        `;
             }
 
             return buttons;
@@ -777,5 +918,32 @@
         function rateOrder(maDH) {
             alert('Đánh giá đơn hàng #' + maDH);
         }
-    </script>
+
+        // Hàm hủy đơn hàng
+        function cancelOrder(maDH) {
+            if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?')) {
+                var formData = new FormData();
+                formData.append('maDH', maDH);
+
+                $.ajax({
+                    type: "POST",
+                    url: url_domain + '/CaiDat/CancelOrder',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                        if (res.success) {
+                            alert(res.message || 'Hủy đơn hàng thành công!');
+                            loadOrders(currentStatus); // Reload lại danh sách
+                        } else {
+                            alert(res.message || 'Không thể hủy đơn hàng!');
+                        }
+                    },
+                    error: function () {
+                        alert('Lỗi kết nối server!');
+                    }
+                });
+            }
+        }</script>
 }
