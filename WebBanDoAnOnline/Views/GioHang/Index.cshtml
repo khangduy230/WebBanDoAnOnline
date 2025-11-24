@@ -1,10 +1,10 @@
 ﻿@{
     ViewBag.Title = "Giỏ hàng";
-    
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<!-- 1. CÁC HÀM XỬ LÝ SỰ KIỆN CƠ BẢN (Update, Delete) -->
 <script>
-    // SỬA 1: Dùng Razor lấy đường dẫn gốc chính xác hơn window.location.origin
     var url_domain = '@Url.Content("~")';
     if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
 
@@ -13,7 +13,7 @@
         return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + " VNĐ";
     }
 
-    // 1. CẬP NHẬT SỐ LƯỢNG (+/-)
+    // Cập nhật số lượng (+/-)
     function Update_Qty(id, delta) {
         var formData = new FormData();
         formData.append('id', id);
@@ -22,39 +22,29 @@
         $.ajax({
             type: "POST",
             url: url_domain + '/GioHang/CapNhat_SoLuong',
-            data: formData,
-            processData: false,
-            contentType: false,
+            data: formData, processData: false, contentType: false,
             success: function (response) {
-                LoadDataGioHang(); // Load lại để cập nhật tổng tiền
+                LoadDataGioHang(); // Load lại để cập nhật
             },
-            error: function (err) {
-                alert("Lỗi kết nối server");
-            }
+            error: function () { alert("Lỗi kết nối server"); }
         });
     }
 
-    // 2. CẬP NHẬT GHI CHÚ
+    // Cập nhật ghi chú
     function Update_Note(id, input_obj) {
-        var content = $(input_obj).val();
-
         var formData = new FormData();
         formData.append('id', id);
-        formData.append('ghichu', content);
+        formData.append('ghichu', $(input_obj).val());
 
         $.ajax({
             type: "POST",
             url: url_domain + '/GioHang/CapNhat_GhiChu',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                console.log("Ghi chú đã lưu");
-            }
+            data: formData, processData: false, contentType: false,
+            success: function () { console.log("Ghi chú đã lưu"); }
         });
     }
 
-    // 3. XÓA SẢN PHẨM
+    // Xóa sản phẩm
     function Del_confirm(id) {
         if (confirm("Xóa món này khỏi giỏ?")) {
             var formData = new FormData();
@@ -63,111 +53,106 @@
             $.ajax({
                 type: "POST",
                 url: url_domain + '/GioHang/Xoa_SP_GioHang',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    LoadDataGioHang();
-                }
+                data: formData, processData: false, contentType: false,
+                success: function () { LoadDataGioHang(); }
             });
         }
     }
 </script>
 
+<!-- 2. GIAO DIỆN HTML -->
 <section class="container my-4 cart-page">
     <h2 class="fw-bold mb-4">Giỏ hàng</h2>
 
-    <!-- Khu vực hiển thị khi giỏ hàng trống -->
-    <div id="empty_cart_msg" class="p-4 bg-white border rounded-3 text-center text-muted" style="display:none;">
-        Giỏ hàng của bạn đang trống. <a href="/">Mua sắm ngay</a>
+    <!-- Hiển thị khi giỏ hàng trống -->
+    <div id="empty_cart_msg" class="p-5 bg-white border rounded-3 text-center text-muted" style="display:none;">
+        <i class="fa-solid fa-basket-shopping fs-1 mb-3 text-warning"></i>
+        <p>Giỏ hàng của bạn đang trống.</p>
+        <a href="/" class="btn btn-outline-warning rounded-pill fw-bold">Mua sắm ngay</a>
     </div>
 
-    <!-- Khu vực hiển thị dữ liệu giỏ hàng -->
+    <!-- Hiển thị dữ liệu giỏ hàng -->
     <div id="cart_content" style="display:none;">
-        <!-- Header cột -->
-        <div class="row fw-semibold text-muted mb-2 d-none d-md-flex">
+        <!-- Header cột (Ẩn trên mobile) -->
+        <div class="row fw-bold text-muted mb-2 d-none d-md-flex border-bottom pb-2">
             <div class="col-md-6">Sản phẩm</div>
             <div class="col-md-2 text-center">Số lượng</div>
             <div class="col-md-2 text-end">Thành tiền</div>
             <div class="col-md-2 text-center">Thao tác</div>
         </div>
 
-        <!-- Danh sách items -->
-        <div class="cart-lines d-flex flex-column gap-3" id="cart_lines_container">
-            <!-- Javascript sẽ chèn HTML vào đây -->
-        </div>
+        <!-- Danh sách items (JS Render vào đây) -->
+        <div class="cart-lines d-flex flex-column gap-3 mt-3" id="cart_lines_container"></div>
 
-        <!-- Footer: Tổng tiền và nút bấm -->
-        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mt-4 gap-3 p-3 bg-light rounded">
-            <div class="d-flex align-items-center gap-3">
+        <!-- Footer: Tổng tiền và nút mua -->
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mt-4 gap-3 p-3 bg-light rounded shadow-sm sticky-bottom" style="bottom: 0; z-index: 100;">
+            <div class="d-flex align-items-center gap-3 w-100 w-md-auto">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="checkAll" checked>
-                    <label class="form-check-label" for="checkAll">Chọn tất cả</label>
+                    <input class="form-check-input" type="checkbox" id="checkAll" checked style="transform: scale(1.2); cursor: pointer;">
+                    <label class="form-check-label fw-bold ms-1" for="checkAll" style="cursor: pointer;">Chọn tất cả</label>
                 </div>
             </div>
 
-            <div class="d-flex align-items-center gap-3">
-                <div class="fw-semibold fs-5">
-                    Tổng cộng:
-                    <!-- SỬA 2: Đặt ID chính xác để JS cập nhật -->
-                    <span id="grandTotal" class="text-danger fw-bold">0 VNĐ</span>
+            <div class="d-flex align-items-center gap-3 w-100 w-md-auto justify-content-between justify-content-md-end">
+                <div class="fw-semibold fs-5 text-nowrap">
+                    Tổng cộng: <span id="grandTotal" class="text-danger fw-bold">0 VNĐ</span>
                 </div>
-                <a href="~/ThanhToan/Index" class="btn btn-warning px-4 py-2 fw-bold">Mua hàng</a>
+                <!-- Nút Mua Hàng gọi hàm ToCheckout() -->
+                <button type="button" onclick="ToCheckout()" class="btn btn-warning px-4 py-2 fw-bold text-white shadow-sm text-nowrap">
+                    Mua hàng
+                </button>
             </div>
         </div>
     </div>
 </section>
 
+<!-- 3. SCRIPT LOGIC CHÍNH (Render & Checkbox & Checkout) -->
 <script>
+    // --- A. HÀM LOAD DỮ LIỆU ---
     function LoadDataGioHang() {
         $.ajax({
             type: "POST",
             url: url_domain + '/GioHang/Lay_DSGioHang',
-            contentType: false,
-            processData: false,
+            processData: false, contentType: false,
             success: function (response) {
-                var data = (typeof response === 'string') ? JSON.parse(response) : response;
+                var data = JSON.parse(response);
                 var container = $("#cart_lines_container");
-
                 container.empty();
-                var grandTotal = 0;
 
                 if (data.length === 0) {
-                    $("#empty_cart_msg").show();
+                    $("#empty_cart_msg").fadeIn();
                     $("#cart_content").hide();
                     return;
                 } else {
                     $("#empty_cart_msg").hide();
-                    $("#cart_content").show();
+                    $("#cart_content").fadeIn();
                 }
 
                 var html_str = "";
                 for (var i = 0; i < data.length; i++) {
                     var item = data[i];
-                    grandTotal += item.ThanhTien;
-
-                    // Xử lý đường dẫn ảnh
-                    var img = item.Anh ? item.Anh.replace('~', '') : '';
+                    var img = item.Anh ? item.Anh.replace('~', '') : '/img/no-image.jpg';
                     var noteVal = item.GhiChu ? item.GhiChu : "";
 
+                    // QUAN TRỌNG: Thêm data-id và data-line-total để JS tính toán
                     html_str += `
-                    <div class="cart-line p-3 border rounded-3 bg-white mb-3 shadow-sm">
-                        <div class="row g-3 align-items-center">
+                    <div class="cart-line p-3 border rounded-3 bg-white shadow-sm position-relative"
+                         data-id="${item.MaSP}"
+                         data-line-total="${item.ThanhTien}">
 
+                        <div class="row g-3 align-items-center">
                             <!-- Cột 1: Checkbox + Ảnh + Tên -->
                             <div class="col-md-6 d-flex align-items-center gap-3">
-                                <input type="checkbox" class="form-check-input" checked />
+                                <!-- Checkbox chọn món -->
+                                <input type="checkbox" class="form-check-input cart-item-check" checked style="transform: scale(1.2); cursor: pointer;" />
 
-                                <!-- SỬA 3: Thêm onerror để xử lý ảnh bị lỗi 404 -->
-                                <img src="${img}"
-                                     style="width:60px; height:60px; object-fit:cover; border-radius:8px"
-                                     onerror="this.onerror=null; this.src='https://via.placeholder.com/60?text=No+Img';"
-                                />
+                                <img src="${img}" style="width:70px; height:70px; object-fit:cover; border-radius:8px"
+                                     onerror="this.src='https://via.placeholder.com/70?text=No+Img';" />
 
                                 <div style="flex:1">
-                                    <div class="fw-bold text-dark">${item.TenSP}</div>
+                                    <div class="fw-bold text-dark text-truncate">${item.TenSP}</div>
                                     <div class="small text-muted">
-                                        Đơn giá: ${formatMoney(item.GiaHienTai)}
+                                        Đơn giá: <span class="text-primary fw-bold">${formatMoney(item.GiaHienTai)}</span>
                                     </div>
                                     <input type="text" class="form-control form-control-sm mt-2"
                                            placeholder="Ghi chú món ăn..."
@@ -178,22 +163,23 @@
 
                             <!-- Cột 2: Số lượng -->
                             <div class="col-md-2 text-center">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="Update_Qty(${item.MaSP}, -1)">-</button>
-                                    <button type="button" class="btn btn-light" disabled style="width:35px; font-weight:bold; color:#000">${item.SoLuong}</button>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="Update_Qty(${item.MaSP}, 1)">+</button>
+                                <div class="btn-group btn-group-sm border rounded">
+                                    <button type="button" class="btn btn-light border-end" onclick="Update_Qty(${item.MaSP}, -1)">-</button>
+                                    <button type="button" class="btn btn-white fw-bold px-3" disabled style="color:#000; background:#fff">${item.SoLuong}</button>
+                                    <button type="button" class="btn btn-light border-start" onclick="Update_Qty(${item.MaSP}, 1)">+</button>
                                 </div>
                             </div>
 
                             <!-- Cột 3: Thành tiền -->
-                            <div class="col-md-2 text-end fw-bold text-danger">
+                            <div class="col-md-2 text-end fw-bold text-danger fs-6">
                                 ${formatMoney(item.ThanhTien)}
                             </div>
 
                             <!-- Cột 4: Xóa -->
                             <div class="col-md-2 text-center">
-                                <button type="button" class="btn btn-outline-danger btn-sm border-0" onclick="Del_confirm(${item.MaSP})" title="Xóa">
-                                    <i class="fa fa-trash"></i>
+                                <button type="button" class="btn btn-outline-danger btn-sm border-0 rounded-circle p-2"
+                                        onclick="Del_confirm(${item.MaSP})" title="Xóa món này">
+                                    <i class="fa-regular fa-trash-can"></i>
                                 </button>
                             </div>
                         </div>
@@ -202,15 +188,83 @@
 
                 container.html(html_str);
 
-                // Cập nhật tổng tiền (Đã sửa ID khớp với HTML)
-                $("#grandTotal").text(formatMoney(grandTotal));
+                // Mặc định check all khi mới load
+                $('#checkAll').prop('checked', true);
+                RecalculateTotal();
             },
-            error: function (err) {
-                console.log("Lỗi tải giỏ hàng:", err);
+            error: function (err) { console.log(err); }
+        });
+    }
+
+    // --- B. XỬ LÝ CHECKBOX & TÍNH TỔNG ---
+
+    // 1. Sự kiện Click vào nút "Chọn tất cả"
+    $(document).on('change', '#checkAll', function () {
+        var isChecked = $(this).is(':checked');
+        $('.cart-item-check').prop('checked', isChecked);
+        RecalculateTotal();
+    });
+
+    // 2. Sự kiện Click vào từng checkbox con
+    $(document).on('change', '.cart-item-check', function () {
+        var total = $('.cart-item-check').length;
+        var checked = $('.cart-item-check:checked').length;
+        // Nếu chọn hết thì tích luôn CheckAll, ngược lại bỏ tích
+        $('#checkAll').prop('checked', (total === checked && total > 0));
+        RecalculateTotal();
+    });
+
+    // 3. Hàm tính tổng tiền dựa trên các món ĐANG CHỌN
+    function RecalculateTotal() {
+        var total = 0;
+        $('.cart-line').each(function () {
+            // Chỉ cộng tiền những dòng có checkbox đang tích
+            if ($(this).find('.cart-item-check').is(':checked')) {
+                total += parseFloat($(this).attr('data-line-total')) || 0;
+            }
+        });
+        $("#grandTotal").text(formatMoney(total));
+    }
+
+    // --- C. HÀM CHUYỂN TRANG THANH TOÁN (QUAN TRỌNG) ---
+    function ToCheckout() {
+        var selectedIds = [];
+
+        // Lấy ID của những món đang được tích
+        $('.cart-item-check:checked').each(function () {
+            var id = $(this).closest('.cart-line').attr('data-id');
+            if (id) selectedIds.push(id);
+        });
+
+        if (selectedIds.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 sản phẩm để mua hàng.");
+            return;
+        }
+
+        // Gửi danh sách ID lên Server để lưu Session
+        var formData = new FormData();
+        formData.append('selectedIds', selectedIds.join(',')); // Gửi chuỗi "1,2,5"
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/GioHang/LuuSanPhamThanhToan', // API mới tạo ở bước 1
+            data: formData,
+            processData: false, contentType: false,
+            success: function (response) {
+                if (response === "OK") {
+                    // Thành công -> Chuyển sang trang thanh toán
+                    window.location.href = "/ThanhToan/Index";
+                } else {
+                    alert(response);
+                }
+            },
+            error: function () {
+                alert("Lỗi kết nối server.");
             }
         });
     }
 
+    // Chạy lần đầu khi vào trang
     $(document).ready(function () {
         LoadDataGioHang();
     });

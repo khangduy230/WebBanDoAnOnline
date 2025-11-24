@@ -8,10 +8,10 @@
     <!-- 1. CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-    <!-- Link CSS gốc của dự án nếu có -->
     <link href="/Content/Site.css" rel="stylesheet" />
 
     <style>
+        /* ... (Giữ nguyên CSS của bạn) ... */
         .navbar-brand {
             font-weight: 800;
             font-size: 1.5rem;
@@ -75,7 +75,6 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.15);
         }
 
-        /* Class tiện ích để ẩn hiện panel */
         .auth-panel {
             display: none;
             align-items: center;
@@ -83,16 +82,15 @@
         }
     </style>
 
-    <!-- 2. ĐƯA JQUERY LÊN ĐẦU (Bắt buộc để các trang con dùng được ngay) -->
+    <!-- 2. jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
-    <!-- HEADER -->
+    <!-- HEADER (z-index cao để không bị che) -->
     <header class="main-header border-bottom py-2 sticky-top bg-white" style="z-index: 1100;">
         <div class="container">
             <nav class="navbar navbar-expand-lg p-0 justify-content-between">
-
                 <!-- Logo -->
                 <a class="navbar-brand" href="/Home/Index">FuTho <span class="fw-light">Food</span></a>
 
@@ -100,7 +98,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <!-- Menu Giữa -->
+                <!-- Menu -->
                 <div class="collapse navbar-collapse flex-grow-0" id="mainMenu">
                     <ul class="navbar-nav text-center">
                         <li class="nav-item"><a class="nav-link" href="/Home/Index">Trang chủ</a></li>
@@ -108,26 +106,24 @@
                     </ul>
                 </div>
 
-                <!-- Header Actions (Bên phải) -->
+                <!-- Actions -->
                 <div class="header-actions d-none d-lg-flex">
-
-                    <!-- Tìm kiếm -->
+                    <!-- Search -->
                     <div class="search-wrapper">
                         <input type="text" id="global-search" class="search-input" placeholder="Tìm kiếm...">
                         <button class="search-btn" id="global-search-icon"><i class="fa-solid fa-magnifying-glass"></i></button>
                     </div>
 
-                    <!-- === PHẦN 1: PANEL CHO KHÁCH (Chưa đăng nhập) === -->
+                    <!-- Panel Khách -->
                     <div id="panel-guest" class="auth-panel">
-                        <a href="/TaiKhoan/Login" class="icon-btn" title="Thông báo"><i class="fa-regular fa-bell"></i></a>
-                        <a href="/GioHang/Index" class="icon-btn" title="Giỏ hàng"><i class="fa-solid fa-bag-shopping"></i></a>
+                        <a href="/TaiKhoan/Login" class="icon-btn"><i class="fa-regular fa-bell"></i></a>
+                        <a href="/GioHang/Index" class="icon-btn"><i class="fa-solid fa-bag-shopping"></i></a>
                         <a href="/TaiKhoan/Login" class="btn btn-dark btn-sm rounded-pill px-3 ms-2">Đăng nhập</a>
                     </div>
 
-                    <!-- === PHẦN 2: PANEL CHO USER (Đã đăng nhập) === -->
+                    <!-- Panel User -->
                     <div id="panel-user" class="auth-panel">
-
-                        <!-- A. Thông báo (Dropdown) -->
+                        <!-- Thông báo -->
                         <div class="dropdown">
                             <a class="icon-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="loadThongBaoJSON()">
                                 <i class="fa-regular fa-bell"></i>
@@ -147,24 +143,23 @@
                             </div>
                         </div>
 
-                        <!-- B. Giỏ hàng -->
+                        <!-- Giỏ hàng -->
                         <a href="/GioHang/Index" class="icon-btn">
                             <i class="fa-solid fa-bag-shopping"></i>
                             <span id="cart-badge" class="badge bg-danger badge-count" style="display:none;">0</span>
                         </a>
 
-                        <!-- C. Avatar User -->
+                        <!-- Avatar -->
                         <div class="dropdown">
                             <a href="#" role="button" data-bs-toggle="dropdown">
-                                <img id="user-avatar-img" src="" alt="User" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover;">
+                                <img id="user-avatar-img" src="" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover;">
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end mt-2">
                                 <li class="dropdown-header">Xin chào, <span id="user-fullname"></span></li>
-                                <li><a class="dropdown-item" href="/CaiDat/HoSo"><i class="fa-regular fa-user me-2"></i> Tài khoản</a></li>
-                                <li><a class="dropdown-item" href="/CaiDat/DonMua"><i class="fa-solid fa-receipt me-2"></i> Đơn mua</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fa-regular fa-user me-2"></i> Tài khoản</a></li>
+                                <li><a class="dropdown-item" href="/GioHang/LichSuDonHang"><i class="fa-solid fa-receipt me-2"></i> Đơn mua</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <!-- Form đăng xuất thuần HTML/JS -->
                                     <form action="/TaiKhoan/LogOff" method="post" id="logoutForm">
                                         <a class="dropdown-item text-danger" href="javascript:document.getElementById('logoutForm').submit()">
                                             <i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất
@@ -174,22 +169,17 @@
                             </ul>
                         </div>
                     </div>
-                    <!-- HẾT PANEL USER -->
-
                 </div>
             </nav>
         </div>
     </header>
 
-    <!-- BODY -->
     <main>
         <div class="container body-content py-4">
-            <!-- Đây là chỗ duy nhất bắt buộc phải dùng  -->
             @RenderBody()
         </div>
     </main>
 
-    <!-- FOOTER -->
     <footer class="site-footer bg-light py-4 mt-auto">
         <div class="container text-center">
             <div class="footer-logo fw-bold fs-4">FuTho<span class="fw-light">Food</span></div>
@@ -197,109 +187,76 @@
         </div>
     </footer>
 
-    <!-- JS Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- LOGIC XỬ LÝ JS TOÀN TRANG -->
     <script>
         var url_domain = window.location.origin;
 
         $(document).ready(function () {
-
-            // 1. GỌI API KIỂM TRA ĐĂNG NHẬP & LẤY THÔNG TIN HEADER
-            // (Hàm này bạn đã viết trong HomeController ở bước trước)
+            // 1. Check Login
             $.ajax({
-                type: "POST", // Hoặc GET tùy Controller của bạn
+                type: "POST",
                 url: url_domain + '/Home/GetHeaderInfo',
                 contentType: false, processData: false, cache: false,
                 success: function (response) {
-                    // Nếu Controller trả về String thì parse, nếu là Json thì dùng luôn
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
-
                     if (res.isLogin) {
-                        // ĐÃ ĐĂNG NHẬP -> Hiện panel User
                         $("#panel-guest").hide();
                         $("#panel-user").css("display", "flex");
-
-                        // Điền thông tin
                         $("#user-fullname").text(res.fullName);
                         $("#user-avatar-img").attr("src", res.avatar || "https://i.imgur.com/4Ym2k5N.png");
-
-                        // Hiện số badge
                         if (res.cartCount > 0) $("#cart-badge").text(res.cartCount).show();
                         if (res.notifCount > 0) $("#notif-badge").text(res.notifCount).show();
-
                     } else {
-                        // CHƯA ĐĂNG NHẬP -> Hiện panel Khách
                         $("#panel-user").hide();
                         $("#panel-guest").css("display", "flex");
                     }
                 },
-                error: function (err) {
-                    // Lỗi kết nối -> Mặc định hiện panel Khách
+                error: function () {
                     $("#panel-user").hide();
                     $("#panel-guest").css("display", "flex");
                 }
             });
 
-            // 2. Tìm kiếm
+            // 2. Search
             $('#global-search-icon').click(handleSearch);
             $('#global-search').keypress(function (e) { if (e.which === 13) handleSearch(); });
             function handleSearch() {
                 var k = $('#global-search').val().trim();
                 if (k) window.location.href = '/SanPham/Index?searchTerm=' + encodeURIComponent(k);
             }
-
-            // Ngăn dropdown đóng khi click bên trong
             $('.dropdown-menu').click(function (e) { e.stopPropagation(); });
         });
 
-        // 3. Logic Thông báo Dropdown
+        // 3. Thông báo
         function loadThongBaoJSON() {
             $.post(url_domain + "/ThongBao/GetThongBao", function (response) {
                 var res = (typeof response === 'string') ? JSON.parse(response) : response;
-                if (res.success) {
-                    var htmlStr = "";
-                    // Dùng vòng lặp for cho giống phong cách bạn thích
+                var htmlStr = "";
+                if (res.success && res.data.length > 0) {
                     for (var i = 0; i < res.data.length; i++) {
                         var item = res.data[i];
-                        var bgClass = item.DaDoc ? "bg-white" : "bg-warning-subtle";
-                        var iconColor = item.DaDoc ? "text-secondary" : "text-warning";
-
-                        htmlStr += '<a href="/ThongBao/Index?openId=' + item.Id + '" class="dropdown-item p-2 border-bottom ' + bgClass + '">';
-                        htmlStr += '<div class="d-flex">';
-                        htmlStr += '<div class="me-3 mt-1 ' + iconColor + '"><i class="fas fa-bell"></i></div>';
-                        htmlStr += '<div>';
-                        htmlStr += '<div class="fw-bold small text-wrap">' + item.TieuDe + '</div>';
-                        htmlStr += '<div class="text-muted small text-wrap">' + (item.NoiDungCon || '') + '</div>';
-                        htmlStr += '<div class="text-secondary" style="font-size:10px">' + item.ThoiGian + '</div>';
-                        htmlStr += '</div></div></a>';
+                        var bg = item.DaDoc ? "bg-white" : "bg-warning-subtle";
+                        htmlStr += `<a href="/ThongBao/Index?openId=${item.Id}" class="dropdown-item p-2 border-bottom ${bg}">
+                                            <div class="d-flex"><div class="me-3 mt-1 text-warning"><i class="fas fa-bell"></i></div>
+                                            <div><div class="fw-bold small">${item.TieuDe}</div><div class="small text-muted">${item.NoiDungCon || ''}</div></div></div></a>`;
                     }
-
-                    var container = $("#list-thong-bao");
-                    if (res.data.length === 0) container.html('<div class="text-center py-3 small text-muted">Không có thông báo.</div>');
-                    else container.html(htmlStr);
-                }
+                } else { htmlStr = '<div class="text-center py-3 small text-muted">Không có thông báo.</div>'; }
+                $("#list-thong-bao").html(htmlStr);
             });
         }
 
-        // 4. Hàm đánh dấu đã đọc tất cả
         function markAllRead(e) {
             if (e) e.preventDefault();
-            $.post(url_domain + "/ThongBao/MarkAllRead", function (response) {
-                var res = (typeof response === 'string') ? JSON.parse(response) : response;
-                if (res.success) {
-                    loadThongBaoJSON();
-                    $("#notif-badge").hide();
-                }
+            $.post(url_domain + "/ThongBao/MarkAllRead", function () {
+                loadThongBaoJSON(); $("#notif-badge").hide();
             });
         }
 
-        // 5. Hàm cập nhật badge giỏ hàng (để các trang khác gọi được)
+        // 4. Cập nhật Badge Giỏ hàng (Global function)
         function CapNhatBadgeGioHang() {
-            // Gọi lại GetHeaderInfo để lấy số lượng mới nhất cho tiện
             $.post(url_domain + '/Home/GetHeaderInfo', function (response) {
-                var d = JSON.parse(response);
+                var d = (typeof response === 'string') ? JSON.parse(response) : response;
                 if (d.isLogin && d.cartCount > 0) {
                     $("#cart-badge").text(d.cartCount).show();
                 } else {
@@ -308,34 +265,34 @@
             });
         }
 
-        // 6. HÀM THÊM VÀO GIỎ HÀNG (ĐÃ SỬA URL CHO KHỚP CONTROLLER)
+        // 5. Thêm vào giỏ hàng (Dùng chung cho toàn site)
         function ThemVaoGio(idSanPham) {
             var formData = new FormData();
-            formData.append('productId', idSanPham); // Khớp tên biến bên Controller
+            formData.append('productId', idSanPham);
             formData.append('quantity', 1);
             formData.append('notes', '');
 
             $.ajax({
                 type: "POST",
-                url: url_domain + '/GioHang/AddToCart', // SỬA: Dùng AddToCart thay vì Add
+                url: url_domain + '/GioHang/AddToCart',
                 data: formData,
                 contentType: false, processData: false, cache: false,
                 success: function (response) {
-                    // Controller trả về chuỗi text thông báo
                     if (response.indexOf("đăng nhập") !== -1) {
-                        if (confirm("Bạn cần đăng nhập để mua hàng. Đến trang đăng nhập ngay?")) {
-                            window.location.href = "/TaiKhoan/Login"; // Sửa link cho đúng Action đăng nhập của bạn
+                        if (confirm("Bạn cần đăng nhập để mua hàng. Đến trang đăng nhập?")) {
+                            window.location.href = "/TaiKhoan/Login";
                         }
                     } else {
-                        alert(response); // Hiện thông báo "Thêm thành công"
-                        CapNhatBadgeGioHang(); // Cập nhật số đỏ trên icon
+                        alert(response);
+                        CapNhatBadgeGioHang();
                     }
                 },
-                error: function (err) { alert("Lỗi kết nối server."); }
+                error: function () { alert("Lỗi kết nối."); }
             });
         }
     </script>
-    @* ✅ THÊM DÒNG NÀY ĐỂ RENDER SCRIPTS TỪ CÁC VIEW CON *@
-    @RenderSection("Scripts", required: false)
+
+    @* QUAN TRỌNG: Sửa chữ "Scripts" thành "scripts" để khớp với các View *@
+    @RenderSection("scripts", required: false)
 </body>
 </html>

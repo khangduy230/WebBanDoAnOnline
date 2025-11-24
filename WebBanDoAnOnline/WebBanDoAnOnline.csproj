@@ -273,7 +273,6 @@
     <Content Include="Views\ThongBao\Index.cshtml" />
     <Content Include="Views\GioHang\Index.cshtml" />
     <Content Include="Views\ThanhToan\Index.cshtml" />
-    <Content Include="Views\ThanhToan\Success.cshtml" />
     <Content Include="Views\SanPham\LaySanPham.cshtml" />
     <Content Include="Views\SanPham\SuaSanPham.cshtml" />
     <Content Include="Views\SanPham\ThemSanPham.cshtml" />

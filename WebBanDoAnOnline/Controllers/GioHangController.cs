@@ -10,17 +10,14 @@ namespace WebBanDoAnOnline.Controllers
 {
     public class GioHangController : Controller
     {
-        // 1. GET: GioHang (Trang chủ giỏ hàng)
+        // GET: GioHang
         public ActionResult Index()
         {
-            if (Session["TaiKhoan"] == null)
-            {
-                return RedirectToAction("DangNhap", "TaiKhoan");
-            }
+            if (Session["TaiKhoan"] == null) return RedirectToAction("Login", "TaiKhoan");
             return View();
         }
 
-        // 2. API: Lấy danh sách (Khớp tên với View JS: Lay_DSGioHang)
+        // API 1: Lấy danh sách giỏ hàng
         [HttpPost]
         public string Lay_DSGioHang()
         {
@@ -28,6 +25,8 @@ namespace WebBanDoAnOnline.Controllers
             if (user == null) return "[]";
 
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+            DateTime now = DateTime.Now;
+
             var query = from g in db.GioHangs
                         join p in db.SanPhams on g.MaSP equals p.MaSP
                         where g.MaTK == user.MaTK
@@ -38,14 +37,13 @@ namespace WebBanDoAnOnline.Controllers
             if (query.Any())
             {
                 var listResult = new List<object>();
-                DateTime now = DateTime.Now;
-
                 foreach (var item in query)
                 {
+                    // Logic giá khuyến mãi
                     decimal giaGoc = item.p.Gia ?? 0;
                     decimal giaKM = item.p.GiaKhuyenMai ?? 0;
                     decimal giaBan = giaGoc;
-                    bool isKM = false;
+                    bool dangGiamGia = false;
 
                     if (giaKM > 0 && giaKM < giaGoc)
                     {
@@ -53,7 +51,7 @@ namespace WebBanDoAnOnline.Controllers
                             (!item.p.NgayKetThucKM.HasValue || item.p.NgayKetThucKM >= now))
                         {
                             giaBan = giaKM;
-                            isKM = true;
+                            dangGiamGia = true;
                         }
                     }
 
@@ -64,9 +62,9 @@ namespace WebBanDoAnOnline.Controllers
                         Anh = item.p.Anh,
                         GiaHienTai = giaBan,
                         GiaGoc = giaGoc,
-                        DangGiamGia = isKM,
+                        DangGiamGia = dangGiamGia,
                         SoLuong = item.g.SoLuong ?? 1,
-                        GhiChu = item.g.GhiChu,
+                        GhiChu = item.g.GhiChu ?? "",
                         ThanhTien = giaBan * (item.g.SoLuong ?? 1)
                     });
                 }
@@ -75,7 +73,65 @@ namespace WebBanDoAnOnline.Controllers
             return "[]";
         }
 
-        // 3. API: Cập nhật số lượng
+        // API 2: Thêm vào giỏ (Quan trọng: Xử lý Unique Key & Xóa mềm)
+        [HttpPost]
+        public string AddToCart()
+        {
+            string id_str = Request["productId"];
+            string qty_str = Request["quantity"];
+            string note_str = Request["notes"];
+
+            int id = 0; int qty = 1;
+            if (!string.IsNullOrEmpty(id_str)) id = int.Parse(id_str);
+            if (!string.IsNullOrEmpty(qty_str)) qty = int.Parse(qty_str);
+
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null) return "Bạn cần đăng nhập để mua hàng";
+
+            BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+
+            // Check sản phẩm tồn tại
+            var sp = db.SanPhams.FirstOrDefault(x => x.MaSP == id && (x.isDelete == 0 || x.isDelete == null));
+            if (sp == null || sp.TrangThai != "Còn hàng") return "Sản phẩm tạm hết hàng hoặc không tồn tại";
+
+            // Check trong giỏ (Lấy cả dòng đã xóa mềm để khôi phục)
+            var cartItem = db.GioHangs.FirstOrDefault(g => g.MaSP == id && g.MaTK == user.MaTK);
+
+            if (cartItem != null)
+            {
+                if (cartItem.isDelete == 1)
+                {
+                    // Nếu đã xóa -> Khôi phục lại
+                    cartItem.isDelete = 0;
+                    cartItem.SoLuong = qty;
+                }
+                else
+                {
+                    // Nếu đang có -> Cộng dồn
+                    cartItem.SoLuong = (cartItem.SoLuong ?? 0) + qty;
+                }
+
+                if (!string.IsNullOrEmpty(note_str)) cartItem.GhiChu = note_str;
+                cartItem.LastEdit_at = DateTime.Now;
+            }
+            else
+            {
+                // Chưa có -> Thêm mới
+                GioHang newItem = new GioHang();
+                newItem.MaTK = user.MaTK;
+                newItem.MaSP = id;
+                newItem.SoLuong = qty;
+                newItem.GhiChu = note_str;
+                newItem.Create_at = DateTime.Now;
+                newItem.isDelete = 0;
+                db.GioHangs.InsertOnSubmit(newItem);
+            }
+
+            db.SubmitChanges();
+            return "Đã thêm vào giỏ hàng";
+        }
+
+        // API 3: Cập nhật số lượng
         [HttpPost]
         public string CapNhat_SoLuong()
         {
@@ -89,6 +145,7 @@ namespace WebBanDoAnOnline.Controllers
                 int delta = int.Parse(delta_str);
                 BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
                 var item = db.GioHangs.FirstOrDefault(g => g.MaSP == id && g.MaTK == user.MaTK && (g.isDelete == 0 || g.isDelete == null));
+
                 if (item != null)
                 {
                     int newQty = (item.SoLuong ?? 1) + delta;
@@ -102,7 +159,7 @@ namespace WebBanDoAnOnline.Controllers
             return "Fail";
         }
 
-        // 4. API: Cập nhật Ghi chú
+        // API 4: Cập nhật Ghi chú
         [HttpPost]
         public string CapNhat_GhiChu()
         {
@@ -126,7 +183,7 @@ namespace WebBanDoAnOnline.Controllers
             return "Fail";
         }
 
-        // 5. API: Xóa sản phẩm
+        // API 5: Xóa sản phẩm
         [HttpPost]
         public string Xoa_SP_GioHang()
         {
@@ -149,36 +206,31 @@ namespace WebBanDoAnOnline.Controllers
             return "Fail";
         }
 
-        // 6. API AddToCart (Cho trang sản phẩm)
+        // API MỚI: Lưu danh sách ID sản phẩm được chọn trước khi sang thanh toán
         [HttpPost]
-        public string AddToCart()
+        public string LuuSanPhamThanhToan()
         {
-            string id_str = Request["productId"];
-            string qty_str = Request["quantity"];
-            string note_str = Request["notes"];
-            var user = Session["TaiKhoan"] as TaiKhoan;
-            if (user == null) return "Bạn cần đăng nhập";
-
-            int id = int.Parse(id_str);
-            int qty = int.Parse(qty_str);
-
-            BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
-            var cartItem = db.GioHangs.FirstOrDefault(g => g.MaSP == id && g.MaTK == user.MaTK);
-
-            if (cartItem != null)
+            try
             {
-                if (cartItem.isDelete == 1) { cartItem.isDelete = 0; cartItem.SoLuong = qty; }
-                else { cartItem.SoLuong = (cartItem.SoLuong ?? 0) + qty; }
-                if (!string.IsNullOrEmpty(note_str)) cartItem.GhiChu = note_str;
-                cartItem.LastEdit_at = DateTime.Now;
+                // Client sẽ gửi lên chuỗi dạng "1,5,8" (các mã sản phẩm)
+                string ids = Request["selectedIds"];
+
+                if (string.IsNullOrEmpty(ids))
+                {
+                    // Nếu không chọn gì thì xóa session cũ đi
+                    Session["CheckoutItems"] = null;
+                    return "Vui lòng chọn ít nhất 1 sản phẩm.";
+                }
+
+                // Lưu vào Session để trang ThanhToan sử dụng
+                Session["CheckoutItems"] = ids;
+
+                return "OK";
             }
-            else
+            catch (Exception ex)
             {
-                GioHang newItem = new GioHang { MaTK = user.MaTK, MaSP = id, SoLuong = qty, GhiChu = note_str, Create_at = DateTime.Now, isDelete = 0 };
-                db.GioHangs.InsertOnSubmit(newItem);
+                return "Lỗi: " + ex.Message;
             }
-            db.SubmitChanges();
-            return "Thêm thành công";
         }
     }
 }

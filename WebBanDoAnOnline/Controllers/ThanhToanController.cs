@@ -10,7 +10,7 @@ namespace WebBanDoAnOnline.Controllers
 {
     public class ThanhToanController : Controller
     {
-        // 1. Mở trang thanh toán (Chỉ trả về View rỗng)
+        // 1. Mở trang thanh toán
         public ActionResult Index()
         {
             if (Session["TaiKhoan"] == null)
@@ -20,43 +20,70 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-        // 2. Trang báo thành công
+        // 2. Trang báo thành công (Có thể không dùng nếu đã gộp View, nhưng cứ để lại cho chắc)
         public ActionResult Success()
         {
             return View();
         }
 
-        // =============================================
-        // API 1: Lấy dữ liệu render trang thanh toán
-        // =============================================
-       
-        // Trong ThanhToanController.cs
-
-     
+        // ==========================================================
+        // API 1: LẤY DỮ LIỆU THANH TOÁN (CÓ LỌC SẢN PHẨM ĐÃ CHỌN)
+        // ==========================================================
+        [HttpPost]
         public string LayThongTinThanhToan()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
             var user = Session["TaiKhoan"] as TaiKhoan;
+
             if (user == null) return "LOGIN_REQUIRED";
 
-            // 1. Lấy danh sách địa chỉ (Giữ nguyên)
+            DateTime now = DateTime.Now;
+
+            // 1. Lấy danh sách địa chỉ
             var dsDiaChi = db.DiaChis
-                                .Where(d => d.MaTK == user.MaTK && (d.isDelete == null || d.isDelete == 0))
-                                .Select(d => new { d.MaDiaChi, d.TenNguoiNhan, d.SDTNhan, d.DiaChiCuThe, d.MacDinh })
-                                .OrderByDescending(d => d.MacDinh).ToList();
+                             .Where(d => d.MaTK == user.MaTK && (d.isDelete == null || d.isDelete == 0))
+                             .Select(d => new {
+                                 d.MaDiaChi,
+                                 d.TenNguoiNhan,
+                                 d.SDTNhan,
+                                 d.DiaChiCuThe,
+                                 d.MacDinh
+                             })
+                             .OrderByDescending(d => d.MacDinh)
+                             .ToList();
 
-            // 2. Lấy giỏ hàng & Tính tiền (Giữ nguyên logic cũ)
-            var cartItems = (from g in db.GioHangs
-                             join p in db.SanPhams on g.MaSP equals p.MaSP
-                             where g.MaTK == user.MaTK && (g.isDelete == 0 || g.isDelete == null)
-                             select new { g, p }).ToList();
+            // 2. Xử lý LỌC SẢN PHẨM THEO SESSION
+            // Lấy chuỗi ID từ Session (Ví dụ: "1,5,8")
+            string selectedIdsStr = Session["CheckoutItems"] as string;
+            List<int> selectedIds = new List<int>();
 
+            if (!string.IsNullOrEmpty(selectedIdsStr))
+            {
+                selectedIds = selectedIdsStr.Split(',').Select(int.Parse).ToList();
+            }
+
+            // Query giỏ hàng cơ bản
+            var cartQuery = from g in db.GioHangs
+                            join p in db.SanPhams on g.MaSP equals p.MaSP
+                            where g.MaTK == user.MaTK
+                                  && (g.isDelete == 0 || g.isDelete == null)
+                            select new { g, p };
+
+            // Nếu có danh sách chọn thì lọc, nếu không thì lấy hết (fallback)
+            if (selectedIds.Count > 0)
+            {
+                cartQuery = cartQuery.Where(x => selectedIds.Contains(x.p.MaSP));
+            }
+
+            var cartItems = cartQuery.ToList();
+
+            // 3. Tính toán tiền
             decimal tongTienHang = 0;
             var listProducts = new List<object>();
-            DateTime now = DateTime.Now;
 
             foreach (var item in cartItems)
             {
+                // Logic giá khuyến mãi
                 decimal giaGoc = item.p.Gia ?? 0;
                 decimal giaKM = item.p.GiaKhuyenMai ?? 0;
                 decimal giaBan = giaGoc;
@@ -71,61 +98,63 @@ namespace WebBanDoAnOnline.Controllers
                 decimal thanhTien = giaBan * (item.g.SoLuong ?? 1);
                 tongTienHang += thanhTien;
 
-                listProducts.Add(new { TenSP = item.p.TenSP, SoLuong = item.g.SoLuong, DonGia = giaBan, ThanhTien = thanhTien });
+                listProducts.Add(new
+                {
+                    TenSP = item.p.TenSP,
+                    SoLuong = item.g.SoLuong,
+                    DonGia = giaBan,
+                    ThanhTien = thanhTien
+                });
             }
 
-            decimal phiShip = (tongTienHang > 500000) ? 0 : 25000;
-
-            // --- THÊM MỚI: LẤY DANH SÁCH VOUCHER ---
+            // 4. Lấy Voucher khả dụng
             var dsVoucher = db.Vouchers
-                .Where(v => (v.isDelete == null || v.isDelete == 0) // Chưa xóa
-                            && v.NgayBatDau <= now                  // Đã bắt đầu
-                            && v.NgayKetThuc >= now                 // Chưa hết hạn
-                            && (v.SoLuotConLai > 0 || v.SoLuotConLai == null)) // Còn lượt
+                .Where(v => (v.isDelete == 0 || v.isDelete == null)
+                            && v.NgayBatDau <= now && v.NgayKetThuc >= now
+                            && (v.SoLuotConLai > 0 || v.SoLuotConLai == null))
                 .Select(v => new
                 {
                     v.MaCode,
                     v.TenVoucher,
-                    v.GiaTri,
                     v.LoaiGiam,
+                    v.GiaTri,
                     v.DieuKienToiThieu,
-                    v.MoTaThem,
-                    HanSuDung = v.NgayKetThuc
+                    v.MoTaThem
                 })
                 .OrderBy(v => v.DieuKienToiThieu)
                 .ToList();
+
+            // 5. Phí vận chuyển
+            decimal phiShip = (tongTienHang > 500000) ? 0 : 25000;
 
             var result = new
             {
                 DiaChi = dsDiaChi,
                 SanPham = listProducts,
+                Vouchers = dsVoucher,
                 TongTienHang = tongTienHang,
                 PhiShip = phiShip,
-                TongThanhToan = tongTienHang + phiShip,
-
-                // Trả về danh sách voucher
-                DanhSachVoucher = dsVoucher
+                TongThanhToan = tongTienHang + phiShip
             };
 
             return JsonConvert.SerializeObject(result);
         }
 
-        // =============================================
-        // API 2: Kiểm tra Voucher
-        // =============================================
+        // ==========================================================
+        // API 2: KIỂM TRA VOUCHER
+        // ==========================================================
         [HttpPost]
         public string KiemTraVoucher()
         {
             string code = Request["code"];
-            string total_str = Request["total"]; // Tổng tiền hàng hiện tại
+            string total_str = Request["total"];
 
             if (string.IsNullOrEmpty(code)) return JsonConvert.SerializeObject(new { ok = false, msg = "Chưa nhập mã" });
 
             decimal subtotal = decimal.Parse(total_str);
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
-
-            // Tìm voucher còn hạn, còn lượt dùng
             DateTime now = DateTime.Now;
+
             var vc = db.Vouchers.FirstOrDefault(v => v.MaCode == code
                                                   && v.NgayBatDau <= now
                                                   && v.NgayKetThuc >= now
@@ -134,34 +163,26 @@ namespace WebBanDoAnOnline.Controllers
 
             if (vc != null)
             {
-                // Kiểm tra điều kiện tối thiểu
                 if (vc.DieuKienToiThieu > 0 && subtotal < vc.DieuKienToiThieu)
                 {
-                    return JsonConvert.SerializeObject(new { ok = false, msg = "Đơn hàng chưa đủ " + vc.DieuKienToiThieu?.ToString("#,0") + "đ để dùng mã này." });
+                    return JsonConvert.SerializeObject(new { ok = false, msg = "Đơn hàng chưa đủ điều kiện tối thiểu." });
                 }
 
                 decimal discount = 0;
-                if (vc.LoaiGiam == "Tiền")
-                {
-                    discount = vc.GiaTri;
-                }
-                else // Phần trăm
-                {
-                    discount = (subtotal * vc.GiaTri) / 100;
-                }
+                if (vc.LoaiGiam == "Tiền") discount = vc.GiaTri;
+                else discount = (subtotal * vc.GiaTri) / 100; // Phần trăm
 
-                // Đảm bảo không giảm quá tổng tiền
                 if (discount > subtotal) discount = subtotal;
 
                 return JsonConvert.SerializeObject(new { ok = true, discount = discount, msg = "Áp dụng thành công!" });
             }
 
-            return JsonConvert.SerializeObject(new { ok = false, msg = "Mã giảm giá không tồn tại hoặc đã hết hạn." });
+            return JsonConvert.SerializeObject(new { ok = false, msg = "Mã không hợp lệ hoặc đã hết hạn." });
         }
 
-        // =============================================
-        // API 3: Đặt hàng (PlaceOrder)
-        // =============================================
+        // ==========================================================
+        // API 3: ĐẶT HÀNG (CÓ LỌC SẢN PHẨM ĐÃ CHỌN)
+        // ==========================================================
         [HttpPost]
         public string DatHang()
         {
@@ -170,30 +191,43 @@ namespace WebBanDoAnOnline.Controllers
                 var user = Session["TaiKhoan"] as TaiKhoan;
                 if (user == null) return "LOGIN_REQUIRED";
 
-                // 1. Nhận tham số từ FormData
                 string addressId_str = Request["addressId"];
                 string payMethod = Request["payMethod"];
                 string note = Request["note"];
                 string voucherCode = Request["voucherCode"];
 
-                if (string.IsNullOrEmpty(addressId_str)) return "Vui lòng chọn địa chỉ giao hàng.";
+                if (string.IsNullOrEmpty(addressId_str)) return "Vui lòng chọn địa chỉ.";
                 int addressId = int.Parse(addressId_str);
 
                 BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
-
-                // 2. Lấy lại giỏ hàng để tính toán lần cuối (Backend phải tự tính lại tiền)
-                var cartItems = db.GioHangs.Where(g => g.MaTK == user.MaTK && (g.isDelete == 0 || g.isDelete == null)).ToList();
-                if (!cartItems.Any()) return "Giỏ hàng trống, không thể thanh toán.";
-
-                decimal subTotal = 0;
                 DateTime now = DateTime.Now;
 
+                // --- LẤY LẠI DANH SÁCH SẢN PHẨM CẦN MUA (Từ Session) ---
+                string selectedIdsStr = Session["CheckoutItems"] as string;
+                List<int> selectedIds = new List<int>();
+                if (!string.IsNullOrEmpty(selectedIdsStr))
+                {
+                    selectedIds = selectedIdsStr.Split(',').Select(int.Parse).ToList();
+                }
+
+                // Query những món có trong giỏ của User
+                var cartQuery = db.GioHangs.Where(g => g.MaTK == user.MaTK && (g.isDelete == 0 || g.isDelete == null));
+
+                // Lọc đúng những món đã chọn
+                if (selectedIds.Count > 0)
+                {
+                    cartQuery = cartQuery.Where(g => selectedIds.Contains(g.MaSP ?? 0));
+                }
+
+                var cartItems = cartQuery.ToList();
+                if (!cartItems.Any()) return "Không tìm thấy sản phẩm nào để thanh toán.";
+
+                // --- TÍNH TOÁN LẠI TIỀN (Server Side) ---
+                decimal subTotal = 0;
                 foreach (var item in cartItems)
                 {
                     var sp = db.SanPhams.Single(p => p.MaSP == item.MaSP);
                     decimal gia = sp.Gia ?? 0;
-
-                    // Check giá KM
                     if (sp.GiaKhuyenMai > 0 && sp.GiaKhuyenMai < gia &&
                         (!sp.NgayBatDauKM.HasValue || sp.NgayBatDauKM <= now) &&
                         (!sp.NgayKetThucKM.HasValue || sp.NgayKetThucKM >= now))
@@ -203,7 +237,6 @@ namespace WebBanDoAnOnline.Controllers
                     subTotal += gia * (item.SoLuong ?? 1);
                 }
 
-                // 3. Tính phí & Voucher
                 decimal shipping = (subTotal > 500000) ? 0 : 25000;
                 decimal discount = 0;
                 int? maVoucher = null;
@@ -213,19 +246,23 @@ namespace WebBanDoAnOnline.Controllers
                     var vc = db.Vouchers.FirstOrDefault(v => v.MaCode == voucherCode);
                     if (vc != null)
                     {
-                        if (vc.LoaiGiam == "Tiền") discount = vc.GiaTri;
-                        else discount = (subTotal * vc.GiaTri) / 100;
+                        // Check lại điều kiện lần cuối
+                        if (vc.DieuKienToiThieu == 0 || subTotal >= vc.DieuKienToiThieu)
+                        {
+                            if (vc.LoaiGiam == "Tiền") discount = vc.GiaTri;
+                            else discount = (subTotal * vc.GiaTri) / 100;
 
-                        if (discount > subTotal) discount = subTotal;
-                        maVoucher = vc.MaVoucher;
+                            if (discount > subTotal) discount = subTotal;
+                            maVoucher = vc.MaVoucher;
 
-                        // Trừ lượt dùng voucher
-                        if (vc.SoLuotConLai > 0) vc.SoLuotConLai -= 1;
-                        vc.SoLuotDaSuDung = (vc.SoLuotDaSuDung ?? 0) + 1;
+                            // Trừ lượt
+                            if (vc.SoLuotConLai > 0) vc.SoLuotConLai -= 1;
+                            vc.SoLuotDaSuDung = (vc.SoLuotDaSuDung ?? 0) + 1;
+                        }
                     }
                 }
 
-                // 4. Tạo Đơn hàng
+                // --- LƯU ĐƠN HÀNG ---
                 DonHang dh = new DonHang();
                 dh.MaTK = user.MaTK;
                 dh.MaDiaChi = addressId;
@@ -233,29 +270,30 @@ namespace WebBanDoAnOnline.Controllers
                 dh.TongTienSanPham = subTotal;
                 dh.TienGiamGia = discount;
                 dh.TongTien = subTotal + shipping - discount;
-                dh.PhuongThucTT = (payMethod == "BANK") ? "Chuyển khoản" : "Tiền mặt (COD)";
+
+                // Map Payment Method (Khớp Constraint DB)
+                dh.PhuongThucTT = (payMethod == "BANK") ? "Online" : "COD";
+
                 dh.TrangThai = "Chờ xác nhận";
                 dh.GhiChu = note;
                 dh.Create_at = DateTime.Now;
                 dh.isDelete = 0;
 
                 db.DonHangs.InsertOnSubmit(dh);
-                db.SubmitChanges(); // Lấy MaDH
+                db.SubmitChanges();
 
-                // 5. Lưu Chi tiết đơn hàng
+                // --- LƯU CHI TIẾT ---
                 foreach (var item in cartItems)
                 {
                     var sp = db.SanPhams.Single(p => p.MaSP == item.MaSP);
+                    decimal giaFinal = sp.Gia ?? 0;
+                    if (sp.GiaKhuyenMai > 0 && sp.GiaKhuyenMai < giaFinal) giaFinal = sp.GiaKhuyenMai ?? 0;
+
                     ChiTietDonHang ct = new ChiTietDonHang();
                     ct.MaDH = dh.MaDH;
                     ct.MaSP = item.MaSP;
                     ct.TenSP = sp.TenSP;
                     ct.SoLuong = item.SoLuong;
-
-                    // Lấy giá tại thời điểm mua
-                    decimal giaFinal = sp.Gia ?? 0;
-                    if (sp.GiaKhuyenMai > 0 && sp.GiaKhuyenMai < giaFinal) giaFinal = sp.GiaKhuyenMai ?? 0;
-
                     ct.DonGia = giaFinal;
                     ct.ThanhTien = giaFinal * (ct.SoLuong ?? 1);
                     ct.GhiChu = item.GhiChu;
@@ -263,20 +301,22 @@ namespace WebBanDoAnOnline.Controllers
 
                     db.ChiTietDonHangs.InsertOnSubmit(ct);
 
-                    // Xóa giỏ hàng (Xóa mềm hoặc cứng tùy bạn, ở đây dùng xóa cứng cho gọn DB giỏ)
-                    // Hoặc xóa mềm: item.isDelete = 1;
+                    // Xóa sản phẩm ĐÃ MUA khỏi giỏ (Các món ko chọn vẫn giữ lại)
                     db.GioHangs.DeleteOnSubmit(item);
                 }
 
-                // 6. Lưu lịch sử trạng thái
+                // Lưu lịch sử
                 LichSuTrangThai ls = new LichSuTrangThai();
                 ls.MaDH = dh.MaDH;
                 ls.TrangThaiMoi = "Chờ xác nhận";
                 ls.ThoiGian = DateTime.Now;
-                ls.GhiChu = "Khách hàng đặt đơn mới";
+                ls.GhiChu = "Khởi tạo đơn hàng";
                 db.LichSuTrangThais.InsertOnSubmit(ls);
 
                 db.SubmitChanges();
+
+                // Reset Session chọn món
+                Session["CheckoutItems"] = null;
 
                 return "SUCCESS";
             }
@@ -285,6 +325,5 @@ namespace WebBanDoAnOnline.Controllers
                 return "Lỗi: " + ex.Message;
             }
         }
-
     }
 }

@@ -270,27 +270,37 @@
         $("#pagination").html(html);
     }
 
-    // --- HÀM 6: THÊM VÀO GIỎ HÀNG (Gọi API GioHang/AddToCart) ---
+    // --- HÀM 6: THÊM VÀO GIỎ HÀNG (Đã sửa để cập nhật số lượng ngay) ---
     function addToCart(id) {
         // Tạo form data để gửi dữ liệu
         var formData = new FormData();
-        formData.append('productId', id); // Khớp với Request["productId"] bên GioHangController
-        formData.append('quantity', 1);   // Mặc định thêm 1
-        formData.append('notes', '');     // Ghi chú rỗng
+        formData.append('productId', id);
+        formData.append('quantity', 1);
+        formData.append('notes', '');
 
         $.ajax({
             type: "POST",
-            url: url_domain + '/GioHang/AddToCart', // Gọi sang Controller Giỏ Hàng
+            url: url_domain + '/GioHang/AddToCart',
             data: formData,
             processData: false,
             contentType: false,
             cache: false,
             success: function (response) {
-                // Controller trả về chuỗi thông báo (string)
-                alert(response);
+                // 1. Kiểm tra nếu chưa đăng nhập
+                if (response.indexOf("đăng nhập") !== -1) {
+                    if (confirm("Bạn cần đăng nhập để mua hàng. Đến trang đăng nhập ngay?")) {
+                        window.location.href = "/TaiKhoan/Login";
+                    }
+                } else {
+                    // 2. Hiện thông báo thành công
+                    alert(response);
 
-                // Nếu bạn có icon giỏ hàng trên Header cần cập nhật số lượng, 
-                // hãy gọi hàm cập nhật đó ở đây. Ví dụ: updateCartCount();
+                    // 3. QUAN TRỌNG: Gọi hàm cập nhật Badge trên Layout
+                    // Hàm này nằm ở _Layout.cshtml mà chúng ta đã sửa trước đó
+                    if (typeof CapNhatBadgeGioHang === 'function') {
+                        CapNhatBadgeGioHang();
+                    }
+                }
             },
             error: function (err) {
                 console.log(err);
