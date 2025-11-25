@@ -1,0 +1,351 @@
+﻿@{
+    ViewBag.Title = "Quản lý đơn hàng";
+    Layout = "~/Views/Shared/_EmployeeLayout.cshtml";
+}
+
+<style>
+    /* (Giữ nguyên CSS cũ của bạn) */
+    .order-filters {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 20px;
+        padding: 8px 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        transition: all 0.2s;
+    }
+
+        .filter-btn:hover {
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+
+        .filter-btn.active {
+            background: #ffc107;
+            color: #fff;
+            border-color: #ffc107;
+            box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3);
+        }
+
+    .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+        gap: 20px;
+    }
+
+    .order-card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 20px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+        .order-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-color: #ffc107;
+        }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .order-id {
+        font-weight: bold;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .order-status {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 6px;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-shipping {
+        background: #cff4fc;
+        color: #055160;
+    }
+
+    .status-completed {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .status-cancelled {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .order-body {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .order-thumb img {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid #f0f0f0;
+    }
+
+    .order-info h4 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0 0 4px;
+        color: #222;
+    }
+
+    .order-detail {
+        font-size: 12.5px;
+        color: #666;
+        margin-bottom: 2px;
+    }
+
+    .order-footer {
+        border-top: 1px dashed #eee;
+        padding-top: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-total {
+        font-size: 15px;
+        font-weight: 700;
+        color: #dc3545;
+    }
+
+    .order-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 6px;
+    }
+</style>
+
+<div class="container-fluid px-0">
+    <div class="order-filters">
+        <button class="filter-btn active" data-status="all">Tất cả</button>
+        <button class="filter-btn" data-status="pending">Chờ xác nhận</button>
+        <button class="filter-btn" data-status="shipping">Đang giao hàng</button>
+        <button class="filter-btn" data-status="completed">Hoàn thành</button>
+        <button class="filter-btn" data-status="cancelled">Đã huỷ</button>
+    </div>
+    <div id="orders-grid" class="orders-grid">
+        <div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>
+    </div>
+</div>
+
+<!-- Popup xác nhận hoàn thành -->
+<div id="complete-modal" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-success">Xác nhận hoàn thành</h5>
+                <button type="button" class="btn-close" onclick="closeModal('complete-modal')"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-check-circle text-success fs-1 mb-3"></i>
+                <p>Bạn xác nhận đơn hàng này đã giao thành công?</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('complete-modal')">Hủy</button>
+                <button type="button" class="btn btn-success text-white" id="btn-confirm-complete">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popup từ chối -->
+<div id="reject-modal" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">Từ chối đơn hàng</h5>
+                <button type="button" class="btn-close" onclick="closeModal('reject-modal')"></button>
+            </div>
+            <div class="modal-body">
+                <textarea id="reject-note" class="form-control" rows="4" placeholder="Nhập lý do từ chối (VD: Hết nguyên liệu, Khách hủy...)"></textarea>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('reject-modal')">Quay lại</button>
+                <button type="button" class="btn btn-danger" id="btn-confirm-reject">Từ chối đơn</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var url_domain = window.location.origin;
+    var currentFilter = "all";
+    var pendingId = 0; // Biến toàn cục lưu ID đơn đang thao tác
+
+    function formatMoney(n) { return n.toLocaleString('vi-VN') + 'đ'; }
+
+    // --- 1. LOAD DANH SÁCH ---
+    function renderOrders(filter) {
+        currentFilter = filter;
+        var formData = new FormData();
+        formData.append('status', filter);
+
+        $.ajax({
+            type: "POST", url: url_domain + '/NV_TrangChu/GetOrders',
+            data: formData, processData: false, contentType: false,
+            success: function (response) {
+                var orders = JSON.parse(response);
+                const wrap = document.getElementById('orders-grid');
+                wrap.innerHTML = '';
+
+                if (orders.length === 0) {
+                    wrap.innerHTML = '<div class="col-12 text-center py-5 text-muted">Không có đơn hàng nào.</div>';
+                    return;
+                }
+
+                orders.forEach(o => {
+                    let statusClass = "status-pending";
+                    if (o.status === 'shipping') statusClass = "status-shipping";
+                    if (o.status === 'completed') statusClass = "status-completed";
+                    if (o.status === 'cancelled') statusClass = "status-cancelled";
+
+                    const card = document.createElement('div');
+                    card.className = 'order-card';
+
+                    // SỬA Ở ĐÂY: Thay #ID bằng "Mã đơn hàng: ID"
+                    card.innerHTML = `
+                        <div class="order-header">
+                            <span class="order-id">Mã đơn hàng: ${o.id}</span>
+                            <span class="order-status ${statusClass}">${o.statusText}</span>
+                        </div>
+                        <div class="order-body">
+                            <div class="order-thumb">
+                                <img src="${o.image}" onerror="this.src='/img/no-image.jpg'" />
+                            </div>
+                            <div class="order-info">
+                                <h4>${o.name}</h4>
+                                <div class="order-detail"><i class="far fa-clock me-1"></i> ${o.time}</div>
+                                <div class="order-detail">Số lượng: <strong>${o.quantity}</strong> món</div>
+                            </div>
+                        </div>
+                        <div class="order-footer">
+                            <div class="order-total">${formatMoney(o.price)}</div>
+                            <div class="order-actions">
+                                ${renderActions(o)}
+                            </div>
+                        </div>
+                    `;
+                    wrap.appendChild(card);
+                });
+            }
+        });
+    }
+
+    function renderActions(order) {
+        switch (order.status) {
+            case 'pending':
+                // Nút Chấp nhận và Từ chối
+                return `<button class="btn btn-warning text-white btn-action" onclick="changeStatus(${order.id}, 'accept')">Chấp nhận</button>
+                        <button class="btn btn-outline-secondary btn-action" onclick="openRejectModal(${order.id})">Từ chối</button>`;
+            case 'shipping':
+                // Nút Hoàn thành
+                return `<button class="btn btn-success btn-action" onclick="openCompleteModal(${order.id})">Hoàn thành</button>
+                        <a href="/NV_TrangChu/ThongTinDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
+            default:
+                return `<a href="/NV_TrangChu/ThongTinDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
+        }
+    }
+
+    // --- 2. XỬ LÝ API CẬP NHẬT ---
+    function changeStatus(id, action, note = '') {
+        var formData = new FormData();
+        formData.append('id', id);
+        formData.append('action', action);
+        formData.append('note', note);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/NV_TrangChu/UpdateStatus',
+            data: formData, processData: false, contentType: false,
+            success: function (res) {
+                if (res === "OK") {
+                    // Load lại danh sách sau khi update thành công
+                    renderOrders(currentFilter);
+                    closeModal('reject-modal');
+                    closeModal('complete-modal');
+                } else {
+                    alert(res);
+                }
+            },
+            error: function () { alert("Lỗi kết nối server"); }
+        });
+    }
+
+    // --- 3. XỬ LÝ MODAL TỪ CHỐI ---
+    function openRejectModal(id) {
+        pendingId = id; // Lưu ID lại
+        $("#reject-note").val("");
+        $("#reject-modal").show().addClass("show");
+    }
+
+    // Khi bấm nút "Từ chối đơn" trong Modal
+    $("#btn-confirm-reject").click(function () {
+        var reason = $("#reject-note").val();
+        if (!reason) { alert("Vui lòng nhập lý do"); return; }
+        changeStatus(pendingId, 'reject', reason);
+    });
+
+    // --- 4. XỬ LÝ MODAL HOÀN THÀNH ---
+    function openCompleteModal(id) {
+        pendingId = id; // Lưu ID lại
+        $("#complete-modal").show().addClass("show");
+    }
+
+    // Khi bấm nút "Xác nhận" trong Modal
+    $("#btn-confirm-complete").click(function () {
+        changeStatus(pendingId, 'complete');
+    });
+
+    // --- 5. HÀM ĐÓNG MODAL CHUNG ---
+    function closeModal(modalId) {
+        $("#" + modalId).removeClass("show").hide();
+    }
+
+    // Xử lý Filter
+    $(".filter-btn").click(function () {
+        $(".filter-btn").removeClass("active");
+        $(this).addClass("active");
+        renderOrders($(this).data("status"));
+    });
+
+    $(document).ready(function () {
+        renderOrders('all');
+    });
+</script>

@@ -10,7 +10,7 @@ namespace WebBanDoAnOnline.Controllers
     public class DanhMucController : Controller
     {
         // GET: DanhMuc
-        // Action này chỉ để hiển thị trang quản lý
+        
         public ActionResult SuaDanhMuc()
         {
             return View();
@@ -28,7 +28,7 @@ namespace WebBanDoAnOnline.Controllers
                                  dm.MaDM,
                                  dm.TenDM,
                                  dm.MacDinh,
-                                 dm.Anh // <--- Đã thêm trường này để hiển thị ảnh ở View
+                                 dm.Anh 
                              })
                              .ToList();
 

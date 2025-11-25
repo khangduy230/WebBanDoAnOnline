@@ -1,0 +1,266 @@
+﻿@{
+    ViewBag.Title = "Tra cứu món ăn";
+   
+}
+
+<style>
+    /* Style riêng cho trang sản phẩm nhân viên */
+    .sp-card {
+        transition: transform 0.2s;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+        .sp-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+    /* Trạng thái tồn kho */
+    .stock-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: 0.2s;
+    }
+
+    .stock-ok {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .stock-out {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    /* Menu dropdown nhỏ để đổi trạng thái */
+    .stock-menu {
+        display: none;
+        position: absolute;
+        top: 35px;
+        right: 10px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        z-index: 10;
+        overflow: hidden;
+    }
+
+        .stock-menu.show {
+            display: block;
+        }
+
+    .stock-option {
+        display: block;
+        padding: 8px 15px;
+        font-size: 0.85rem;
+        color: #333;
+        text-decoration: none;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+        .stock-option:hover {
+            background: #f8f9fa;
+        }
+
+    /* Danh mục */
+    .cat-btn {
+        border: 1px solid #eee;
+        background: #fff;
+        color: #555;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        transition: 0.2s;
+        white-space: nowrap;
+    }
+
+        .cat-btn:hover, .cat-btn.active {
+            background: #ffc107;
+            color: #fff;
+            border-color: #ffc107;
+        }
+</style>
+
+<div class="container-fluid px-0">
+    <!-- 1. TOOLBAR -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="mb-0 fw-bold text-secondary">Danh sách món ăn</h4>
+        <!-- Bộ lọc danh mục -->
+        <div id="category-list" class="d-flex gap-2 overflow-auto pb-2" style="scrollbar-width:thin">
+            <button class="cat-btn active" onclick="filterByCat(null, this)">Tất cả</button>
+            <!-- JS render danh mục vào đây -->
+        </div>
+    </div>
+
+    <!-- 2. GRID SẢN PHẨM -->
+    <div id="product-grid" class="row g-3">
+        <div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>
+    </div>
+
+    <!-- 3. PHÂN TRANG -->
+    <div id="pagination" class="d-flex justify-content-center mt-5"></div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var url_domain = '@Url.Content("~")';
+    if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
+
+    var currentCat = null;
+    var currentPage = 1;
+
+    function formatMoney(n) {
+        return n.toLocaleString('vi-VN') + 'đ';
+    }
+
+    $(document).ready(function () {
+        loadCategories();
+        loadProducts();
+
+        // Lắng nghe tìm kiếm từ Layout (nếu có)
+        var qs = new URLSearchParams(window.location.search);
+        var search = qs.get('searchTerm');
+        if(search) loadProducts(search);
+    });
+
+    // --- 1. LOAD DANH MỤC ---
+    function loadCategories() {
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/DanhMuc/Lay_DSDM',
+            processData: false, contentType: false,
+            success: function (res) {
+                var cats = JSON.parse(res);
+                cats.forEach(c => {
+                    $("#category-list").append(
+                        `<button class="cat-btn" onclick="filterByCat(${c.MaDM}, this)">${c.TenDM}</button>`
+                    );
+                });
+            }
+        });
+    }
+
+    function filterByCat(id, btn) {
+        $(".cat-btn").removeClass("active");
+        $(btn).addClass("active");
+        currentCat = id;
+        loadProducts();
+    }
+
+    // --- 2. LOAD SẢN PHẨM ---
+    function loadProducts(searchTerm = "") {
+        var formData = new FormData();
+        if (currentCat) formData.append('maDM', currentCat);
+        formData.append('searchTerm', searchTerm);
+        formData.append('page', currentPage);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/SanPham/Lay_Menu', // Dùng chung API lấy menu
+            data: formData, processData: false, contentType: false,
+            success: function (res) {
+                var data = JSON.parse(res);
+                var grid = $("#product-grid");
+                grid.empty();
+
+                if (data.Products.length === 0) {
+                    grid.html('<div class="col-12 text-center text-muted py-5">Không tìm thấy món ăn nào.</div>');
+                    return;
+                }
+
+                data.Products.forEach(p => {
+                    var img = p.Anh ? p.Anh.replace('~', '') : '/img/no-image.jpg';
+
+                    // Logic hiển thị trạng thái
+                    var statusClass = (p.TrangThai === "Còn hàng") ? "stock-ok" : "stock-out";
+                    var statusText = p.TrangThai;
+
+                    var html = `
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card h-100 sp-card position-relative">
+                            <!-- Nút đổi trạng thái nhanh -->
+                            <div class="stock-badge ${statusClass}" onclick="toggleStockMenu(${p.MaSP})">
+                                ${statusText} <i class="fas fa-chevron-down ms-1" style="font-size:0.7em"></i>
+                            </div>
+                            <div class="stock-menu" id="menu-${p.MaSP}">
+                                <div class="stock-option" onclick="updateStock(${p.MaSP}, 'Còn hàng')">🟢 Còn hàng</div>
+                                <div class="stock-option" onclick="updateStock(${p.MaSP}, 'Hết hàng')">🔴 Hết hàng</div>
+                                <div class="stock-option" onclick="updateStock(${p.MaSP}, 'Tạm ngưng')">⚪ Tạm ngưng</div>
+                            </div>
+
+                            <img src="${img}" class="card-img-top" style="height:160px; object-fit:cover" onerror="this.src='/img/no-image.jpg'">
+                            <div class="card-body p-3 text-center">
+                                <h6 class="fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
+                                <div class="text-danger fw-bold">${formatMoney(p.Gia)}</div>
+                                <div class="small text-muted mt-1"><i class="fas fa-star text-warning"></i> ${p.DiemDanhGia || 0}</div>
+                            </div>
+                        </div>
+                    </div>`;
+                    grid.append(html);
+                });
+
+                renderPagination(data.TotalPages, data.CurrentPage);
+            }
+        });
+    }
+
+    // --- 3. CẬP NHẬT TRẠNG THÁI (API MỚI CẦN THÊM) ---
+    function toggleStockMenu(id) {
+        $(".stock-menu").not(`#menu-${id}`).removeClass("show"); // Đóng cái khác
+        $(`#menu-${id}`).toggleClass("show");
+    }
+
+    // Đóng menu khi click ra ngoài
+    $(document).click(function(e) {
+        if (!$(e.target).closest('.stock-badge, .stock-menu').length) {
+            $(".stock-menu").removeClass("show");
+        }
+    });
+
+    function updateStock(id, status) {
+        var fd = new FormData();
+        fd.append('id', id);
+        fd.append('status', status);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/SanPham/UpdateStock', // Cần thêm API này vào Controller
+            data: fd, processData: false, contentType: false,
+            success: function(res) {
+                if(res === "OK") {
+                    loadProducts(); // Load lại để cập nhật màu
+                } else {
+                    alert(res);
+                }
+            }
+        });
+    }
+
+    // --- 4. PHÂN TRANG ---
+    function renderPagination(total, current) {
+        if (total <= 1) { $("#pagination").html(''); return; }
+        var html = '<nav><ul class="pagination">';
+        for(var i=1; i<=total; i++) {
+            var active = (i===current) ? 'active' : '';
+            html += `<li class="page-item ${active}"><button class="page-link" onclick="goToPage(${i})">${i}</button></li>`;
+        }
+        html += '</ul></nav>';
+        $("#pagination").html(html);
+    }
+
+    function goToPage(p) {
+        currentPage = p;
+        loadProducts();
+    }
+</script>

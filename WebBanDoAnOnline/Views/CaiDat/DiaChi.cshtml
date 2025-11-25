@@ -300,19 +300,20 @@
                 saveAddress();
             });
 
-            // ✅ CHỈ ĐÓNG MODAL KHI CLICK VÀO OVERLAY (KHÔNG PHẢI MODAL-CONTENT)
+            // CHỈ ĐÓNG MODAL KHI CLICK VÀO OVERLAY (KHÔNG PHẢI MODAL-CONTENT)
             $('#modalOverlay').on('click', function (e) {
                 if (e.target.id === 'modalOverlay') {
                     closeModal();
                 }
             });
 
-            // ✅ NGĂN SỰ KIỆN CLICK TỪ MODAL-CONTENT LAN RA OVERLAY
+            //  NGĂN SỰ KIỆN CLICK TỪ MODAL-CONTENT LAN RA OVERLAY
             $('#modalContent').on('click', function (e) {
                 e.stopPropagation();
             });
         });
 
+        // Load danh sách địa chỉ
         function loadAddressList() {
             $.ajax({
                 type: "POST",
@@ -334,6 +335,7 @@
             });
         }
 
+        // Hiển thị danh sách địa chỉ
         function renderAddressList(data) {
             if (data.length === 0) {
                 $('#address-list').html('<div class="text-center py-4 text-muted">Chưa có địa chỉ nào</div>');
@@ -348,29 +350,30 @@
                 var setDefaultBtn = !addr.MacDinh ? '<button class="btn-address btn-set-default" onclick="setDefault(' + addr.MaDC + ')"><i class="fas fa-star"></i> Đặt mặc định</button>' : '';
 
                 html += `
-                        <div class="address-card ${defaultClass}">
-                            ${defaultBadge}
-                            <div class="address-info">
-                                <strong>${addr.TenNguoiNhan}</strong>
-                                <span>SĐT: ${addr.SDT}</span>
-                            </div>
-                            <div class="address-info">
-                                <span>${addr.DiaChi}</span>
-                            </div>
-                            <div class="address-actions">
-                                <button class="btn-address btn-edit" onclick='editAddress(${JSON.stringify(addr)})'>
-                                    <i class="fas fa-edit"></i> Cập nhật
-                                </button>
-                                ${setDefaultBtn}
-                                <button class="btn-address btn-delete" onclick="deleteAddress(${addr.MaDC})">
-                                    <i class="fas fa-trash"></i> Xóa
-                                </button>
-                            </div>
-                        </div>
-                    `;
+                                    <div class="address-card ${defaultClass}">
+                                        ${defaultBadge}
+                                        <div class="address-info">
+                                            <strong>${addr.TenNguoiNhan}</strong>
+                                            <span>SĐT: ${addr.SDT}</span>
+                                        </div>
+                                        <div class="address-info">
+                                            <span>${addr.DiaChi}</span>
+                                        </div>
+                                        <div class="address-actions">
+                                            <button class="btn-address btn-edit" onclick='editAddress(${JSON.stringify(addr)})'>
+                                                <i class="fas fa-edit"></i> Cập nhật
+                                            </button>
+                                            ${setDefaultBtn}
+                                            <button class="btn-address btn-delete" onclick="deleteAddress(${addr.MaDC})">
+                                                <i class="fas fa-trash"></i> Xóa
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
             }
             $('#address-list').html(html);
         }
+
 
         function openModal() {
             isEditMode = false;
@@ -388,6 +391,7 @@
         function closeModal() {
             $('#modalOverlay').removeClass('show');
         }
+
 
         function editAddress(addr) {
             isEditMode = true;
@@ -430,6 +434,7 @@
             });
         }
 
+        // Đặt địa chỉ mặc định
         function setDefault(maDC) {
             if (!confirm('Đặt làm địa chỉ mặc định?')) return;
 

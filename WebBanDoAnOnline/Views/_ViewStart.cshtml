@@ -13,11 +13,17 @@
         var user = session["TaiKhoan"] as TaiKhoan;
 
         // 3. Nếu là Admin hoặc Nhân viên -> Đổi sang Layout Admin
-        if (user.VaiTro == "Quản lý" || user.VaiTro == "Nhân viên")
+        if (user.VaiTro == "Quản lý")
         {
             // Đảm bảo bạn đã tạo file _LayoutAdmin.cshtml trong thư mục Shared
             layoutFile = "~/Views/Shared/_AdLayout.cshtml";
         }
+        else if (user.VaiTro == "Nhân viên")
+        {
+            // Đảm bảo bạn đã tạo file _EmployeeLayout.cshtml trong thư mục Shared
+            layoutFile = "~/Views/Shared/_EmployeeLayout.cshtml";
+        }
+        
     }
 
     // 4. Gán Layout cuối cùng

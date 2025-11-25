@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Hệ thống Nhân viên</title>
+
+    <!-- 1. CSS Libs -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+    <!-- 2. CSS Tùy chỉnh cho giao diện Nhân Viên -->
+    <style>
+        body {
+            background-color: #f0f2f5; /* Màu nền xám nhẹ dịu mắt cho admin */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        .staff-header {
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 0.7rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: #2c3e50 !important;
+        }
+
+        .nav-link {
+            font-weight: 600;
+            color: #607d8b !important;
+            margin: 0 10px;
+            transition: 0.3s;
+            border-radius: 6px;
+        }
+
+            .nav-link:hover, .nav-link.active {
+                color: #0d6efd !important;
+                background: rgba(13, 110, 253, 0.08);
+            }
+
+        /* --- Search Bar (Customized) --- */
+        .search-wrapper {
+            position: relative;
+            width: 350px; /* Rộng hơn bản khách hàng */
+        }
+
+        .search-input {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 8px 45px 8px 15px;
+            background: #f8f9fa;
+            width: 100%;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+            .search-input:focus {
+                background: #fff;
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+            }
+
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: none;
+            color: #6c757d;
+        }
+
+        /* --- User Profile --- */
+        .staff-profile {
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 30px;
+            transition: 0.2s;
+        }
+
+            .staff-profile:hover {
+                background-color: #f1f3f5;
+            }
+
+        .avatar-circle {
+            width: 35px;
+            height: 35px;
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* --- Footer --- */
+        .site-footer {
+            background: #fff;
+            border-top: 1px solid #dee2e6;
+            margin-top: auto;
+            font-size: 0.85rem;
+        }
+    </style>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <!-- Logic xác định Controller hiện tại để set Active Menu -->
+    @{
+        string currentController = ViewContext.RouteData.Values["controller"].ToString();
+        string currentAction = ViewContext.RouteData.Values["action"].ToString();
+    }
+
+    <header class="staff-header sticky-top">
+        <div class="container-fluid px-lg-5">
+            <nav class="navbar navbar-expand-lg p-0">
+                <!-- Logo -->
+                <a class="navbar-brand" href="@Url.Action("Index", "NV_TrangChu")">
+                    FuTho <span class="text-primary fw-light">Staff</span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#staffNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse justify-content-between" id="staffNav">
+                    <!-- Menu Điều hướng -->
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "NV_TrangChu" ? "active" : "")"
+                               href="@Url.Action("Index", "NV_TrangChu")">
+                                <i class="fa-solid fa-list-check me-1"></i> Quản lý Đơn hàng
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "SanPham" ? "active" : "")"
+                               href="@Url.Action("NhanVien", "SanPham")">
+                                <i class="fa-solid fa-utensils me-1"></i> Tra cứu Menu
+                            </a>
+                        </li>
+                        
+                    </ul>
+
+                    <!-- Khu vực bên phải: Search + User -->
+                    <div class="d-flex align-items-center gap-4">
+
+                        <!-- Search Bar Thông minh -->
+                        <div class="search-wrapper d-none d-lg-block">
+                            <input type="text" id="staff-search" class="search-input"
+                                   placeholder="@(currentController == "NV_TrangChu" ? "Tìm mã đơn, tên khách..." : "Tìm tên món ăn...")">
+                            <button class="search-btn" id="staff-search-icon"><i class="fa-solid fa-magnifying-glass"></i></button>
+                        </div>
+
+                        <!-- Thông tin nhân viên -->
+                        <div class="dropdown">
+                            <div class="d-flex align-items-center staff-profile" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="text-end me-2 d-none d-md-block">
+                                    <div class="fw-bold small text-dark" id="staff-name">Đang tải...</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">Nhân viên</div>
+                                </div>
+                                <img src="/img/default-avatar.png" alt="Admin" class="me-2 rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;">
+                            </div>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                                <li><span class="dropdown-header">Tài khoản</span></li>
+                                <li><a class="dropdown-item" href="~/CaiDat/HoSo"><i class="fa-regular fa-id-card me-2"></i> Hồ sơ</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="/TaiKhoan/LogOff" method="post" id="logoutFormStaff">
+                                        <a class="dropdown-item text-danger" href="javascript:document.getElementById('logoutFormStaff').submit()">
+                                            <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng xuất
+                                        </a>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="py-4">
+        <div class="container-fluid px-lg-5">
+            <!-- Breadcrumb (Optional) -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item text-muted">Hệ thống</li>
+                    <li class="breadcrumb-item active fw-bold text-primary" aria-current="page">@ViewBag.Title</li>
+                </ol>
+            </nav>
+
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="site-footer py-3 text-center text-muted">
+        <div class="container">
+            <small>&copy; @DateTime.Now.Year FuTho Food Internal System. Designed for Staff.</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        var url_domain = window.location.origin;
+        // Lấy controller hiện tại từ Razor để xử lý JS
+        var currentCtrl = '@currentController';
+
+        $(document).ready(function () {
+            // 1. Lấy thông tin Header (Kiểm tra xem có phải nhân viên không)
+            $.ajax({
+                type: "POST",
+                url: url_domain + '/Home/GetHeaderInfo', // Hoặc API riêng cho Staff nếu có
+                success: function (response) {
+                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                    if (res.isLogin) {
+                        $("#staff-name").text(res.fullName);
+                        // Lấy chữ cái đầu làm Avatar
+                        var firstChar = res.fullName.charAt(0).toUpperCase();
+                        $("#staff-avatar-text").text(firstChar);
+                    } else {
+                        // Nếu chưa login -> Đá về trang login
+                        window.location.href = "/TaiKhoan/Login";
+                    }
+                }
+            });
+
+            // 2. Xử lý Search Context (Quan trọng)
+            $('#staff-search-icon').click(handleStaffSearch);
+            $('#staff-search').keypress(function (e) { if (e.which === 13) handleStaffSearch(); });
+
+            function handleStaffSearch() {
+                var keyword = $('#staff-search').val().trim();
+                if (!keyword) return;
+
+                // Logic rẽ nhánh dựa trên trang đang đứng
+                if (currentCtrl === 'NV_TrangChu') {
+                    // Nếu đang ở trang Đơn hàng -> Search đơn hàng
+                    // Giả sử Action tìm kiếm đơn là /NV_TrangChu/Index?search=...
+                    window.location.href = '/NV_TrangChu/Index?searchOrder=' + encodeURIComponent(keyword);
+                }
+                else {
+                    // Mặc định hoặc ở trang Sản phẩm -> Search sản phẩm
+                    window.location.href = '/SanPham/Index?searchTerm=' + encodeURIComponent(keyword);
+                }
+            }
+        });
+    </script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

@@ -20,16 +20,15 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-        // 2. Trang báo thành công (Có thể không dùng nếu đã gộp View, nhưng cứ để lại cho chắc)
+        // 2. Trang báo thành công 
         public ActionResult Success()
         {
             return View();
         }
 
-        // ==========================================================
-        // API 1: LẤY DỮ LIỆU THANH TOÁN (CÓ LỌC SẢN PHẨM ĐÃ CHỌN)
-        // ==========================================================
-        [HttpPost]
+        
+        // API 1: LẤY DỮ LIỆU THANH TOÁN 
+        
         public string LayThongTinThanhToan()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
@@ -53,7 +52,7 @@ namespace WebBanDoAnOnline.Controllers
                              .ToList();
 
             // 2. Xử lý LỌC SẢN PHẨM THEO SESSION
-            // Lấy chuỗi ID từ Session (Ví dụ: "1,5,8")
+           
             string selectedIdsStr = Session["CheckoutItems"] as string;
             List<int> selectedIds = new List<int>();
 
@@ -83,7 +82,7 @@ namespace WebBanDoAnOnline.Controllers
 
             foreach (var item in cartItems)
             {
-                // Logic giá khuyến mãi
+                //  giá khuyến mãi
                 decimal giaGoc = item.p.Gia ?? 0;
                 decimal giaKM = item.p.GiaKhuyenMai ?? 0;
                 decimal giaBan = giaGoc;
@@ -140,10 +139,9 @@ namespace WebBanDoAnOnline.Controllers
             return JsonConvert.SerializeObject(result);
         }
 
-        // ==========================================================
+        
         // API 2: KIỂM TRA VOUCHER
-        // ==========================================================
-        [HttpPost]
+        
         public string KiemTraVoucher()
         {
             string code = Request["code"];
@@ -180,10 +178,9 @@ namespace WebBanDoAnOnline.Controllers
             return JsonConvert.SerializeObject(new { ok = false, msg = "Mã không hợp lệ hoặc đã hết hạn." });
         }
 
-        // ==========================================================
+        
         // API 3: ĐẶT HÀNG (CÓ LỌC SẢN PHẨM ĐÃ CHỌN)
-        // ==========================================================
-        [HttpPost]
+        
         public string DatHang()
         {
             try
@@ -202,7 +199,7 @@ namespace WebBanDoAnOnline.Controllers
                 BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
                 DateTime now = DateTime.Now;
 
-                // --- LẤY LẠI DANH SÁCH SẢN PHẨM CẦN MUA (Từ Session) ---
+                // --- LẤY LẠI DANH SÁCH SẢN PHẨM CẦN MUA 
                 string selectedIdsStr = Session["CheckoutItems"] as string;
                 List<int> selectedIds = new List<int>();
                 if (!string.IsNullOrEmpty(selectedIdsStr))
@@ -222,7 +219,7 @@ namespace WebBanDoAnOnline.Controllers
                 var cartItems = cartQuery.ToList();
                 if (!cartItems.Any()) return "Không tìm thấy sản phẩm nào để thanh toán.";
 
-                // --- TÍNH TOÁN LẠI TIỀN (Server Side) ---
+                // --- TÍNH TOÁN LẠI TIỀN 
                 decimal subTotal = 0;
                 foreach (var item in cartItems)
                 {
@@ -271,7 +268,7 @@ namespace WebBanDoAnOnline.Controllers
                 dh.TienGiamGia = discount;
                 dh.TongTien = subTotal + shipping - discount;
 
-                // Map Payment Method (Khớp Constraint DB)
+               
                 dh.PhuongThucTT = (payMethod == "BANK") ? "Online" : "COD";
 
                 dh.TrangThai = "Chờ xác nhận";
@@ -301,7 +298,7 @@ namespace WebBanDoAnOnline.Controllers
 
                     db.ChiTietDonHangs.InsertOnSubmit(ct);
 
-                    // Xóa sản phẩm ĐÃ MUA khỏi giỏ (Các món ko chọn vẫn giữ lại)
+                    
                     db.GioHangs.DeleteOnSubmit(item);
                 }
 

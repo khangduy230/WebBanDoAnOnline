@@ -217,14 +217,7 @@
             <!-- User Dropdown (Đã sửa để click được) -->
             <div class="dropdown">
                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="avatar me-2 bg-warning text-white">
-                        @if (Session["HoTen"] != null)
-                        {
-                            @Session["HoTen"].ToString().Substring(0, 1).ToUpper()
-                        }
-                        else
-                        { <text>A</text>}
-                    </div>
+                    <img src="/img/default-avatar.png" alt="Admin" class="me-2 rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;">
                     <div class="d-none d-md-block">
                         <div class="fw-bold small">
                             @(Session["HoTen"] ?? "Admin")
@@ -233,7 +226,7 @@
                     </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow" aria-labelledby="dropdownUser1">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Hồ sơ cá nhân</a></li>
+                    <li><a class="dropdown-item" href="~/CaiDat/HoSo"><i class="fas fa-user me-2"></i> Hồ sơ cá nhân</a></li>
                     <li><a class="dropdown-item" href="#"><i class="fas fa-key me-2"></i> Đổi mật khẩu</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>

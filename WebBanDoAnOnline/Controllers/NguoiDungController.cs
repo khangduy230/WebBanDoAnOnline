@@ -9,12 +9,12 @@ namespace WebBanDoAnOnline.Controllers
 {
     public class NguoiDungController : Controller
     {
-        // ... (Các hàm View: LayNguoiDung, ThemNguoiDung, SuaNguoiDung giữ nguyên)
+        
         public ActionResult LayNguoiDung() { return View(); }
         public ActionResult ThemNguoiDung() { return View(); }
         public ActionResult SuaNguoiDung(int id) { ViewBag.MaTK = id; return View(); }
 
-        // 1. LẤY DANH SÁCH (API)
+        // 1. LẤY DANH SÁCH 
         [HttpPost]
         public string Lay_DSNguoiDung()
         {
@@ -32,14 +32,16 @@ namespace WebBanDoAnOnline.Controllers
                                       || x.Email.ToLower().Contains(lower)
                                       || x.SoDienThoai.Contains(lower));
             }
-
+            // Phân trang
             int page = 1;
             if (!string.IsNullOrEmpty(Request["page"])) int.TryParse(Request["page"], out page);
             int pageSize = 6;
-
+            
             int totalItems = query.Count();
             int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
             if (totalPages == 0) totalPages = 1;
+
+            // Lấy dữ liệu trang hiện tại
 
             var data = query.OrderByDescending(x => x.MaTK)
                             .Skip((page - 1) * pageSize)
@@ -57,7 +59,7 @@ namespace WebBanDoAnOnline.Controllers
             return JsonConvert.SerializeObject(new { TotalPages = totalPages, CurrentPage = page, NguoiDungs = data });
         }
 
-        // 2. LẤY CHI TIẾT (API)
+        // 2. LẤY CHI TIẾT 
         [HttpPost]
         public string LayTTNguoiDung()
         {
@@ -70,7 +72,7 @@ namespace WebBanDoAnOnline.Controllers
 
             if (user == null) return "{}";
 
-            // Trả về JSON object
+            
             return JsonConvert.SerializeObject(new
             {
                 user.MaTK,
@@ -83,24 +85,24 @@ namespace WebBanDoAnOnline.Controllers
             });
         }
 
-        // 3. THÊM MỚI (API)
-        [HttpPost]
+        // 3. THÊM MỚI 
+        
         public string Insert()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
-            // Lấy dữ liệu (Tên input phải khớp với View bên dưới)
+            
             string tenTK = Request["txt_TenTK"];
             string email = Request["txt_Email"];
             string sdt = Request["txt_SoDienThoai"];
             string matKhau = Request["txt_MatKhau"];
             string hoTen = Request["txt_HoTen"];
 
-            // Lấy value từ Select
-            string vaiTroKey = Request["slc_VaiTro"];     // "QuanLy", "NhanVien", "KhachHang"
-            string trangThaiKey = Request["slc_TrangThai"]; // "HoatDong", "BiKhoa"
+           
+            string vaiTroKey = Request["slc_VaiTro"];     
+            string trangThaiKey = Request["slc_TrangThai"]; 
 
-            // Check trùng DB
+            
             if (db.TaiKhoans.Any(x => x.TenTK == tenTK && x.isDelete != 1)) return "Tên tài khoản đã tồn tại.";
             if (db.TaiKhoans.Any(x => x.Email == email && x.isDelete != 1)) return "Email đã tồn tại.";
             if (db.TaiKhoans.Any(x => x.SoDienThoai == sdt && x.isDelete != 1)) return "SĐT đã tồn tại.";
@@ -114,16 +116,16 @@ namespace WebBanDoAnOnline.Controllers
                 tk.SoDienThoai = sdt;
                 tk.MatKhau = BCrypt.Net.BCrypt.HashPassword(matKhau);
 
-                // --- QUAN TRỌNG: MAP DỮ LIỆU KHỚP VỚI DATABASE CHECK CONSTRAINT ---
+                
                 switch (vaiTroKey)
                 {
-                    case "QuanLy": tk.VaiTro = "Quản lý"; break;   // DB nhận "Quản lý"
-                    case "NhanVien": tk.VaiTro = "Nhân viên"; break; // DB nhận "Nhân viên"
-                    default: tk.VaiTro = "Khách hàng"; break;      // DB nhận "Khách hàng"
+                    case "QuanLy": tk.VaiTro = "Quản lý"; break;   
+                    case "NhanVien": tk.VaiTro = "Nhân viên"; break; 
+                    default: tk.VaiTro = "Khách hàng"; break;      
                 }
 
                 tk.TrangThai = (trangThaiKey == "BiKhoa") ? "Bị khóa" : "Hoạt động";
-                // ------------------------------------------------------------------
+                
 
                 tk.NgayGiaNhap = DateTime.Now;
                 tk.Create_at = DateTime.Now;
@@ -139,12 +141,12 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        // 4. CẬP NHẬT (API)
+        // 4. CẬP NHẬT 
         [HttpPost]
         public string Update()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
-            string id_str = Request["txt_MaTK_hide"]; // Lấy ID ẩn
+            string id_str = Request["txt_MaTK_hide"]; 
             if (string.IsNullOrEmpty(id_str)) return "Lỗi ID";
             int id = int.Parse(id_str);
 
@@ -161,7 +163,7 @@ namespace WebBanDoAnOnline.Controllers
                 string trangThaiKey = Request["slc_TrangThai"];
                 string newPass = Request["txt_MatKhau"];
 
-                // Map lại Role cho đúng DB
+                
                 switch (vaiTroKey)
                 {
                     case "QuanLy": tk.VaiTro = "Quản lý"; break;
@@ -187,8 +189,9 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        // 5. XÓA (API)
-        [HttpPost]
+        // 5. XÓA
+
+        // AJAX: Đảo trạng thái khóa/mở khóa
         public string ToggleStatus()
         {
             string id_str = Request["id"];

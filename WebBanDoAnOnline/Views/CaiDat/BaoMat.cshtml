@@ -139,14 +139,14 @@
             $('#passwordForm').submit(function (e) {
                 e.preventDefault();
 
-                // Reset error messages
+                // Ẩn tất cả lỗi
                 $('.error-message').hide();
 
                 var currentPassword = $('#currentPassword').val();
                 var newPassword = $('#newPassword').val();
                 var confirmPassword = $('#confirmPassword').val();
 
-                // Validation
+                
                 var isValid = true;
 
                 if (newPassword.length < 6) {

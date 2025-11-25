@@ -63,12 +63,12 @@ namespace WebBanDoAnOnline.Models
     partial void InsertTaiKhoan(TaiKhoan instance);
     partial void UpdateTaiKhoan(TaiKhoan instance);
     partial void DeleteTaiKhoan(TaiKhoan instance);
-    partial void InsertThuChi(ThuChi instance);
-    partial void UpdateThuChi(ThuChi instance);
-    partial void DeleteThuChi(ThuChi instance);
     partial void InsertThongBao(ThongBao instance);
     partial void UpdateThongBao(ThongBao instance);
     partial void DeleteThongBao(ThongBao instance);
+    partial void InsertThuChi(ThuChi instance);
+    partial void UpdateThuChi(ThuChi instance);
+    partial void DeleteThuChi(ThuChi instance);
     #endregion
 		
 		public BanDoAnOnlineDataContext(string connection) : 
@@ -78,7 +78,7 @@ namespace WebBanDoAnOnline.Models
 		}
 
         public BanDoAnOnlineDataContext() :
-                base(global::System.Configuration.ConfigurationManager.ConnectionStrings["BanDoAnOnlineConnectionString"].ConnectionString, mappingSource)
+        base(global::System.Configuration.ConfigurationManager.ConnectionStrings["BanDoAnOnlineConnectionString"].ConnectionString, mappingSource)
         {
             OnCreated();
         }
@@ -188,19 +188,19 @@ namespace WebBanDoAnOnline.Models
 			}
 		}
 		
-		public System.Data.Linq.Table<ThuChi> ThuChis
-		{
-			get
-			{
-				return this.GetTable<ThuChi>();
-			}
-		}
-		
 		public System.Data.Linq.Table<ThongBao> ThongBaos
 		{
 			get
 			{
 				return this.GetTable<ThongBao>();
+			}
+		}
+		
+		public System.Data.Linq.Table<ThuChi> ThuChis
+		{
+			get
+			{
+				return this.GetTable<ThuChi>();
 			}
 		}
 	}
@@ -1131,6 +1131,8 @@ namespace WebBanDoAnOnline.Models
 		
 		private System.Nullable<System.DateTime> _Create_at;
 		
+		private System.Nullable<System.DateTime> _Update_at;
+		
 		private System.Nullable<System.DateTime> _LastEdit_at;
 		
 		private System.Nullable<System.DateTime> _Delete_at;
@@ -1144,10 +1146,9 @@ namespace WebBanDoAnOnline.Models
 		private EntityRef<SanPham> _SanPham;
 		
 		private EntityRef<TaiKhoan> _TaiKhoan;
-        internal DateTime Update_at;
-
-        #region Extensibility Method Definitions
-        partial void OnLoaded();
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
     partial void OnCreated();
     partial void OnMaDGChanging(int value);
@@ -1164,6 +1165,8 @@ namespace WebBanDoAnOnline.Models
     partial void OnBinhLuanChanged();
     partial void OnCreate_atChanging(System.Nullable<System.DateTime> value);
     partial void OnCreate_atChanged();
+    partial void OnUpdate_atChanging(System.Nullable<System.DateTime> value);
+    partial void OnUpdate_atChanged();
     partial void OnLastEdit_atChanging(System.Nullable<System.DateTime> value);
     partial void OnLastEdit_atChanged();
     partial void OnDelete_atChanging(System.Nullable<System.DateTime> value);
@@ -1330,6 +1333,26 @@ namespace WebBanDoAnOnline.Models
 					this._Create_at = value;
 					this.SendPropertyChanged("Create_at");
 					this.OnCreate_atChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Update_at", DbType="DateTime")]
+		public System.Nullable<System.DateTime> Update_at
+		{
+			get
+			{
+				return this._Update_at;
+			}
+			set
+			{
+				if ((this._Update_at != value))
+				{
+					this.OnUpdate_atChanging(value);
+					this.SendPropertyChanging();
+					this._Update_at = value;
+					this.SendPropertyChanged("Update_at");
+					this.OnUpdate_atChanged();
 				}
 			}
 		}
@@ -1839,6 +1862,8 @@ namespace WebBanDoAnOnline.Models
 		
 		private System.Nullable<System.DateTime> _Create_at;
 		
+		private System.Nullable<System.DateTime> _Update_at;
+		
 		private System.Nullable<System.DateTime> _LastEdit_at;
 		
 		private System.Nullable<System.DateTime> _Delete_at;
@@ -1869,6 +1894,8 @@ namespace WebBanDoAnOnline.Models
     partial void OnMacDinhChanged();
     partial void OnCreate_atChanging(System.Nullable<System.DateTime> value);
     partial void OnCreate_atChanged();
+    partial void OnUpdate_atChanging(System.Nullable<System.DateTime> value);
+    partial void OnUpdate_atChanged();
     partial void OnLastEdit_atChanging(System.Nullable<System.DateTime> value);
     partial void OnLastEdit_atChanged();
     partial void OnDelete_atChanging(System.Nullable<System.DateTime> value);
@@ -2030,6 +2057,26 @@ namespace WebBanDoAnOnline.Models
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Update_at", DbType="DateTime")]
+		public System.Nullable<System.DateTime> Update_at
+		{
+			get
+			{
+				return this._Update_at;
+			}
+			set
+			{
+				if ((this._Update_at != value))
+				{
+					this.OnUpdate_atChanging(value);
+					this.SendPropertyChanging();
+					this._Update_at = value;
+					this.SendPropertyChanged("Update_at");
+					this.OnUpdate_atChanged();
+				}
+			}
+		}
+		
 		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_LastEdit_at", DbType="DateTime")]
 		public System.Nullable<System.DateTime> LastEdit_at
 		{
@@ -2156,12 +2203,8 @@ namespace WebBanDoAnOnline.Models
 				}
 			}
 		}
-
-        public string DiaChi1 { get; internal set; }
-        public string SDT { get; internal set; }
-        public DateTime Update_at { get; internal set; }
-
-        public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangingEventHandler PropertyChanging;
 		
 		public event PropertyChangedEventHandler PropertyChanged;
 		
@@ -2222,6 +2265,8 @@ namespace WebBanDoAnOnline.Models
 		
 		private System.Nullable<System.DateTime> _Create_at;
 		
+		private System.Nullable<System.DateTime> _Update_at;
+		
 		private System.Nullable<System.DateTime> _LastEdit_at;
 		
 		private System.Nullable<System.DateTime> _Delete_at;
@@ -2270,6 +2315,8 @@ namespace WebBanDoAnOnline.Models
     partial void OnGhiChuChanged();
     partial void OnCreate_atChanging(System.Nullable<System.DateTime> value);
     partial void OnCreate_atChanged();
+    partial void OnUpdate_atChanging(System.Nullable<System.DateTime> value);
+    partial void OnUpdate_atChanged();
     partial void OnLastEdit_atChanging(System.Nullable<System.DateTime> value);
     partial void OnLastEdit_atChanged();
     partial void OnDelete_atChanging(System.Nullable<System.DateTime> value);
@@ -2524,6 +2571,26 @@ namespace WebBanDoAnOnline.Models
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Update_at", DbType="DateTime")]
+		public System.Nullable<System.DateTime> Update_at
+		{
+			get
+			{
+				return this._Update_at;
+			}
+			set
+			{
+				if ((this._Update_at != value))
+				{
+					this.OnUpdate_atChanging(value);
+					this.SendPropertyChanging();
+					this._Update_at = value;
+					this.SendPropertyChanged("Update_at");
+					this.OnUpdate_atChanged();
+				}
+			}
+		}
+		
 		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_LastEdit_at", DbType="DateTime")]
 		public System.Nullable<System.DateTime> LastEdit_at
 		{
@@ -2757,10 +2824,8 @@ namespace WebBanDoAnOnline.Models
 				}
 			}
 		}
-
-        public DateTime Update_at { get; internal set; }
-
-        public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangingEventHandler PropertyChanging;
 		
 		public event PropertyChangedEventHandler PropertyChanged;
 		
@@ -2847,6 +2912,8 @@ namespace WebBanDoAnOnline.Models
 		
 		private System.Nullable<System.DateTime> _Create_at;
 		
+		private System.Nullable<System.DateTime> _Update_at;
+		
 		private System.Nullable<System.DateTime> _LastEdit_at;
 		
 		private System.Nullable<System.DateTime> _Delete_at;
@@ -2858,10 +2925,9 @@ namespace WebBanDoAnOnline.Models
 		private EntityRef<SanPham> _SanPham;
 		
 		private EntityRef<TaiKhoan> _TaiKhoan;
-        internal DateTime Update_at;
-
-        #region Extensibility Method Definitions
-        partial void OnLoaded();
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
     partial void OnCreated();
     partial void OnMaGioChanging(int value);
@@ -2876,6 +2942,8 @@ namespace WebBanDoAnOnline.Models
     partial void OnGhiChuChanged();
     partial void OnCreate_atChanging(System.Nullable<System.DateTime> value);
     partial void OnCreate_atChanged();
+    partial void OnUpdate_atChanging(System.Nullable<System.DateTime> value);
+    partial void OnUpdate_atChanged();
     partial void OnLastEdit_atChanging(System.Nullable<System.DateTime> value);
     partial void OnLastEdit_atChanged();
     partial void OnDelete_atChanging(System.Nullable<System.DateTime> value);
@@ -3017,6 +3085,26 @@ namespace WebBanDoAnOnline.Models
 					this._Create_at = value;
 					this.SendPropertyChanged("Create_at");
 					this.OnCreate_atChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Update_at", DbType="DateTime")]
+		public System.Nullable<System.DateTime> Update_at
+		{
+			get
+			{
+				return this._Update_at;
+			}
+			set
+			{
+				if ((this._Update_at != value))
+				{
+					this.OnUpdate_atChanging(value);
+					this.SendPropertyChanging();
+					this._Update_at = value;
+					this.SendPropertyChanged("Update_at");
+					this.OnUpdate_atChanged();
 				}
 			}
 		}
@@ -4565,9 +4653,9 @@ namespace WebBanDoAnOnline.Models
 		
 		private EntitySet<LichSuTrangThai> _LichSuTrangThais;
 		
-		private EntitySet<ThuChi> _ThuChis;
-		
 		private EntitySet<ThongBao> _ThongBaos;
+		
+		private EntitySet<ThuChi> _ThuChis;
 		
     #region Extensibility Method Definitions
     partial void OnLoaded();
@@ -4612,8 +4700,8 @@ namespace WebBanDoAnOnline.Models
 			this._DonHangs = new EntitySet<DonHang>(new Action<DonHang>(this.attach_DonHangs), new Action<DonHang>(this.detach_DonHangs));
 			this._GioHangs = new EntitySet<GioHang>(new Action<GioHang>(this.attach_GioHangs), new Action<GioHang>(this.detach_GioHangs));
 			this._LichSuTrangThais = new EntitySet<LichSuTrangThai>(new Action<LichSuTrangThai>(this.attach_LichSuTrangThais), new Action<LichSuTrangThai>(this.detach_LichSuTrangThais));
-			this._ThuChis = new EntitySet<ThuChi>(new Action<ThuChi>(this.attach_ThuChis), new Action<ThuChi>(this.detach_ThuChis));
 			this._ThongBaos = new EntitySet<ThongBao>(new Action<ThongBao>(this.attach_ThongBaos), new Action<ThongBao>(this.detach_ThongBaos));
+			this._ThuChis = new EntitySet<ThuChi>(new Action<ThuChi>(this.attach_ThuChis), new Action<ThuChi>(this.detach_ThuChis));
 			OnCreated();
 		}
 		
@@ -4982,19 +5070,6 @@ namespace WebBanDoAnOnline.Models
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="TaiKhoan_ThuChi", Storage="_ThuChis", ThisKey="MaTK", OtherKey="MaNguoiThucHien")]
-		public EntitySet<ThuChi> ThuChis
-		{
-			get
-			{
-				return this._ThuChis;
-			}
-			set
-			{
-				this._ThuChis.Assign(value);
-			}
-		}
-		
 		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="TaiKhoan_ThongBao", Storage="_ThongBaos", ThisKey="MaTK", OtherKey="MaTK")]
 		public EntitySet<ThongBao> ThongBaos
 		{
@@ -5005,6 +5080,19 @@ namespace WebBanDoAnOnline.Models
 			set
 			{
 				this._ThongBaos.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="TaiKhoan_ThuChi", Storage="_ThuChis", ThisKey="MaTK", OtherKey="MaNguoiThucHien")]
+		public EntitySet<ThuChi> ThuChis
+		{
+			get
+			{
+				return this._ThuChis;
+			}
+			set
+			{
+				this._ThuChis.Assign(value);
 			}
 		}
 		
@@ -5088,6 +5176,18 @@ namespace WebBanDoAnOnline.Models
 			entity.TaiKhoan = null;
 		}
 		
+		private void attach_ThongBaos(ThongBao entity)
+		{
+			this.SendPropertyChanging();
+			entity.TaiKhoan = this;
+		}
+		
+		private void detach_ThongBaos(ThongBao entity)
+		{
+			this.SendPropertyChanging();
+			entity.TaiKhoan = null;
+		}
+		
 		private void attach_ThuChis(ThuChi entity)
 		{
 			this.SendPropertyChanging();
@@ -5099,17 +5199,228 @@ namespace WebBanDoAnOnline.Models
 			this.SendPropertyChanging();
 			entity.TaiKhoan = null;
 		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.ThongBao")]
+	public partial class ThongBao : INotifyPropertyChanging, INotifyPropertyChanged
+	{
 		
-		private void attach_ThongBaos(ThongBao entity)
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _MaTB;
+		
+		private int _MaTK;
+		
+		private string _Title;
+		
+		private string _Subtitle;
+		
+		private bool _IsRead;
+		
+		private System.DateTime _CreatedAt;
+		
+		private EntityRef<TaiKhoan> _TaiKhoan;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnMaTBChanging(int value);
+    partial void OnMaTBChanged();
+    partial void OnMaTKChanging(int value);
+    partial void OnMaTKChanged();
+    partial void OnTitleChanging(string value);
+    partial void OnTitleChanged();
+    partial void OnSubtitleChanging(string value);
+    partial void OnSubtitleChanged();
+    partial void OnIsReadChanging(bool value);
+    partial void OnIsReadChanged();
+    partial void OnCreatedAtChanging(System.DateTime value);
+    partial void OnCreatedAtChanged();
+    #endregion
+		
+		public ThongBao()
 		{
-			this.SendPropertyChanging();
-			entity.TaiKhoan = this;
+			this._TaiKhoan = default(EntityRef<TaiKhoan>);
+			OnCreated();
 		}
 		
-		private void detach_ThongBaos(ThongBao entity)
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_MaTB", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int MaTB
 		{
-			this.SendPropertyChanging();
-			entity.TaiKhoan = null;
+			get
+			{
+				return this._MaTB;
+			}
+			set
+			{
+				if ((this._MaTB != value))
+				{
+					this.OnMaTBChanging(value);
+					this.SendPropertyChanging();
+					this._MaTB = value;
+					this.SendPropertyChanged("MaTB");
+					this.OnMaTBChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_MaTK", DbType="Int NOT NULL")]
+		public int MaTK
+		{
+			get
+			{
+				return this._MaTK;
+			}
+			set
+			{
+				if ((this._MaTK != value))
+				{
+					if (this._TaiKhoan.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
+					this.OnMaTKChanging(value);
+					this.SendPropertyChanging();
+					this._MaTK = value;
+					this.SendPropertyChanged("MaTK");
+					this.OnMaTKChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Title", DbType="NVarChar(255) NOT NULL", CanBeNull=false)]
+		public string Title
+		{
+			get
+			{
+				return this._Title;
+			}
+			set
+			{
+				if ((this._Title != value))
+				{
+					this.OnTitleChanging(value);
+					this.SendPropertyChanging();
+					this._Title = value;
+					this.SendPropertyChanged("Title");
+					this.OnTitleChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Subtitle", DbType="NVarChar(1000)")]
+		public string Subtitle
+		{
+			get
+			{
+				return this._Subtitle;
+			}
+			set
+			{
+				if ((this._Subtitle != value))
+				{
+					this.OnSubtitleChanging(value);
+					this.SendPropertyChanging();
+					this._Subtitle = value;
+					this.SendPropertyChanged("Subtitle");
+					this.OnSubtitleChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_IsRead", DbType="Bit NOT NULL")]
+		public bool IsRead
+		{
+			get
+			{
+				return this._IsRead;
+			}
+			set
+			{
+				if ((this._IsRead != value))
+				{
+					this.OnIsReadChanging(value);
+					this.SendPropertyChanging();
+					this._IsRead = value;
+					this.SendPropertyChanged("IsRead");
+					this.OnIsReadChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CreatedAt", DbType="DateTime2 NOT NULL")]
+		public System.DateTime CreatedAt
+		{
+			get
+			{
+				return this._CreatedAt;
+			}
+			set
+			{
+				if ((this._CreatedAt != value))
+				{
+					this.OnCreatedAtChanging(value);
+					this.SendPropertyChanging();
+					this._CreatedAt = value;
+					this.SendPropertyChanged("CreatedAt");
+					this.OnCreatedAtChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="TaiKhoan_ThongBao", Storage="_TaiKhoan", ThisKey="MaTK", OtherKey="MaTK", IsForeignKey=true)]
+		public TaiKhoan TaiKhoan
+		{
+			get
+			{
+				return this._TaiKhoan.Entity;
+			}
+			set
+			{
+				TaiKhoan previousValue = this._TaiKhoan.Entity;
+				if (((previousValue != value) 
+							|| (this._TaiKhoan.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._TaiKhoan.Entity = null;
+						previousValue.ThongBaos.Remove(this);
+					}
+					this._TaiKhoan.Entity = value;
+					if ((value != null))
+					{
+						value.ThongBaos.Add(this);
+						this._MaTK = value.MaTK;
+					}
+					else
+					{
+						this._MaTK = default(int);
+					}
+					this.SendPropertyChanged("TaiKhoan");
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
 		}
 	}
 	
@@ -5518,229 +5829,6 @@ namespace WebBanDoAnOnline.Models
 					else
 					{
 						this._MaNguoiThucHien = default(Nullable<int>);
-					}
-					this.SendPropertyChanged("TaiKhoan");
-				}
-			}
-		}
-		
-		public event PropertyChangingEventHandler PropertyChanging;
-		
-		public event PropertyChangedEventHandler PropertyChanged;
-		
-		protected virtual void SendPropertyChanging()
-		{
-			if ((this.PropertyChanging != null))
-			{
-				this.PropertyChanging(this, emptyChangingEventArgs);
-			}
-		}
-		
-		protected virtual void SendPropertyChanged(String propertyName)
-		{
-			if ((this.PropertyChanged != null))
-			{
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-			}
-		}
-	}
-	
-	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.ThongBao")]
-	public partial class ThongBao : INotifyPropertyChanging, INotifyPropertyChanged
-	{
-		
-		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
-		
-		private int _MaTB;
-		
-		private int _MaTK;
-		
-		private string _Title;
-		
-		private string _Subtitle;
-		
-		private bool _IsRead;
-		
-		private System.DateTime _CreatedAt;
-		
-		private EntityRef<TaiKhoan> _TaiKhoan;
-		
-    #region Extensibility Method Definitions
-    partial void OnLoaded();
-    partial void OnValidate(System.Data.Linq.ChangeAction action);
-    partial void OnCreated();
-    partial void OnMaTBChanging(int value);
-    partial void OnMaTBChanged();
-    partial void OnMaTKChanging(int value);
-    partial void OnMaTKChanged();
-    partial void OnTitleChanging(string value);
-    partial void OnTitleChanged();
-    partial void OnSubtitleChanging(string value);
-    partial void OnSubtitleChanged();
-    partial void OnIsReadChanging(bool value);
-    partial void OnIsReadChanged();
-    partial void OnCreatedAtChanging(System.DateTime value);
-    partial void OnCreatedAtChanged();
-    #endregion
-		
-		public ThongBao()
-		{
-			this._TaiKhoan = default(EntityRef<TaiKhoan>);
-			OnCreated();
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_MaTB", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
-		public int MaTB
-		{
-			get
-			{
-				return this._MaTB;
-			}
-			set
-			{
-				if ((this._MaTB != value))
-				{
-					this.OnMaTBChanging(value);
-					this.SendPropertyChanging();
-					this._MaTB = value;
-					this.SendPropertyChanged("MaTB");
-					this.OnMaTBChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_MaTK", DbType="Int NOT NULL")]
-		public int MaTK
-		{
-			get
-			{
-				return this._MaTK;
-			}
-			set
-			{
-				if ((this._MaTK != value))
-				{
-					if (this._TaiKhoan.HasLoadedOrAssignedValue)
-					{
-						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
-					}
-					this.OnMaTKChanging(value);
-					this.SendPropertyChanging();
-					this._MaTK = value;
-					this.SendPropertyChanged("MaTK");
-					this.OnMaTKChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Title", DbType="NVarChar(255) NOT NULL", CanBeNull=false)]
-		public string Title
-		{
-			get
-			{
-				return this._Title;
-			}
-			set
-			{
-				if ((this._Title != value))
-				{
-					this.OnTitleChanging(value);
-					this.SendPropertyChanging();
-					this._Title = value;
-					this.SendPropertyChanged("Title");
-					this.OnTitleChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Subtitle", DbType="NVarChar(1000)")]
-		public string Subtitle
-		{
-			get
-			{
-				return this._Subtitle;
-			}
-			set
-			{
-				if ((this._Subtitle != value))
-				{
-					this.OnSubtitleChanging(value);
-					this.SendPropertyChanging();
-					this._Subtitle = value;
-					this.SendPropertyChanged("Subtitle");
-					this.OnSubtitleChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_IsRead", DbType="Bit NOT NULL")]
-		public bool IsRead
-		{
-			get
-			{
-				return this._IsRead;
-			}
-			set
-			{
-				if ((this._IsRead != value))
-				{
-					this.OnIsReadChanging(value);
-					this.SendPropertyChanging();
-					this._IsRead = value;
-					this.SendPropertyChanged("IsRead");
-					this.OnIsReadChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CreatedAt", DbType="DateTime2 NOT NULL")]
-		public System.DateTime CreatedAt
-		{
-			get
-			{
-				return this._CreatedAt;
-			}
-			set
-			{
-				if ((this._CreatedAt != value))
-				{
-					this.OnCreatedAtChanging(value);
-					this.SendPropertyChanging();
-					this._CreatedAt = value;
-					this.SendPropertyChanged("CreatedAt");
-					this.OnCreatedAtChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="TaiKhoan_ThongBao", Storage="_TaiKhoan", ThisKey="MaTK", OtherKey="MaTK", IsForeignKey=true)]
-		public TaiKhoan TaiKhoan
-		{
-			get
-			{
-				return this._TaiKhoan.Entity;
-			}
-			set
-			{
-				TaiKhoan previousValue = this._TaiKhoan.Entity;
-				if (((previousValue != value) 
-							|| (this._TaiKhoan.HasLoadedOrAssignedValue == false)))
-				{
-					this.SendPropertyChanging();
-					if ((previousValue != null))
-					{
-						this._TaiKhoan.Entity = null;
-						previousValue.ThongBaos.Remove(this);
-					}
-					this._TaiKhoan.Entity = value;
-					if ((value != null))
-					{
-						value.ThongBaos.Add(this);
-						this._MaTK = value.MaTK;
-					}
-					else
-					{
-						this._MaTK = default(int);
 					}
 					this.SendPropertyChanged("TaiKhoan");
 				}

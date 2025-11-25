@@ -17,31 +17,31 @@ namespace WebBanDoAnOnline.Controllers
         {
             if (Session["TaiKhoan"] == null) return RedirectToAction("Login", "TaiKhoan");
 
-            // Nếu có ID được truyền vào (tức là bấm từ menu xuống)
+            
             if (openId.HasValue)
             {
                 var userSession = Session["TaiKhoan"] as TaiKhoan;
 
-                // Tìm thông báo đó (kèm điều kiện MaTK để bảo mật)
+                
                 var thongBaoCanMo = db.ThongBaos.FirstOrDefault(x => x.MaTB == openId.Value && x.MaTK == userSession.MaTK);
 
-                // Nếu tìm thấy và chưa đọc -> Đánh dấu là đã đọc ngay
+                
                 if (thongBaoCanMo != null && thongBaoCanMo.IsRead == false)
                 {
                     thongBaoCanMo.IsRead = true;
-                    db.SubmitChanges(); // Lưu vào CSDL
+                    db.SubmitChanges(); 
                 }
 
-                // Truyền ID này sang View để Javascript biết đường mà mở Accordion
+                
                 ViewBag.OpenId = openId.Value;
             }
 
-            // Trả về View không cần Model (vì JS sẽ tự lo phần dữ liệu)
+            
             return View();
         }
 
-        // AJAX: Lấy số lượng tin chưa đọc
-        [HttpPost]
+        //  Lấy số lượng tin chưa đọc
+
         public string GetUnreadCount()
         {
             // Nếu chưa đăng nhập -> trả về false
@@ -59,8 +59,8 @@ namespace WebBanDoAnOnline.Controllers
             return JsonConvert.SerializeObject(new { success = true, count = count });
         }
 
-        // AJAX: Đánh dấu tất cả là đã đọc
-        [HttpPost]
+        //  Đánh dấu tất cả là đã đọc
+        
         public string MarkAllRead()
         {
             if (Session["TaiKhoan"] == null)
@@ -95,29 +95,28 @@ namespace WebBanDoAnOnline.Controllers
                 return JsonConvert.SerializeObject(new { success = false, message = ex.Message });
             }
         }
-
+        // LayThongBao
         public JsonResult GetThongBao()
         {
-            // 1. KIỂM TRA ĐĂNG NHẬP
-            // Nếu chưa đăng nhập thì trả về danh sách rỗng (để không bị lỗi code JS)
+            
             if (Session["TaiKhoan"] == null)
             {
                 return Json(new { success = false, message = "Chưa đăng nhập" }, JsonRequestBehavior.AllowGet);
             }
 
-            // 2. LẤY THÔNG TIN USER TỪ SESSION
+           
             var userSession = Session["TaiKhoan"] as WebBanDoAnOnline.Models.TaiKhoan;
 
-            // 3. TRUY VẤN CÓ ĐIỀU KIỆN WHERE (Quan trọng nhất)
+            
             var list = db.ThongBaos
-                         .Where(x => x.MaTK == userSession.MaTK) // <--- LỌC THEO ID NGƯỜI DÙNG
+                         .Where(x => x.MaTK == userSession.MaTK) 
                          .OrderByDescending(x => x.CreatedAt)
                          .Take(10)
                          .ToList();
 
-            // 4. CHUYỂN ĐỔI DỮ LIỆU (Mapping)
+            // 4. CHUYỂN ĐỔI DỮ LIỆU 
             var data = list.Select(x => new {
-                // Lưu ý: Kiểm tra lại tên cột khóa chính trong DB của bạn là Id hay MaTB
+               
                 Id = x.MaTB,
                 TieuDe = x.Title,
                 NoiDungCon = x.Subtitle,
@@ -137,7 +136,7 @@ namespace WebBanDoAnOnline.Controllers
 
             var userSession = Session["TaiKhoan"] as WebBanDoAnOnline.Models.TaiKhoan;
 
-            // Tìm tin nhắn theo ID và MaTK (để bảo mật)
+           
             var thongBao = db.ThongBaos.FirstOrDefault(x => x.MaTB == id && x.MaTK == userSession.MaTK);
 
             if (thongBao != null)
@@ -162,9 +161,9 @@ namespace WebBanDoAnOnline.Controllers
                          .ToList();
 
             var data = list.Select(x => new {
-                MaTB = x.MaTB, // Nhớ dùng đúng tên khóa chính của bạn
+                MaTB = x.MaTB, 
                 TieuDe = x.Title,
-                NoiDung = x.Subtitle, // Hoặc x.Details tùy DB
+                NoiDung = x.Subtitle, 
                 ThoiGian = x.CreatedAt.ToString("dd/MM/yyyy HH:mm"),
                 DaDoc = x.IsRead
             });

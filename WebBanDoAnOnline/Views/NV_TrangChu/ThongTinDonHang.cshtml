@@ -1,0 +1,440 @@
+﻿@{
+    ViewBag.Title = "Thông tin đơn hàng";
+    Layout = "~/Views/Shared/_EmployeeLayout.cshtml";
+    var orderId = (string)(ViewBag.OrderId ?? "");
+}
+
+<style>
+    .od-page {
+        max-width: 900px;
+        margin: 0 auto 50px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Back Button */
+    .od-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        text-decoration: none;
+        color: #555;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+        .od-back:hover {
+            color: #ffc107;
+            transform: translateX(-5px);
+        }
+
+    .od-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid #f0f0f0;
+    }
+
+    /* STEPPER */
+    .od-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin-bottom: 50px;
+        margin-top: 20px;
+        padding: 0 20px;
+    }
+        /* Đường nền xám */
+        .od-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50px;
+            right: 50px;
+            height: 4px;
+            background: #e9ecef;
+            z-index: 0;
+            border-radius: 4px;
+        }
+    /* Đường active màu cam */
+    .od-progress-active {
+        position: absolute;
+        top: 20px;
+        left: 50px;
+        height: 4px;
+        background: #ffc107;
+        z-index: 1;
+        transition: width 0.5s ease;
+        border-radius: 4px;
+    }
+
+    .od-step {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        width: 100px;
+    }
+
+    .dot {
+        width: 44px;
+        height: 44px;
+        background: #e9ecef;
+        color: #6c757d;
+        border-radius: 50%;
+        margin: 0 auto 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+        border: 4px solid #fff;
+        transition: 0.3s;
+    }
+
+    .label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #adb5bd;
+        line-height: 1.3;
+    }
+
+    /* Active State */
+    .od-step.done .dot {
+        background: #ffc107;
+        color: #fff;
+    }
+
+    .od-step.done .label {
+        color: #333;
+    }
+
+    .od-step.active .dot {
+        background: #ffc107;
+        color: #fff;
+        transform: scale(1.1);
+        box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.2);
+    }
+
+    .od-step.active .label {
+        color: #ffc107;
+        font-weight: 700;
+    }
+
+    /* Cancelled State */
+    .od-step[id="step-cancelled"].active .dot {
+        background: #dc3545;
+    }
+
+    .od-step[id="step-cancelled"].active .label {
+        color: #dc3545;
+    }
+
+    .hide {
+        display: none !important;
+    }
+
+    /* INFO GRID */
+    .od-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        margin-bottom: 40px;
+    }
+
+    .od-group h5 {
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #999;
+        margin-bottom: 20px;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #f8f9fa;
+        padding-bottom: 10px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 14px;
+    }
+
+    .info-label {
+        color: #6c757d;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: #212529;
+        text-align: right;
+    }
+
+    /* ITEMS LIST */
+    .od-items {
+        border-top: 1px dashed #dee2e6;
+        padding-top: 20px;
+        margin-bottom: 30px;
+    }
+
+    .od-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+        .od-item:last-child {
+            border-bottom: none;
+        }
+
+    .item-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .item-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 1px solid #eee;
+    }
+
+    .item-name {
+        font-weight: 700;
+        font-size: 15px;
+        color: #333;
+        margin-bottom: 2px;
+    }
+
+    .item-qty {
+        font-size: 13px;
+        color: #888;
+        background: #f8f9fa;
+        padding: 2px 8px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .item-price {
+        font-weight: 700;
+        color: #333;
+    }
+
+    /* FOOTER TOTAL */
+    .od-footer {
+        background: #fcfcfc;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #f0f0f0;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e9ecef;
+        font-size: 18px;
+        font-weight: 800;
+        color: #212529;
+    }
+
+    .total-val {
+        color: #ffc107;
+        font-size: 22px;
+    }
+
+    /* Button */
+    .btn-confirm {
+        width: 100%;
+        padding: 12px;
+        font-weight: 700;
+        border-radius: 8px;
+        margin-top: 20px;
+        background: #198754;
+        border: none;
+    }
+
+        .btn-confirm:hover {
+            background: #146c43;
+        }
+</style>
+
+<div class="od-page">
+    <a href="/NV_TrangChu/Index" class="od-back"><i class="fas fa-arrow-left"></i> Quay lại danh sách</a>
+
+    <div class="od-card">
+        <!-- 1. STEPPER -->
+        <div class="od-steps">
+            <div class="od-progress-active" id="od-progress-active" style="width: 0%;"></div>
+
+            <div class="od-step" data-step="0" id="step-pending">
+                <div class="dot"><i class="fas fa-file-invoice"></i></div>
+                <div class="label">Chờ xác nhận</div>
+            </div>
+            <div class="od-step" data-step="1" id="step-shipping">
+                <div class="dot"><i class="fas fa-shipping-fast"></i></div>
+                <div class="label">Đang giao</div>
+            </div>
+            <div class="od-step" data-step="2" id="step-completed">
+                <div class="dot"><i class="fas fa-check"></i></div>
+                <div class="label">Hoàn thành</div>
+            </div>
+
+            <!-- Bước Hủy (Ẩn mặc định) -->
+            <div class="od-step hide" data-step="3" id="step-cancelled">
+                <div class="dot"><i class="fas fa-times"></i></div>
+                <div class="label">Đã hủy</div>
+            </div>
+        </div>
+
+        <div class="od-meta">
+            <!-- 2. THÔNG TIN ĐƠN -->
+            <div class="od-group">
+                <h5>Thông tin đơn hàng</h5>
+                <div class="info-row"><span class="info-label">Mã đơn hàng</span> <span class="info-value text-primary" id="od-code">...</span></div>
+                <div class="info-row"><span class="info-label">Ngày đặt hàng</span> <span class="info-value" id="od-time">...</span></div>
+                <div class="info-row"><span class="info-label">Thanh toán</span> <span class="info-value badge bg-light text-dark border" id="od-pay">...</span></div>
+
+                <!-- Nút hoàn thành (Chỉ hiện khi đang giao) -->
+                <button id="od-complete-btn" class="btn btn-success btn-confirm shadow-sm" style="display:none">
+                    <i class="fas fa-check-circle me-2"></i> Xác nhận đã giao
+                </button>
+            </div>
+
+            <!-- 3. THÔNG TIN KHÁCH -->
+            <div class="od-group">
+                <h5>Thông tin nhận hàng</h5>
+                <div class="info-row"><span class="info-label">Người nhận</span> <span class="info-value" id="od-cus-name">...</span></div>
+                <div class="info-row"><span class="info-label">Điện thoại</span> <span class="info-value" id="od-cus-phone">...</span></div>
+                <div class="info-row">
+                    <span class="info-label">Địa chỉ</span>
+                    <span class="info-value text-end" style="max-width: 220px; line-height: 1.4;" id="od-cus-addr">...</span>
+                </div>
+                <div class="info-row mt-3">
+                    <span class="info-label">Ghi chú</span>
+                    <span class="info-value text-danger fst-italic" id="od-note">Không có</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. DANH SÁCH SẢN PHẨM -->
+        <div class="od-group">
+            <h5>Chi tiết sản phẩm</h5>
+            <div class="od-items" id="od-items-list">
+                <!-- JS Render -->
+            </div>
+        </div>
+
+        <!-- 5. TỔNG TIỀN -->
+        <div class="od-footer">
+            <div class="info-row"><span class="info-label">Tổng tiền hàng</span> <span class="info-value" id="od-subtotal">0đ</span></div>
+            <div class="info-row"><span class="info-label">Phí vận chuyển</span> <span class="info-value" id="od-ship-fee">0đ</span></div>
+            <!-- <div class="info-row"><span class="info-label">Giảm giá</span> <span class="info-value text-success" id="od-discount">-0đ</span></div> -->
+
+            <div class="total-row">
+                <span>THÀNH TIỀN</span>
+                <span class="total-val" id="od-total">0đ</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var url_domain = window.location.origin;
+    var orderId = '@orderId';
+
+    function formatMoney(n) { return n.toLocaleString('vi-VN') + 'đ'; }
+
+    $(document).ready(function() {
+        if(!orderId) { alert("Lỗi ID"); return; }
+
+        var fd = new FormData(); fd.append('id', orderId);
+        $.ajax({
+            type: "POST", url: url_domain + '/NV_TrangChu/GetOrderDetail', data: fd, processData: false, contentType: false,
+            success: function(res) {
+                var d = JSON.parse(res);
+                if(!d.id) { alert("Không tìm thấy đơn hàng"); return; }
+
+                // Bind Info
+                $("#od-code").text("#" + d.id);
+                $("#od-time").text(d.time);
+                $("#od-pay").text(d.payMethod);
+                $("#od-cus-name").text(d.cusName);
+                $("#od-cus-phone").text(d.cusPhone);
+                $("#od-cus-addr").text(d.cusAddr);
+                if(d.note) $("#od-note").text(d.note);
+
+                // Render Items
+                var html = "";
+                d.items.forEach(i => {
+                    html += `
+                    <div class="od-item">
+                        <div class="item-left">
+                            <img src="${i.image}" class="item-img" onerror="this.src='/img/no-image.jpg'">
+                            <div>
+                                <div class="item-name">${i.name}</div>
+                                <div class="item-qty">x${i.qty}</div>
+                            </div>
+                        </div>
+                        <div class="item-price">${formatMoney(i.price)}</div>
+                    </div>`;
+                });
+                $("#od-items-list").html(html);
+
+                // Calc Money
+                $("#od-subtotal").text(formatMoney(d.total - d.shipFee));
+                $("#od-ship-fee").text(formatMoney(d.shipFee));
+                $("#od-total").text(formatMoney(d.total));
+
+                // Update Stepper
+                updateStepper(d.status);
+
+                // Show Button
+                if(d.status === 'shipping') {
+                    $("#od-complete-btn").show().click(function() {
+                        if(confirm("Xác nhận đơn hàng đã giao thành công?")) updateStatus(d.id, 'complete');
+                    });
+                }
+            }
+        });
+    });
+
+    function updateStepper(status) {
+        var step = 0;
+        if(status === 'shipping') step = 1;
+        if(status === 'completed') step = 2;
+
+        if(status === 'cancelled') {
+            $("#step-completed").hide();
+            $("#step-cancelled").removeClass("hide").addClass("active done");
+            $("#od-progress-active").css({width: '100%', background: '#dc3545'});
+            return;
+        }
+
+        var pct = (step / 2) * 100;
+        $("#od-progress-active").css('width', pct + '%');
+
+        $(".od-step").removeClass("active done");
+        // Active các bước đã qua
+        for(let i=0; i<=step; i++) $(`[data-step='${i}']`).addClass("done");
+        // Active bước hiện tại
+        $(`[data-step='${step}']`).addClass("active");
+    }
+
+    function updateStatus(id, action) {
+        var fd = new FormData(); fd.append('id', id); fd.append('action', action);
+        $.ajax({
+            type: "POST", url: url_domain + '/NV_TrangChu/UpdateStatus', data: fd, processData: false, contentType: false,
+            success: function(res) {
+                if(res === "OK") location.reload();
+                else alert(res);
+            }
+        });
+    }
+</script>

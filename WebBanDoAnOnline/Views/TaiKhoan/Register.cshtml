@@ -199,44 +199,66 @@
 <script>
     $(document).ready(function () {
 
-        // Xử lý nút Đăng ký
         $("#btn_register").click(function () {
-            // 1. Validate phía Client trước
+            // 1. Lấy giá trị
             var name = $("#txt_name").val().trim();
             var user = $("#txt_user").val().trim();
+            var phone = $("#txt_phone").val().trim();
+            var email = $("#txt_email").val().trim();
             var pass = $("#txt_pass").val();
             var repass = $("#txt_repass").val();
 
-            if (name == "" || user == "" || pass == "") {
+            // 2. Validate cơ bản
+            if (name == "" || user == "" || pass == "" || phone == "" || email == "") {
                 showError("Vui lòng nhập đầy đủ thông tin bắt buộc!");
                 return;
             }
-            if (pass !== repass) {
-                showError("Mật khẩu xác nhận không khớp!");
-                return;
+
+            // Validate Số điện thoại
+            var phoneRegex = /^\d+$/;
+            if (!phoneRegex.test(phone)) {
+                showError("Số điện thoại chỉ được chứa ký tự số!"); return;
+            }
+            if (phone.length < 9 || phone.length > 12) {
+                showError("Độ dài số điện thoại không hợp lệ!"); return;
             }
 
-            // 2. Gửi AJAX
+            // Validate Email
+            var emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            if (!emailRegex.test(email)) {
+                showError("Email không hợp lệ!"); return;
+            }
+
+            // Validate Pass
+            if (pass !== repass) {
+                showError("Mật khẩu xác nhận không khớp!"); return;
+            }
+            if (pass.length < 6) {
+                showError("Mật khẩu phải có ít nhất 6 ký tự!"); return;
+            }
+
+            // 3. Gửi AJAX
             var form = $('#reg_frm')[0];
             var formData = new FormData(form);
 
             $.ajax({
                 type: "POST",
-                url: window.location.origin + '/TaiKhoan/Register_act', // Gọi tới action xử lý đăng ký
+                url: '/TaiKhoan/Register_act',
                 data: formData,
                 processData: false,
                 contentType: false,
-                beforeSend: function() {
+                beforeSend: function () {
                     $("#btn_register").text("Đang xử lý...").prop("disabled", true);
                     $("#error-msg").hide();
                 },
-                success: function (response) {
-                    var rs = JSON.parse(response);
-                    if (rs.ErrCode == 1) {
+                success: function (rs) {
+                    // --- ĐOẠN NÀY ĐÃ SỬA ---
+                    if (rs.success) {
                         alert("Đăng ký thành công! Vui lòng đăng nhập.");
                         window.location.href = "/TaiKhoan/Login";
                     } else {
-                        showError(rs.Msg);
+                        // Hiển thị message lỗi từ server
+                        showError(rs.message);
                         $("#btn_register").text("Đăng ký ngay").prop("disabled", false);
                     }
                 },
@@ -247,14 +269,11 @@
             });
         });
 
-        // Hàm hiển thị lỗi
         function showError(msg) {
             $("#error-msg").text(msg).fadeIn();
         }
 
-        // Toggle ẩn/hiện password (áp dụng cho cả 2 ô mật khẩu)
-        $(".toggle-password").click(function() {
-            // Tìm ô input nằm cùng cấp cha với icon này
+        $(".toggle-password").click(function () {
             var input = $(this).siblings("input");
             if (input.attr("type") === "password") {
                 input.attr("type", "text");

@@ -156,8 +156,8 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end mt-2">
                                 <li class="dropdown-header">Xin chào, <span id="user-fullname"></span></li>
-                                <li><a class="dropdown-item" href="#"><i class="fa-regular fa-user me-2"></i> Tài khoản</a></li>
-                                <li><a class="dropdown-item" href="/GioHang/LichSuDonHang"><i class="fa-solid fa-receipt me-2"></i> Đơn mua</a></li>
+                                <li><a class="dropdown-item" href="~/CaiDat/HoSo"><i class="fa-regular fa-user me-2"></i> Tài khoản</a></li>
+                                <li><a class="dropdown-item" href="~/CaiDat/DonMua"><i class="fa-solid fa-receipt me-2"></i> Đơn mua</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="/TaiKhoan/LogOff" method="post" id="logoutForm">
@@ -204,7 +204,7 @@
                         $("#panel-guest").hide();
                         $("#panel-user").css("display", "flex");
                         $("#user-fullname").text(res.fullName);
-                        $("#user-avatar-img").attr("src", res.avatar || "https://i.imgur.com/4Ym2k5N.png");
+                        $("#user-avatar-img").attr("src", res.avatar || "/img/default-avatar.png");
                         if (res.cartCount > 0) $("#cart-badge").text(res.cartCount).show();
                         if (res.notifCount > 0) $("#notif-badge").text(res.notifCount).show();
                     } else {

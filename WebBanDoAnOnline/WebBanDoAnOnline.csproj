@@ -164,6 +164,7 @@
     <Compile Include="Controllers\GioHangController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\NguoiDungController.cs" />
+    <Compile Include="Controllers\NV_TrangChuController.cs" />
     <Compile Include="Controllers\SanPhamController.cs" />
     <Compile Include="Controllers\TaiKhoanController.cs" />
     <Compile Include="Controllers\ThanhToanController.cs" />
@@ -178,7 +179,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>BanDoAnOnline.dbml</DependentUpon>
     </Compile>
-    <Compile Include="Models\FunctResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -219,6 +219,48 @@
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
     <Content Include=".github\copilot-instructions.md" />
+    <Content Include="img\BanhCrep.jpg" />
+    <Content Include="img\BanhMacaron.jpg" />
+    <Content Include="img\BanhMi.jpg" />
+    <Content Include="img\BanhTiraminsu.jpg" />
+    <Content Include="img\banner.png" />
+    <Content Include="img\BunCha.jpg" />
+    <Content Include="img\Burrito.jpg" />
+    <Content Include="img\CaHoiApChao.jpg" />
+    <Content Include="img\ComboGaRanVaSalad.jpg" />
+    <Content Include="img\ComboNemNuongVaNuoc.jpg" />
+    <Content Include="img\default-avatar.png" />
+    <Content Include="img\dm-combo.png" />
+    <Content Include="img\dm-do-uong.png" />
+    <Content Include="img\dm-khai-vi.png" />
+    <Content Include="img\dm-mon-chinh.png" />
+    <Content Include="img\dm-salad.png" />
+    <Content Include="img\dm-trang-mieng.png" />
+    <Content Include="img\Garan.jpg" />
+    <Content Include="img\goiRauMa.jpg" />
+    <Content Include="img\Hamburger.jpg" />
+    <Content Include="img\KemXoi.jpg" />
+    <Content Include="img\LauThai.jpg" />
+    <Content Include="img\MienLuon.jpg" />
+    <Content Include="img\NemNuong.jpg" />
+    <Content Include="img\NgoNuong.jpg" />
+    <Content Include="img\OcBuouNhoiThit.jpg" />
+    <Content Include="img\Pancake.jpg" />
+    <Content Include="img\PhoBo.jpg" />
+    <Content Include="img\Pizza.jpg" />
+    <Content Include="img\saladTom.jpg" />
+    <Content Include="img\saladTron.jpg" />
+    <Content Include="img\SinhToDuaHau.jpg" />
+    <Content Include="img\Spaghetti.jpg" />
+    <Content Include="img\Steak.jpg" />
+    <Content Include="img\Sushi.jpg" />
+    <Content Include="img\Taco.jpg" />
+    <Content Include="img\TraChanh.jpg" />
+    <Content Include="img\TraChanhMamXoi.jpg" />
+    <Content Include="img\TraSuaMatchaLatte.jpg" />
+    <Content Include="img\TraSuaTranChauDuongDen.jpg" />
+    <Content Include="img\XoiXoai.jpg" />
+    <Content Include="img\XucXichNuong.jpg" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -293,10 +335,13 @@
     <Content Include="Views\CaiDat\DiaChi.cshtml" />
     <Content Include="Views\CaiDat\KhuyenMai.cshtml" />
     <Content Include="Views\CaiDat\XoaTaiKhoan.cshtml" />
+    <Content Include="Views\Shared\_EmployeeLayout.cshtml" />
+    <Content Include="Views\NV_TrangChu\Index.cshtml" />
+    <Content Include="Views\NV_TrangChu\ThongTinDonHang.cshtml" />
+    <Content Include="Views\SanPham\NhanVien.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="img\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />

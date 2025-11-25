@@ -14,9 +14,11 @@ namespace WebBanDoAnOnline.Controllers
     public class SanPhamController : Controller
     {
         // 1. Các Action trả về View
-        public ActionResult Index() { return View(); } // Cho khách hàng
+        public ActionResult Index() { return View(); } 
 
-        // Action cho Admin (Quản lý sản phẩm)
+        public ActionResult NhanVien() { return View(); }
+
+       
         public ActionResult LaySanPham()
         {
             if (Session["TaiKhoan"] == null) return RedirectToAction("Login", "TaiKhoan");
@@ -36,10 +38,9 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-        // ============================================================
-        // API 1: Lấy danh sách (Dùng chung cho Admin và Khách)
-        // ============================================================
-        [HttpPost]
+        
+        // 1: Lấy danh sách 
+        
         public string Lay_Menu()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
@@ -53,12 +54,10 @@ namespace WebBanDoAnOnline.Controllers
             if (!string.IsNullOrEmpty(page_str)) int.TryParse(page_str, out currentPage);
             int pageSize = 8;
 
-            // 2. Query cơ bản (Chỉ lấy cái chưa bị xóa mềm)
+            
             var query = db.SanPhams.Where(sp => (sp.isDelete == null || sp.isDelete == 0));
 
-            // Admin có thể muốn xem cả món Hết hàng, nên chỉ lọc 'Còn hàng' nếu là Khách (tuỳ logic)
-            // Ở đây ta lọc chung, nhưng nếu muốn admin thấy hết thì bỏ đoạn && sp.TrangThai == "Còn hàng" đi
-            // query = query.Where(sp => sp.TrangThai == "Còn hàng"); 
+           
 
             // 3. Lọc theo Danh mục
             if (!string.IsNullOrEmpty(maDM_str))
@@ -90,8 +89,8 @@ namespace WebBanDoAnOnline.Controllers
                                         sp.TenSP,
                                         sp.Gia,
                                         sp.Anh,
-                                        sp.TrangThai, // Thêm trạng thái để Admin hiển thị
-                                        sp.DiemDanhGia // Thêm điểm
+                                        sp.TrangThai, 
+                                        sp.DiemDanhGia 
                                     })
                                     .ToList();
 
@@ -106,10 +105,9 @@ namespace WebBanDoAnOnline.Controllers
             return JsonConvert.SerializeObject(result);
         }
 
-        // ============================================================
+        
         // API 2: Lấy thông tin 1 sản phẩm (Để sửa/Xem chi tiết)
-        // ============================================================
-        [HttpPost]
+        
         public string LayTTSP()
         {
             string id_str = Request["id"];
@@ -134,10 +132,9 @@ namespace WebBanDoAnOnline.Controllers
             return "{}";
         }
 
-        // ============================================================
+        
         // API 3: Thêm mới
-        // ============================================================
-        [HttpPost]
+        
         public string InsertSP()
         {
             try
@@ -155,10 +152,10 @@ namespace WebBanDoAnOnline.Controllers
                     Gia = decimal.Parse(Request["txt_Gia"]),
                     MoTa = Request["txt_MoTa"],
                     MaDM = int.Parse(Request["slc_MaDM"]),
-                    TrangThai = "Còn hàng", // Mặc định
+                    TrangThai = "Còn hàng", 
                     Create_at = DateTime.Now,
                     isDelete = 0,
-                    Anh = "~/img/no-image.jpg" // Ảnh mặc định
+                    Anh = "~/img/no-image.jpg" 
                 };
 
                 // Xử lý file ảnh
@@ -183,10 +180,9 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        // ============================================================
+        
         // API 4: Cập nhật
-        // ============================================================
-        [HttpPost]
+        // CapNhatSanPham
         public string UpdateSP()
         {
             try
@@ -233,10 +229,9 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        // ============================================================
-        // API 5: Xóa (SỬA LỖI QUAN TRỌNG TẠI ĐÂY)
-        // ============================================================
-        [HttpPost]
+        
+        // API 5: Xóa 
+       
         public string Delete()
         {
             try
@@ -250,13 +245,10 @@ namespace WebBanDoAnOnline.Controllers
 
                 if (sp != null)
                 {
-                    // --- SỬA: CHUYỂN SANG XÓA MỀM ---
+                    
                     sp.isDelete = 1;
                     sp.Delete_at = DateTime.Now;
-                    // sp.TrangThai = "Hết hàng"; // Có thể thêm dòng này nếu muốn ẩn hẳn
-
-                    // --- KHÔNG DÙNG DeleteOnSubmit VÌ DÍNH KHÓA NGOẠI ---
-                    // db.SanPhams.DeleteOnSubmit(sp); 
+                    
 
                     db.SubmitChanges();
                     return "Xóa sản phẩm thành công!";
@@ -265,8 +257,34 @@ namespace WebBanDoAnOnline.Controllers
             }
             catch (Exception ex)
             {
-                // Bắt lỗi SQL hoặc lỗi hệ thống để báo ra view
+                
                 return "Xóa thất bại. Chi tiết: " + ex.Message;
+            }
+        }
+        // API: Cập nhật trạng thái nhanh (NhanVien)
+        
+        public string UpdateStock()
+        {
+            try
+            {
+                string id_str = Request["id"];
+                string status = Request["status"]; 
+
+                int id = int.Parse(id_str);
+                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+                var sp = db.SanPhams.FirstOrDefault(p => p.MaSP == id);
+
+                if (sp != null)
+                {
+                    sp.TrangThai = status;
+                    db.SubmitChanges();
+                    return "OK";
+                }
+                return "Không tìm thấy sản phẩm";
+            }
+            catch (Exception ex)
+            {
+                return "Lỗi: " + ex.Message;
             }
         }
     }

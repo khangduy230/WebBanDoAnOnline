@@ -17,8 +17,8 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-        // API 1: Lấy danh sách giỏ hàng
-        [HttpPost]
+        // 1: Lấy danh sách giỏ hàng
+       
         public string Lay_DSGioHang()
         {
             var user = Session["TaiKhoan"] as TaiKhoan;
@@ -39,7 +39,7 @@ namespace WebBanDoAnOnline.Controllers
                 var listResult = new List<object>();
                 foreach (var item in query)
                 {
-                    // Logic giá khuyến mãi
+                    
                     decimal giaGoc = item.p.Gia ?? 0;
                     decimal giaKM = item.p.GiaKhuyenMai ?? 0;
                     decimal giaBan = giaGoc;
@@ -73,8 +73,8 @@ namespace WebBanDoAnOnline.Controllers
             return "[]";
         }
 
-        // API 2: Thêm vào giỏ (Quan trọng: Xử lý Unique Key & Xóa mềm)
-        [HttpPost]
+        // 2: Thêm vào giỏ (ThemGioHang)
+       
         public string AddToCart()
         {
             string id_str = Request["productId"];
@@ -94,7 +94,7 @@ namespace WebBanDoAnOnline.Controllers
             var sp = db.SanPhams.FirstOrDefault(x => x.MaSP == id && (x.isDelete == 0 || x.isDelete == null));
             if (sp == null || sp.TrangThai != "Còn hàng") return "Sản phẩm tạm hết hàng hoặc không tồn tại";
 
-            // Check trong giỏ (Lấy cả dòng đã xóa mềm để khôi phục)
+            // Check trong giỏ 
             var cartItem = db.GioHangs.FirstOrDefault(g => g.MaSP == id && g.MaTK == user.MaTK);
 
             if (cartItem != null)
@@ -131,8 +131,8 @@ namespace WebBanDoAnOnline.Controllers
             return "Đã thêm vào giỏ hàng";
         }
 
-        // API 3: Cập nhật số lượng
-        [HttpPost]
+        //  3: Cập nhật số lượng
+        
         public string CapNhat_SoLuong()
         {
             string id_str = Request["id"];
@@ -159,8 +159,8 @@ namespace WebBanDoAnOnline.Controllers
             return "Fail";
         }
 
-        // API 4: Cập nhật Ghi chú
-        [HttpPost]
+        //4: Cập nhật Ghi chú
+       
         public string CapNhat_GhiChu()
         {
             string id_str = Request["id"];
@@ -183,8 +183,8 @@ namespace WebBanDoAnOnline.Controllers
             return "Fail";
         }
 
-        // API 5: Xóa sản phẩm
-        [HttpPost]
+        // 5: Xóa sản phẩm
+    
         public string Xoa_SP_GioHang()
         {
             string id_str = Request["id"];
@@ -206,23 +206,23 @@ namespace WebBanDoAnOnline.Controllers
             return "Fail";
         }
 
-        // API MỚI: Lưu danh sách ID sản phẩm được chọn trước khi sang thanh toán
-        [HttpPost]
+        //  Lưu danh sách ID sản phẩm được chọn trước khi sang thanh toán
+       
         public string LuuSanPhamThanhToan()
         {
             try
             {
-                // Client sẽ gửi lên chuỗi dạng "1,5,8" (các mã sản phẩm)
+                
                 string ids = Request["selectedIds"];
 
                 if (string.IsNullOrEmpty(ids))
                 {
-                    // Nếu không chọn gì thì xóa session cũ đi
+                   
                     Session["CheckoutItems"] = null;
                     return "Vui lòng chọn ít nhất 1 sản phẩm.";
                 }
 
-                // Lưu vào Session để trang ThanhToan sử dụng
+                
                 Session["CheckoutItems"] = ids;
 
                 return "OK";

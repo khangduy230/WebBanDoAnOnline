@@ -14,25 +14,32 @@ namespace WebBanDoAnOnline.Controllers
         {
             var user = Session["TaiKhoan"] as TaiKhoan;
 
-            // 1. Chưa đăng nhập -> Đá về trang login
+            // 1. Chưa đăng nhập -> Về trang login
             if (user == null)
             {
                 filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "TaiKhoan", action = "Login", area = "" }));
                 return;
             }
 
-            // 2. Đã đăng nhập nhưng là Khách hàng -> Đá về trang chủ bán hàng
-            if (user.VaiTro == "Khách hàng")
+            // 2. Đã đăng nhập nhưng khác quản lý
+            if (user.VaiTro != "Quản lý")
             {
-                // Có thể kèm thông báo lỗi nếu muốn
-                filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "Home", action = "Index", area = "" }));
+                if (user.VaiTro == "Khách hàng")
+                {    
+                    filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "Home", action = "Index", area = "" }));
+                }
+                else
+                {
+                    filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "NV_TrangChu", action = "Index", area = "" }));
+                }
                 return;
             }
 
-            // Nếu là Quản lý hoặc Nhân viên thì cho qua
+            // Nếu là Quản lý thì cho qua
             base.OnActionExecuting(filterContext);
         }
 
+        // 2. LẤY DỮ LIỆU DASHBOARD 
         public string GetDashboardData()
         {
             try

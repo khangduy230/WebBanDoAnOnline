@@ -16,7 +16,7 @@ namespace WebBanDoAnOnline.Controllers
         }
 
         // 2. API lấy dữ liệu sản phẩm cho trang chủ
-        [HttpPost]
+        
         public string GetHomeDataJson()
         {
             try
@@ -24,26 +24,26 @@ namespace WebBanDoAnOnline.Controllers
                 BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
                 // Lấy 8 sản phẩm mới nhất, chưa xóa, còn hàng
-                // Sắp xếp theo ngày tạo (mới nhất lên đầu) hoặc điểm đánh giá
+                // Sắp xếp 
                 var list = db.SanPhams
                              .Where(x => (x.isDelete == null || x.isDelete == 0) && x.TrangThai == "Còn hàng")
                              .OrderByDescending(x => x.Create_at)
                              .Take(8)
                              .ToList();
 
-                // Map dữ liệu sang object ẩn danh
+                
                 var data = list.Select(x => new
                 {
                     MaSP = x.MaSP,
                     TenSP = x.TenSP,
-                    Anh = x.Anh, // Cột trong DB là Anh
+                    Anh = x.Anh, 
                     GiaGoc = x.Gia ?? 0,
                     GiaKM = x.GiaKhuyenMai ?? 0,
 
-                    // DB không có LuotXem, ta lấy SoLuotDanhGia làm số liệu hiển thị thay thế
+                    
                     LuotXem = x.SoLuotDanhGia ?? 0,
 
-                    // Logic kiểm tra giảm giá
+                    
                     DangGiamGia = (x.GiaKhuyenMai > 0 && x.GiaKhuyenMai < x.Gia)
                 });
 
@@ -55,8 +55,8 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        // 3. API lấy thông tin Header (Login, Cart count...)
-        [HttpPost]
+        // 3.  lấy thông tin Header 
+       
         public string GetHeaderInfo()
         {
             // Kiểm tra session
@@ -81,7 +81,7 @@ namespace WebBanDoAnOnline.Controllers
             {
                 isLogin = true,
                 fullName = user.HoTen,
-                avatar = !string.IsNullOrEmpty(user.AnhDaiDien) ? user.AnhDaiDien : "https://i.imgur.com/4Ym2k5N.png",
+                avatar = !string.IsNullOrEmpty(user.AnhDaiDien) ? user.AnhDaiDien : "/img/default-avatar.png",
                 cartCount = cartCount,
                 notifCount = notifCount
             });

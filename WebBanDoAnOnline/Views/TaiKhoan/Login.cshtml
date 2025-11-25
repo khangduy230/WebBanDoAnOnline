@@ -180,13 +180,10 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     $(document).ready(function () {
-
-        // Xử lý sự kiện click nút Đăng nhập
         $("#btn_login").click(function () {
             var form = $('#act_frm')[0];
             var formData = new FormData(form);
 
-            // Validate cơ bản
             if ($("#txt_acc").val().trim() == "" || $("#txt_pass").val().trim() == "") {
                 $("#error-msg").text("Vui lòng nhập đầy đủ thông tin!").show();
                 return;
@@ -194,7 +191,7 @@
 
             $.ajax({
                 type: "POST",
-                url: window.location.origin + '/TaiKhoan/Login_act',
+                url: '/TaiKhoan/Login_act',
                 data: formData,
                 processData: false,
                 contentType: false,
@@ -203,17 +200,14 @@
                     $("#btn_login").text("Đang xử lý...").prop("disabled", true);
                     $("#error-msg").hide();
                 },
-                success: function (response) {
-                    // Parse JSON trả về từ Controller
-                    var rs = JSON.parse(response);
-
-                    if (rs.ErrCode == 1) {
-                        // --- THÀNH CÔNG: CHUYỂN HƯỚNG THEO URL SERVER TRẢ VỀ ---
-                        // (Server đã tính toán xem nên về Home hay Admin rồi)
-                        window.location.href = window.location.origin + rs.Url;
+                success: function (rs) {
+                    // --- ĐOẠN NÀY ĐÃ SỬA ---
+                    if (rs.success) {
+                        // Nếu success = true -> Chuyển hướng
+                        window.location.href = rs.url;
                     } else {
-                        // Thất bại
-                        $("#error-msg").text(rs.Msg).fadeIn();
+                        // Nếu success = false -> Hiện lỗi (rs.message)
+                        $("#error-msg").text(rs.message).fadeIn();
                         $("#btn_login").text("Đăng nhập").prop("disabled", false);
                     }
                 },
@@ -225,7 +219,7 @@
             });
         });
 
-        // Toggle ẩn/hiện mật khẩu
+        // Các xử lý giao diện khác giữ nguyên
         $(".toggle-password").click(function () {
             var input = $("#txt_pass");
             if (input.attr("type") === "password") {
@@ -237,7 +231,6 @@
             }
         });
 
-        // Bắt sự kiện Enter
         $("#txt_pass").keypress(function (event) {
             if (event.keyCode === 13) $("#btn_login").click();
         });

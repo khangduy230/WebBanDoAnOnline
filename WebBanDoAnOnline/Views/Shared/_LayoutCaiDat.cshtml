@@ -1,8 +1,27 @@
-﻿@{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+﻿@using WebBanDoAnOnline.Models
+@{
+    // 1. Xác định Layout cha dựa trên Session
+    string parentLayout = "~/Views/Shared/_Layout.cshtml"; // Mặc định là Khách
+
+    if (Session["TaiKhoan"] != null)
+    {
+        var user = Session["TaiKhoan"] as TaiKhoan;
+        if (user.VaiTro == "Quản lý")
+        {
+            parentLayout = "~/Views/Shared/_AdLayout.cshtml";
+        }
+        else if (user.VaiTro == "Nhân viên")
+        {
+            parentLayout = "~/Views/Shared/_EmployeeLayout.cshtml";
+        }
+    }
+
+    // 2. Gán Layout cha
+    Layout = parentLayout;
 }
 
 <style>
+    /* CSS giữ nguyên của bạn */
     .settings-container {
         max-width: 1200px;
         margin: 0 auto;
@@ -57,6 +76,7 @@
         border-radius: 8px;
         padding: 30px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        min-height: 400px;
     }
 </style>
 
@@ -68,38 +88,43 @@
                 <ul class="settings-menu">
                     <li>
                         <a href="@Url.Action("HoSo", "CaiDat")" class="@(ViewContext.RouteData.Values["action"].ToString() == "HoSo" ? "active" : "")">
-                            <i class="fas fa-user"></i>
-                            <span>Hồ sơ</span>
+                            <i class="fas fa-user"></i><span>Hồ sơ</span>
                         </a>
                     </li>
                     <li>
                         <a href="@Url.Action("BaoMat", "CaiDat")" class="@(ViewContext.RouteData.Values["action"].ToString() == "BaoMat" ? "active" : "")">
-                            <i class="fas fa-lock"></i>
-                            <span>Bảo mật</span>
+                            <i class="fas fa-lock"></i><span>Bảo mật</span>
                         </a>
                     </li>
+
+                    @* Ẩn các menu không cần thiết với Nhân viên/Admin nếu muốn *@
+                    @if (Session["TaiKhoan"] != null && ((TaiKhoan)Session["TaiKhoan"]).VaiTro == "Khách hàng")
+                    {
+                        <li>
+                            <a href="@Url.Action("DiaChi", "CaiDat")" class="@(ViewContext.RouteData.Values["action"].ToString() == "DiaChi" ? "active" : "")">
+                                <i class="fas fa-map-marker-alt"></i><span>Địa chỉ</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("DonMua", "CaiDat")" class="@(ViewContext.RouteData.Values["action"].ToString() == "DonMua" ? "active" : "")">
+                                <i class="fas fa-shopping-bag"></i><span>Đơn mua</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("KhuyenMai", "CaiDat")" class="@(ViewContext.RouteData.Values["action"].ToString() == "KhuyenMai" ? "active" : "")">
+                                <i class="fas fa-ticket-alt"></i><span>Khuyến mãi</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("XoaTaiKhoan", "CaiDat")" class="@(ViewContext.RouteData.Values["action"].ToString() == "XoaTaiKhoan" ? "active" : "")">
+                                <i class="fas fa-user-slash"></i><span>Xóa tài khoản</span>
+                            </a>
+                        </li>
+                    }
+
                     <li>
-                        <a href="@Url.Action("DiaChi", "CaiDat")" class="@(ViewContext.RouteData.Values["action"].ToString() == "DiaChi" ? "active" : "")">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>Địa chỉ</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="@Url.Action("DonMua", "CaiDat")" class="@(ViewContext.RouteData.Values["action"].ToString() == "DonMua" ? "active" : "")">
-                            <i class="fas fa-shopping-bag"></i>
-                            <span>Đơn mua</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="@Url.Action("KhuyenMai", "CaiDat")" class="@(ViewContext.RouteData.Values["action"].ToString() == "KhuyenMai" ? "active" : "")">
-                            <i class="fas fa-ticket-alt"></i>
-                            <span>Khuyến mãi</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="@Url.Action("XoaTaiKhoan", "CaiDat")" class="@(ViewContext.RouteData.Values["action"].ToString() == "XoaTaiKhoan" ? "active" : "")">
-                            <i class="fas fa-user-slash"></i>
-                            <span>Xóa tài khoản</span>
+                        <a href="@Url.Action("LogOff", "TaiKhoan")" class="text-danger">
+                            <i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span>
                         </a>
                     </li>
                 </ul>
@@ -115,4 +140,7 @@
     </div>
 </div>
 
-@RenderSection("Scripts", required: false)
+@* Truyền script từ View con ra Layout cha *@
+@section scripts {
+    @RenderSection("scripts", required: false)
+}
