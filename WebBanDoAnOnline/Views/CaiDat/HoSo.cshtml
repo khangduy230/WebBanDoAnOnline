@@ -117,10 +117,10 @@
         var url_domain = window.location.origin;
 
         $(document).ready(function () {
-            // Load profile data
+            // Load dữ liệu khi vào trang
             loadProfile();
 
-            // Avatar change preview
+            // Xem trước ảnh khi chọn file
             $('#avatarInput').change(function (e) {
                 var file = e.target.files[0];
                 if (file) {
@@ -133,7 +133,7 @@
                 }
             });
 
-            // Form submit
+            // Xử lý Lưu
             $('#profileForm').submit(function (e) {
                 e.preventDefault();
                 saveProfile();
@@ -144,25 +144,29 @@
             $.ajax({
                 type: "POST",
                 url: url_domain + '/CaiDat/GetProfile',
-                contentType: false,
-                processData: false,
-                cache: false,
+                contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     if (res.success) {
                         $('#fullName').val(res.data.HoTen || '');
                         $('#email').val(res.data.Email || '');
                         $('#phone').val(res.data.SoDienThoai || '');
-                        $('#avatarPreview').attr('src', res.data.Avatar || 'https://i.imgur.com/4Ym2k5N.png');
+
+                        // Xử lý đường dẫn ảnh và thêm timestamp để tránh cache
+                        if (res.data.Avatar) {
+                            var imgUrl = res.data.Avatar.replace("~", "") + "?v=" + new Date().getTime();
+                            $('#avatarPreview').attr('src', imgUrl);
+                        }
                     }
                 },
-                error: function () {
-                    alert('Lỗi khi tải thông tin!');
-                }
+                error: function () { alert('Lỗi tải thông tin.'); }
             });
         }
 
         function saveProfile() {
+            var btn = $(".btn-save");
+            btn.prop("disabled", true).text("Đang lưu...");
+
             var formData = new FormData();
             formData.append('HoTen', $('#fullName').val());
             formData.append('Email', $('#email').val());
@@ -175,21 +179,22 @@
             $.ajax({
                 type: "POST",
                 url: url_domain + '/CaiDat/SaveProfile',
-                data: formData,
-                contentType: false,
-                processData: false,
-                cache: false,
+                data: formData, contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     if (res.success) {
                         alert('Cập nhật thành công!');
-                        selectedAvatar = null;
+
+                        // QUAN TRỌNG: Reload lại trang để cập nhật Header/Avatar mới
+                        window.location.reload();
                     } else {
                         alert(res.message);
+                        btn.prop("disabled", false).text("Lưu thay đổi");
                     }
                 },
                 error: function () {
                     alert('Lỗi kết nối server!');
+                    btn.prop("disabled", false).text("Lưu thay đổi");
                 }
             });
         }

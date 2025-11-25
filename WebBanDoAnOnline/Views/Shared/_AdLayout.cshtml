@@ -11,12 +11,13 @@
 
     <!-- 2. CSS RIÊNG CHO ADMIN DASHBOARD -->
     <style>
+        /* ... (Giữ nguyên phần CSS của bạn) ... */
         :root {
             --primary-color: #0d6efd;
             --sidebar-width: 250px;
             --header-height: 60px;
             --bg-color: #f5f7fb;
-            --orange-color: #fd7e14; /* Màu cam chủ đạo */
+            --orange-color: #fd7e14;
         }
 
         body {
@@ -25,7 +26,6 @@
             overflow-x: hidden;
         }
 
-        /* --- SIDEBAR --- */
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
@@ -64,26 +64,24 @@
             border-left: 4px solid transparent;
         }
 
-        .menu-item:hover, .menu-item.active {
-            color: var(--primary-color);
-            background-color: #f8f9fa;
-            border-left-color: var(--primary-color);
-        }
+            .menu-item:hover, .menu-item.active {
+                color: var(--primary-color);
+                background-color: #f8f9fa;
+                border-left-color: var(--primary-color);
+            }
 
-        .menu-item i {
-            width: 25px;
-            text-align: center;
-            margin-right: 10px;
-        }
+            .menu-item i {
+                width: 25px;
+                text-align: center;
+                margin-right: 10px;
+            }
 
-        /* --- MAIN CONTENT --- */
         .main-content {
             margin-left: var(--sidebar-width);
             padding: 20px;
             transition: all 0.3s;
         }
 
-        /* --- TOP HEADER --- */
         .top-header {
             height: var(--header-height);
             background: #fff;
@@ -97,8 +95,9 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
 
-        /* --- DASHBOARD WIDGETS --- */
-        .text-orange { color: var(--orange-color) !important; }
+        .text-orange {
+            color: var(--orange-color) !important;
+        }
 
         .stat-card {
             border: none;
@@ -107,7 +106,10 @@
             transition: transform 0.2s;
             height: 100%;
         }
-        .stat-card:hover { transform: translateY(-3px); }
+
+            .stat-card:hover {
+                transform: translateY(-3px);
+            }
 
         .dashboard-panel {
             border: none;
@@ -140,15 +142,22 @@
             color: #adb5bd;
         }
 
-        /* Mobile Responsive */
         @@media (max-width: 768px) {
-            .sidebar { margin-left: calc(-1 * var(--sidebar-width)); }
-            .sidebar.active { margin-left: 0; }
-            .main-content { margin-left: 0; }
+            .sidebar {
+                margin-left: calc(-1 * var(--sidebar-width));
+            }
+
+                .sidebar.active {
+                    margin-left: 0;
+                }
+
+            .main-content {
+                margin-left: 0;
+            }
         }
     </style>
 
-    <!-- jQuery (Cần thiết cho Ajax) -->
+    <!-- jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
@@ -156,42 +165,37 @@
     <!-- 1. SIDEBAR TRÁI -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="~/QL_TrangChu/Index" class="text-decoration-none">
+            <a href="@Url.Action("TrangChu", "QuanLy")" class="text-decoration-none">
                 <i class="fas fa-utensils text-warning me-2"></i> FuTho<span class="fw-light">Admin</span>
             </a>
         </div>
         <ul class="sidebar-menu p-0">
-            <!-- Dashboard -->
+            <!-- Menu Items -->
             <li>
-                <a href="@Url.Action("Index", "QL_TrangChu")" class="menu-item @(ViewBag.Title == "Dashboard" ? "active" : "")">
+                <a href="@Url.Action("TrangChu", "QuanLy")" class="menu-item @(ViewBag.Title == "Dashboard" ? "active" : "")">
                     <i class="fas fa-chart-pie"></i> Tổng quan
                 </a>
             </li>
-            <!-- Quản lý Sản phẩm -->
             <li>
                 <a href="@Url.Action("LaySanPham", "SanPham")" class="menu-item @(ViewBag.Title.ToString().Contains("sản phẩm") ? "active" : "")">
                     <i class="fas fa-hamburger"></i> Món ăn
                 </a>
             </li>
-            <!-- Quản lý Danh mục -->
             <li>
-                <a href="@Url.Action("SuaDanhMuc", "DanhMuc")" class="menu-item @(ViewBag.Title.ToString().Contains("Danh mục") ? "active" : "")">
+                <a href="@Url.Action("Index", "DanhMuc")" class="menu-item @(ViewBag.Title.ToString().Contains("Danh mục") ? "active" : "")">
                     <i class="fas fa-list"></i> Danh mục
                 </a>
             </li>
-            <!-- Quản lý Voucher -->
             <li>
                 <a href="@Url.Action("LayVoucher", "Voucher")" class="menu-item @(ViewBag.Title.ToString().Contains("Voucher") ? "active" : "")">
                     <i class="fas fa-ticket-alt"></i> Khuyến mãi
                 </a>
             </li>
-            <!-- Quản lý Người dùng -->
             <li>
                 <a href="@Url.Action("LayNguoiDung", "NguoiDung")" class="menu-item @(ViewBag.Title.ToString().Contains("Người dùng") ? "active" : "")">
                     <i class="fas fa-users"></i> Tài khoản
                 </a>
             </li>
-            <!-- Cài đặt / Khác -->
             <li class="mt-3 border-top pt-3">
                 <div class="px-4 small text-muted text-uppercase fw-bold mb-2">Hệ thống</div>
             </li>
@@ -201,25 +205,26 @@
         </ul>
     </aside>
 
-    <!-- 2. NỘI DUNG CHÍNH (BÊN PHẢI) -->
+    <!-- 2. NỘI DUNG CHÍNH -->
     <div class="main-content" id="main-content">
 
         <!-- Top Header -->
         <header class="top-header">
-            <!-- Nút toggle sidebar (mobile) -->
             <button class="btn btn-light d-md-none" id="sidebar-toggle">
                 <i class="fas fa-bars"></i>
             </button>
 
-            <!-- Tiêu đề trang hiện tại -->
             <h5 class="m-0 d-none d-md-block fw-bold text-secondary">@ViewBag.Title</h5>
 
-            <!-- User Dropdown (Đã sửa để click được) -->
+            <!-- User Dropdown -->
             <div class="dropdown">
-                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="/img/default-avatar.png" alt="Admin" class="me-2 rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;">
+                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark admin-profile" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+
+                    <!-- ẢNH ĐẠI DIỆN (Sẽ được JS cập nhật src) -->
+                    <img src="/img/default-avatar.png" id="admin-avatar-img" alt="Admin" class="me-2 rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;">
+
                     <div class="d-none d-md-block">
-                        <div class="fw-bold small">
+                        <div class="fw-bold small" id="admin-name">
                             @(Session["HoTen"] ?? "Admin")
                         </div>
                         <div class="text-muted" style="font-size: 11px;">Quản trị viên</div>
@@ -230,7 +235,6 @@
                     <li><a class="dropdown-item" href="#"><i class="fas fa-key me-2"></i> Đổi mật khẩu</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <!-- Form đăng xuất -->
                         <form action="@Url.Action("LogOff", "TaiKhoan")" method="get" id="logoutFormAdmin">
                             <a class="dropdown-item text-danger" href="javascript:document.getElementById('logoutFormAdmin').submit()">
                                 <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
@@ -241,19 +245,46 @@
             </div>
         </header>
 
-        <!-- Render nội dung View con -->
         @RenderBody()
 
     </div>
 
-    <!-- JS Bootstrap (Bắt buộc cho Dropdown hoạt động) -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Script Toggle Sidebar Mobile -->
     <script>
-        $(document).ready(function() {
-            $("#sidebar-toggle").click(function() {
+        var url_domain = window.location.origin; // Định nghĩa url_domain
+
+        $(document).ready(function () {
+            // Toggle Sidebar Mobile
+            $("#sidebar-toggle").click(function () {
                 $("#sidebar").toggleClass("active");
+            });
+
+            // CẬP NHẬT AVATAR TỰ ĐỘNG TỪ DB
+            $.ajax({
+                type: "POST",
+                url: url_domain + '/Home/GetHeaderInfo',
+                contentType: false, processData: false, cache: false,
+                success: function (response) {
+                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                    if (res.isLogin) {
+                        $("#admin-name").text(res.fullName);
+
+                        // Xử lý ảnh mới nhất (tránh cache)
+                        var timestamp = new Date().getTime();
+                        var avatarUrl = "/img/default-avatar.png";
+
+                        if (res.avatar && res.avatar !== "https://i.imgur.com/4Ym2k5N.png") {
+                            var cleanUrl = res.avatar.replace("~", "");
+                            avatarUrl = cleanUrl + "?v=" + timestamp;
+                        }
+
+                        $("#admin-avatar-img").attr("src", avatarUrl);
+                    } else {
+                        window.location.href = "/TaiKhoan/Login";
+                    }
+                }
             });
         });
     </script>

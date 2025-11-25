@@ -9,9 +9,29 @@ namespace WebBanDoAnOnline.Controllers
 {
     public class HomeController : Controller
     {
+
         // 1. Trang chủ
         public ActionResult Index()
         {
+            
+            var user = Session["TaiKhoan"] as TaiKhoan;
+
+            if (user != null)
+            {
+                
+                if (user.VaiTro == "Nhân viên")
+                {
+                    return RedirectToAction("Index", "NV_TrangChu");
+                }
+
+                
+                if (user.VaiTro == "Quản lý")
+                {
+                    return RedirectToAction("Index", "QL_TrangChu"); 
+                }
+            }
+
+           
             return View();
         }
 

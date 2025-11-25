@@ -223,16 +223,31 @@
             // 1. Lấy thông tin Header (Kiểm tra xem có phải nhân viên không)
             $.ajax({
                 type: "POST",
-                url: url_domain + '/Home/GetHeaderInfo', // Hoặc API riêng cho Staff nếu có
+                url: url_domain + '/Home/GetHeaderInfo',
+                contentType: false, processData: false, cache: false,
                 success: function (response) {
-                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                    var res = JSON.parse(response);
                     if (res.isLogin) {
                         $("#staff-name").text(res.fullName);
-                        // Lấy chữ cái đầu làm Avatar
-                        var firstChar = res.fullName.charAt(0).toUpperCase();
-                        $("#staff-avatar-text").text(firstChar);
+
+                        // --- ĐOẠN SỬA MỚI ---
+                        // Thêm tham số ?v=... để trình duyệt không dùng ảnh cache cũ
+                        var timestamp = new Date().getTime();
+                        var avatarUrl = "";
+
+                        if (res.avatar && res.avatar !== "https://i.imgur.com/4Ym2k5N.png") {
+                            // Nếu là ảnh upload
+                            var cleanUrl = res.avatar.replace("~", "");
+                            avatarUrl = cleanUrl + "?v=" + timestamp; // Ép tải mới
+
+                            // Tìm thẻ img trong header và gán src mới
+                            $(".staff-profile img").attr("src", avatarUrl);
+                        } else {
+                            // Nếu chưa có ảnh -> vẫn dùng ảnh mặc định hoặc chữ cái đầu
+                            $(".staff-profile img").attr("src", "/img/default-avatar.png");
+                        }
+                        // ---------------------
                     } else {
-                        // Nếu chưa login -> Đá về trang login
                         window.location.href = "/TaiKhoan/Login";
                     }
                 }

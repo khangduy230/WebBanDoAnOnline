@@ -102,16 +102,13 @@
     function loadCategories(autoLoadProducts) {
         $.ajax({
             type: "POST",
-            url: url_domain + '/DanhMuc/Lay_DSDM', // Hoặc '/SanPham/Lay_Menu' tùy code controller bạn
-            contentType: false,
-            processData: false,
-            cache: false,
+            url: url_domain + '/DanhMuc/Lay_DSDM',
+            processData: false, contentType: false, cache: false,
             success: function (res) {
                 var cats = (typeof res === 'string') ? JSON.parse(res) : res;
                 var container = $("#menu-categories");
                 container.empty();
 
-                // Nếu là chế độ Tự động (không phải đang tìm kiếm) thì mới set Active mặc định
                 if (autoLoadProducts && activeCategoryId === null && cats.length > 0) {
                     var defaultCat = cats.find(c => c.MacDinh == true) || cats[0];
                     activeCategoryId = defaultCat.MaDM;
@@ -119,10 +116,14 @@
 
                 cats.forEach(c => {
                     var isActive = (c.MaDM == activeCategoryId);
-                    var imgUrl = c.Anh ? url_domain + c.Anh.replace('~/', '/') : "https://via.placeholder.com/100";
 
-                     
-                    // CSS class dựa trên trạng thái active
+                    // --- SỬA ĐOẠN NÀY ---
+                    // Xử lý đường dẫn ảnh: Bỏ dấu ~ và đảm bảo bắt đầu bằng /
+                    var rawImg = c.Anh || "";
+                    var imgUrl = rawImg.replace("~", "");
+                    if (!imgUrl) imgUrl = "https://via.placeholder.com/100?text=No+Img";
+                    // --------------------
+
                     var itemClass = isActive
                         ? 'category-item-special d-flex align-items-center gap-2 p-2 rounded-pill bg-warning text-white text-decoration-none'
                         : 'category-item-circle text-center text-decoration-none text-dark';
@@ -139,7 +140,6 @@
                     container.append(html);
                 });
 
-                // CHỈ tải sản phẩm mặc định nếu cờ autoLoadProducts = true
                 if (autoLoadProducts) {
                     loadProducts(activeCategoryId, "");
                 }

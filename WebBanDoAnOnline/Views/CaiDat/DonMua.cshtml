@@ -526,9 +526,9 @@
                 html = `
                     <div class="empty-state">
                         <i class="fas fa-shopping-bag"></i>
-                        <h5>Không có đơn hàng nào</h5>
+                        <h5>Chưa có đơn hàng nào</h5>
                         <p>Hãy khám phá và đặt món ngon ngay thôi!</p>
-                        <a href="/" class="btn-shop-now">
+                        <a href="/SanPham/Index" class="btn-shop-now">
                             <i class="fas fa-utensils"></i> Đặt món ngay
                         </a>
                     </div>
@@ -536,16 +536,17 @@
             } else {
                 orders.forEach(function (order) {
                     var statusInfo = getStatusInfo(order.TrangThai);
-                    var timelineData = getTimelineSteps(order.TrangThai);
+                    var timelineSteps = getTimelineSteps(order.TrangThai);
 
-                    // Xử lý đặc biệt cho đơn Hủy: Thanh timeline chuyển sang màu đỏ
-                    let progressColor = (order.TrangThai === 'Đã hủy') ? 'background: #dc3545;' : '';
+                    // Xử lý thanh màu đỏ nếu đã hủy
+                    var progressStyle = (order.TrangThai === 'Đã hủy') ? 'width: 100%; background: #dc3545;' : `width: ${timelineSteps.progress}%`;
 
                     html += `
                         <div class="order-card">
+                            <!-- Order Header -->
                             <div class="order-header">
                                 <div class="order-code">
-                                    <strong>Mã đơn: ${order.MaDH}</strong>
+                                    <strong>Mã vận đơn: ${order.MaVanDon}</strong>
                                     <small><i class="far fa-calendar"></i> ${order.NgayTao}</small>
                                 </div>
                                 <span class="status-badge ${statusInfo.class}">
@@ -553,13 +554,13 @@
                                 </span>
                             </div>
 
-                            <!-- Timeline -->
+                            <!-- Timeline Progress -->
                             <div class="order-timeline">
                                 <div class="timeline-container">
                                     <div class="timeline-line">
-                                        <div class="timeline-progress" style="width: ${timelineData.progress}%; ${progressColor}"></div>
+                                        <div class="timeline-progress" style="${progressStyle}"></div>
                                     </div>
-                                    ${timelineData.steps.map(step => `
+                                    ${timelineSteps.steps.map(step => `
                                         <div class="timeline-step ${step.class}">
                                             <div class="timeline-icon">
                                                 <i class="${step.icon}"></i>
@@ -570,36 +571,57 @@
                                 </div>
                             </div>
 
+                            <!-- Order Info Grid -->
                             <div class="order-info-grid">
                                 <div class="info-item">
                                     <span class="info-label"><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng</span>
                                     <span class="info-value" style="white-space: pre-line;">${order.DiaChiGiaoHang}</span>
                                 </div>
                                 <div class="info-item">
-                                    <span class="info-label"><i class="fas fa-box"></i> Số lượng</span>
+                                    <span class="info-label"><i class="fas fa-box"></i> Số lượng món</span>
                                     <span class="info-value">${order.SanPhams.length} món</span>
                                 </div>
                                 <div class="info-item">
-                                    <span class="info-label"><i class="fas fa-money-bill-wave"></i> Tổng tiền</span>
-                                    <span class="info-value text-danger fs-5">${formatCurrency(order.TongTien)}đ</span>
+                                    <span class="info-label"><i class="fas fa-credit-card"></i> Phương thức thanh toán</span>
+                                    <span class="info-value">Tiền mặt (COD)</span>
                                 </div>
                             </div>
 
+                            <!-- Product List (ĐÃ SỬA LỖI ẢNH Ở ĐÂY) -->
                             <div class="product-list">
-                                ${order.SanPhams.map(sp => `
+                                ${order.SanPhams.map(sp => {
+                        // Xử lý đường dẫn ảnh: Bỏ dấu ~ và thêm slash đầu nếu thiếu
+                        var rawImg = sp.Anh || "";
+                        var imgSrc = rawImg.replace("~", "");
+                        if (!imgSrc) imgSrc = "/Content/Images/default-food.jpg"; // Ảnh mặc định
+
+                        return `
                                     <div class="product-item">
-                                        <img src="${sp.Anh}" class="product-img" onerror="this.src='/img/no-image.jpg'">
+                                        <img src="${imgSrc}"
+                                             class="product-img"
+                                             alt="${sp.TenSP}"
+                                             onerror="this.src='/Content/Images/default-food.jpg'">
                                         <div class="product-info">
                                             <div class="product-name">${sp.TenSP}</div>
-                                            <div class="product-quantity">x${sp.SoLuong}</div>
+                                            <div class="product-quantity">
+                                                <i class="fas fa-times"></i> ${sp.SoLuong}
+                                            </div>
                                         </div>
                                         <div class="product-price">
                                             ${formatCurrency(sp.DonGia)}đ
                                         </div>
                                     </div>
-                                `).join('')}
+                                    `;
+                    }).join('')}
                             </div>
 
+                            <!-- Order Total -->
+                            <div class="order-total">
+                                <span class="total-label">Tổng cộng:</span>
+                                <span class="total-amount">${formatCurrency(order.TongTien)}đ</span>
+                            </div>
+
+                            <!-- Action Buttons -->
                             <div class="order-actions">
                                 ${getActionButtons(order.TrangThai, order.MaDH)}
                             </div>
@@ -607,6 +629,8 @@
                     `;
                 });
             }
+
+            
 
             $('#order-list').html(html);
         }
