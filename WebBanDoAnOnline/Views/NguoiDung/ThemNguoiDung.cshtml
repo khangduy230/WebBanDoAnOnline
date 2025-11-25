@@ -1,8 +1,7 @@
 ﻿@{
     ViewBag.Title = "Thêm mới Người dùng";
-    
+    Layout = "~/Views/Shared/_AdLayout.cshtml";
 }
-
 <div class="container-fluid py-4">
     <div class="card shadow-sm">
         <div class="card-header bg-white">
@@ -22,12 +21,12 @@
                             <input type="text" class="form-control" name="txt_TenTK" id="txt_TenTK" placeholder="Viết liền không dấu" required />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
                             <input type="email" class="form-control" name="txt_Email" id="txt_Email" required />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Số điện thoại</label>
-                            <input type="tel" class="form-control" name="txt_SoDienThoai" id="txt_SoDienThoai" />
+                            <input type="tel" class="form-control" name="txt_SoDienThoai" id="txt_SoDienThoai" required />
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -42,11 +41,10 @@
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label">Vai trò</label>
-                                <!-- Value ở đây sẽ được Controller map sang DB -->
                                 <select name="slc_VaiTro" id="slc_VaiTro" class="form-select">
-                                    <option value="QuanLy">Quản lý</option>
                                     <option value="NhanVien" selected>Nhân viên</option>
                                     <option value="KhachHang">Khách hàng</option>
+                                    <option value="QuanLy">Quản lý</option>
                                 </select>
                             </div>
                             <div class="col-6 mb-3">
@@ -71,35 +69,69 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-    $("#btn_them").click(function () {
-    var email = $("#txt_Email").val();
-    var phone = $("#txt_SoDienThoai").val();
-    var pass = $("#txt_MatKhau").val();
-    var rePass = $("#txt_MatKhau_Confirm").val();
+    $(document).ready(function() {
+        $("#btn_them").click(function () {
+            // 1. Lấy giá trị
+            var hoTen = $("#txt_HoTen").val().trim();
+            var tenTK = $("#txt_TenTK").val().trim();
+            var email = $("#txt_Email").val().trim();
+            var phone = $("#txt_SoDienThoai").val().trim();
+            var pass = $("#txt_MatKhau").val();
+            var rePass = $("#txt_MatKhau_Confirm").val();
 
-    // Validate Client
-    if (!email.includes("@@")) { alert("Email không hợp lệ"); return; }
-
-    // Regex số điện thoại (chỉ số, 9-11 ký tự)
-    var phoneRegex = /^\d{9,11}$/;
-    if (!phoneRegex.test(phone)) { alert("Số điện thoại phải là số và có 9-11 ký tự"); return; }
-
-    if (pass !== rePass) { alert("Mật khẩu xác nhận không khớp!"); return; }
-
-    var form = $('#form-add-user')[0];
-    var formData = new FormData(form);
-
-    $.ajax({
-        type: "POST",
-        url: window.location.origin + '/NguoiDung/Insert',
-        data: formData,
-        processData: false, contentType: false, cache: false,
-        success: function (res) {
-            alert(res);
-            if (res.toLowerCase().includes("thành công")) {
-                window.location.href = '@Url.Action("LayNguoiDung", "NguoiDung")';
+            // 2. Validate dữ liệu trống
+            if (hoTen === "" || tenTK === "" || email === "" || pass === "") {
+                alert("Vui lòng nhập đầy đủ thông tin bắt buộc (*)");
+                return;
             }
-        },
-        error: function () { alert("Lỗi kết nối server."); }
+
+            // 3. Validate Email (Regex chuẩn)
+            var emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            if (!emailRegex.test(email)) {
+                alert("Email không đúng định dạng (VD: abc@gmail.com)");
+                return;
+            }
+
+            // 4. Validate Số điện thoại (Chỉ số, 10-11 số, đầu số 0)
+            var phoneRegex = /^(0)[0-9]{9,10}$/;
+            if (!phoneRegex.test(phone)) {
+                alert("Số điện thoại không hợp lệ (Phải bắt đầu bằng 0 và có 10-11 số)");
+                return;
+            }
+
+            // 5. Validate Mật khẩu
+            if (pass !== rePass) {
+                alert("Mật khẩu xác nhận không khớp!");
+                return;
+            }
+
+            // 6. Validate Tên tài khoản (Không dấu, không khoảng trắng)
+            var usernameRegex = /^[a-zA-Z0-9]+$/;
+            if (!usernameRegex.test(tenTK)) {
+                 alert("Tên tài khoản chỉ được chứa chữ cái và số, không khoảng trắng/ký tự đặc biệt.");
+                 return;
+            }
+
+            // 7. Gửi AJAX
+            var formData = new FormData($('#form-add-user')[0]);
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("Insert", "NguoiDung")', // 
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    alert(res);
+                    if (res.toLowerCase().includes("thành công")) {
+                        window.location.href = '@Url.Action("LayNguoiDung", "NguoiDung")';
+                    }
+                },
+                error: function (err) {
+                    console.log(err);
+                    alert("Lỗi kết nối server: " + err.statusText);
+                }
+            });
+        });
     });
 </script>

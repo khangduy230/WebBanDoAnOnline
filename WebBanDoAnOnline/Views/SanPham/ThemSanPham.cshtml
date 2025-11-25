@@ -1,6 +1,6 @@
 ﻿@{
     ViewBag.Title = "Thêm sản phẩm mới";
-    
+    Layout = "~/Views/Shared/_AdLayout.cshtml"; 
 }
 
 <!--begin::App Content Header-->
@@ -8,7 +8,6 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-6"><h3 class="mb-0">Thêm mới Sản phẩm</h3></div>
-           
         </div>
     </div>
 </div>
@@ -22,6 +21,7 @@
             </div>
 
             <div class="card-body">
+                <!-- SỬA: Đảm bảo ID form rõ ràng -->
                 <form id="form-add-product" enctype="multipart/form-data">
                     <div class="row">
                         <!-- Cột Trái: Thông tin văn bản -->
@@ -39,7 +39,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Danh mục</label>
                                     <select id="slc_MaDM" name="slc_MaDM" class="form-select">
-                                        <!-- Controller đã gán ViewBag.Categories -->
+                                        <!-- Kiểm tra null để tránh lỗi crash view -->
                                         @if (ViewBag.Categories != null)
                                         {
                                             foreach (var cat in ViewBag.Categories)
@@ -55,8 +55,6 @@
                                 <label class="form-label fw-bold">Mô tả sản phẩm</label>
                                 <textarea id="txt_MoTa" name="txt_MoTa" class="form-control" rows="6" placeholder="Mô tả chi tiết..."></textarea>
                             </div>
-
-                            <!-- Lưu ý: Controller InsertSP đang set cứng trạng thái là "Còn hàng" nên không cần hiển thị select Trạng thái ở đây -->
                         </div>
 
                         <!-- Cột Phải: Ảnh -->
@@ -85,10 +83,10 @@
 <!--end::App Content-->
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
 <script>
     $(document).ready(function () {
-
-        // 1. Xem trước ảnh khi chọn file
+        // 1. Xử lý xem trước ảnh
         $("#file_Anh").change(function () {
             if (this.files && this.files[0]) {
                 var reader = new FileReader();
@@ -99,37 +97,40 @@
             }
         });
 
-        // 2. Xử lý sự kiện Thêm mới
+        // 2. Xử lý nút Thêm mới
         $("#btn_them").click(function () {
-        // Validate sơ bộ
-        var code = $("input[name='txt_MaCode']").val();
-        var val = parseFloat($("input[name='txt_GiaTri']").val());
-        var type = $("select[name='slc_LoaiGiam']").val(); // Lấy loại giảm
+            // Validate cơ bản phía Client
+            var tenSP = $("#txt_TenSP").val().trim();
+            var gia = $("#txt_Gia").val().trim();
 
-        if(!code || isNaN(val)) { alert("Vui lòng nhập đủ thông tin bắt buộc"); return; }
+            if (tenSP === "" || gia === "") {
+                alert("Vui lòng nhập Tên sản phẩm và Giá!");
+                return;
+            }
 
-        if(val < 0) { alert("Giá trị giảm không được âm"); return; }
+            // Lấy đúng ID Form là 'form-add-product'
+            var formData = new FormData($('#form-add-product')[0]);
 
-        // >>> MỚI THÊM: Check 100% <<<
-        if (type === "PhanTram" && val > 100) {
-            alert("Nếu chọn giảm theo Phần trăm, giá trị không được quá 100!");
-            return;
-        }
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("InsertSP", "SanPham")', // Gọi về API InsertSP
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    // Alert kết quả từ Server trả về
+                    alert(res);
 
-        var formData = new FormData($('#form-voucher-add')[0]);
-
-        $.ajax({
-            type: "POST",
-            url: window.location.origin + '/Voucher/InsertVoucher',
-            data: formData,
-            processData: false, contentType: false,
-            success: function (res) {
-                alert(res);
-                if (res.includes("thành công")) {
-                    window.location.href = '@Url.Action("LayVoucher", "Voucher")';
+                    // Nếu chuỗi trả về có chữ "thành công", chuyển hướng về trang danh sách
+                    if (res.toLowerCase().includes("thành công")) {
+                        window.location.href = '@Url.Action("LaySanPham", "SanPham")';
+                    }
+                },
+                error: function (err) {
+                    console.log(err);
+                    alert("Đã xảy ra lỗi trong quá trình xử lý.");
                 }
-            },
-            error: function() { alert("Lỗi kết nối server."); }
-               });
+            });
+        });
     });
 </script>

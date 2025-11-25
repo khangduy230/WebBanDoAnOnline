@@ -1,5 +1,6 @@
-﻿@{ ViewBag.Title = "Sửa sản phẩm";
-   
+﻿@{
+    ViewBag.Title = "Sửa sản phẩm";
+    Layout = "~/Views/Shared/_AdLayout.cshtml"; 
 }
 
 <main class="container-fluid py-4">
@@ -7,29 +8,50 @@
     <hr />
     <div class="card">
         <div class="card-body">
-            <form id="form-act" enctype="multipart/form-data">
+            <!-- Đổi ID form cho đúng logic -->
+            <form id="form-update-sp" enctype="multipart/form-data">
+                <!-- ID ẩn chứa mã sản phẩm -->
                 <input type="hidden" name="txt_MaSP_hide" value="@ViewBag.MaSP" />
+
                 <div class="row">
                     <div class="col-md-8">
-                        <div class="mb-3"><label class="form-label">Tên sản phẩm</label><input type="text" id="txt_TenSP" class="form-control" name="txt_TenSP" required /></div>
+                        <div class="mb-3">
+                            <label class="form-label">Tên sản phẩm</label>
+                            <input type="text" id="txt_TenSP" class="form-control" name="txt_TenSP" required />
+                        </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3"><label class="form-label">Giá (VND)</label><input type="number" id="txt_Gia" class="form-control" name="txt_Gia" required /></div>
-                            <div class="col-md-6 mb-3"><label class="form-label">Danh mục</label><select id="slc_MaDM" name="slc_MaDM" class="form-control"></select></div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Giá (VND)</label>
+                                <input type="number" id="txt_Gia" class="form-control" name="txt_Gia" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Danh mục</label>
+                                <select id="slc_MaDM" name="slc_MaDM" class="form-control">
+                                    <option value="">-- Chọn danh mục --</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Trạng thái</label>
+                            <!-- Value phải khớp với chuỗi lưu trong DB -->
                             <select id="slc_TrangThai" name="slc_TrangThai" class="form-control">
-                                <option value="Con hang">Còn hàng</option>
-                                <option value="Het hang">Hết hàng</option>
-                                <option value="Tam ngung">Tạm ngưng</option>
+                                <option value="Còn hàng">Còn hàng</option>
+                                <option value="Hết hàng">Hết hàng</option>
+                                <option value="Tạm ngưng">Tạm ngưng</option>
                             </select>
                         </div>
-                        <div class="mb-3"><label class="form-label">Mô tả</label><textarea id="txt_MoTa" name="txt_MoTa" class="form-control" rows="4"></textarea></div>
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả</label>
+                            <textarea id="txt_MoTa" name="txt_MoTa" class="form-control" rows="4"></textarea>
+                        </div>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Ảnh sản phẩm</label>
-                        <img id="img_preview" src="https://via.placeholder.com/250" class="img-thumbnail mb-2 w-100" style="height: 250px; object-fit: cover;" />
-                        <input type="file" class="form-control" name="file_Anh" accept="image/*" />
+                        <div class="mb-2">
+                            <img id="img_preview" src="https://via.placeholder.com/250" class="img-thumbnail w-100" style="height: 250px; object-fit: cover;" />
+                        </div>
+                        <!-- Thêm sự kiện onchange để xem trước ảnh -->
+                        <input type="file" id="file_Anh" class="form-control" name="file_Anh" accept="image/*" onchange="previewImage(this)" />
                     </div>
                 </div>
                 <hr />
@@ -43,56 +65,101 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     var baseUrl = '@Url.Content("~")';
+    var maSP = '@ViewBag.MaSP';
 
+    $(document).ready(function() {
+        // 1. Load Danh mục trước, xong mới load sản phẩm
+        loadCategories();
+
+        // 2. Sự kiện click nút Cập nhật
+        $("#btn_capnhat").click(function() {
+            updateProduct();
+        });
+    });
+
+    // Hàm load danh mục (Giả sử bạn có Controller DanhMuc/Lay_DSDM trả về JSON list danh mục)
+    function loadCategories() {
+        $.ajax({
+            url: '@Url.Action("Lay_DSDM", "DanhMuc")', // Đảm bảo URL này đúng
+            type: 'POST',
+            success: function(res) {
+                var cats = JSON.parse(res);
+                var select = $("#slc_MaDM");
+                select.empty();
+                cats.forEach(c => {
+                    select.append(`<option value="${c.MaDM}">${c.TenDM}</option>`);
+                });
+                // Sau khi có danh mục thì mới load thông tin sản phẩm để map đúng option
+                loadProductDetails();
+            },
+            error: function() {
+                alert("Không thể tải danh mục!");
+            }
+        });
+    }
+
+    // Hàm load chi tiết sản phẩm
     function loadProductDetails() {
-        $.post('@Url.Action("LayTTSP", "SanPham")', { id: @ViewBag.MaSP }, function (res) {
+        $.post('@Url.Action("LayTTSP", "SanPham")', { id: maSP }, function (res) {
+            if(res === "{}") {
+                alert("Không tìm thấy sản phẩm!");
+                return;
+            }
             var sp = JSON.parse(res);
+
+            // Điền dữ liệu vào form
             $("#txt_TenSP").val(sp.TenSP);
             $("#txt_Gia").val(sp.Gia);
             $("#txt_MoTa").val(sp.MoTa);
             $("#slc_TrangThai").val(sp.TrangThai);
-            $("#slc_MaDM").val(sp.MaDM);
-            if (sp.Anh) $('#img_preview').attr('src', baseUrl + sp.Anh.replace('~/', ''));
-        });
-    }
+            $("#slc_MaDM").val(sp.MaDM); // Select Box sẽ tự chọn đúng value
 
-    function loadCategoriesAndProduct() {
-        $.post('@Url.Action("Lay_DSDM", "DanhMuc")', function (res) {
-            var cats = JSON.parse(res);
-            var select = $("#slc_MaDM");
-            cats.forEach(c => select.append(`<option value="${c.MaDM}">${c.TenDM}</option>`));
-            loadProductDetails(); // Load product details AFTER categories are loaded
-        });
-    }
-
-    $(document).ready(function() {
-        loadData();
-
-        $("#btn_save").click(function() {
-            // Validate
-            var val = parseFloat($("#txt_GiaTri").val());
-            var type = $("#slc_LoaiGiam").val();
-
-            if(val < 0) { alert("Giá trị không được âm"); return; }
-
-            // >>> MỚI THÊM: Check 100% <<<
-            if (type === "PhanTram" && val > 100) {
-                alert("Giảm theo Phần trăm không được quá 100!");
-                return;
+            // Xử lý ảnh
+            if (sp.Anh) {
+                // Xử lý đường dẫn ảnh (bỏ dấu ~ nếu có)
+                var imgPath = sp.Anh.replace('~/', '');
+                $('#img_preview').attr('src', baseUrl + imgPath);
             }
-
-            var formData = new FormData($('#form-voucher-edit')[0]);
-            $.ajax({
-                type: "POST",
-                url: window.location.origin + '/Voucher/UpdateVoucher',
-                data: formData, processData: false, contentType: false,
-                success: function(res) {
-                    alert(res);
-                    if(res.includes("thành công")) {
-                        window.location.href = '@Url.Action("LayVoucher", "Voucher")';
-                    }
-                }
-            });
         });
-    });
+    }
+
+    // Hàm cập nhật sản phẩm
+    function updateProduct() {
+        // Validate cơ bản
+        if ($("#txt_TenSP").val().trim() === "" || $("#txt_Gia").val() === "") {
+            alert("Vui lòng nhập tên và giá sản phẩm.");
+            return;
+        }
+
+        // Dùng FormData để gửi cả file ảnh
+        var formData = new FormData($('#form-update-sp')[0]);
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("UpdateSP", "SanPham")', // Gọi đúng API UpdateSP
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                alert(res);
+                if(res.includes("thành công")) {
+                    window.location.href = '@Url.Action("LaySanPham", "SanPham")';
+                }
+            },
+            error: function(err) {
+                alert("Có lỗi xảy ra: " + err.statusText);
+            }
+        });
+    }
+
+    // Hàm xem trước ảnh khi chọn file
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#img_preview').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
 </script>

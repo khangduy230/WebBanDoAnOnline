@@ -165,14 +165,14 @@
     <!-- 1. SIDEBAR TRÁI -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="@Url.Action("TrangChu", "QuanLy")" class="text-decoration-none">
+            <a href="@Url.Action("Index", "QL_TrangChu")" class="text-decoration-none">
                 <i class="fas fa-utensils text-warning me-2"></i> FuTho<span class="fw-light">Admin</span>
             </a>
         </div>
         <ul class="sidebar-menu p-0">
             <!-- Menu Items -->
             <li>
-                <a href="@Url.Action("TrangChu", "QuanLy")" class="menu-item @(ViewBag.Title == "Dashboard" ? "active" : "")">
+                <a href="@Url.Action("Index", "QL_TrangChu")" class="menu-item @(ViewBag.Title == "Dashboard" ? "active" : "")">
                     <i class="fas fa-chart-pie"></i> Tổng quan
                 </a>
             </li>
@@ -182,7 +182,7 @@
                 </a>
             </li>
             <li>
-                <a href="@Url.Action("Index", "DanhMuc")" class="menu-item @(ViewBag.Title.ToString().Contains("Danh mục") ? "active" : "")">
+                <a href="@Url.Action("SuaDanhMuc", "DanhMuc")" class="menu-item @(ViewBag.Title.ToString().Contains("Danh mục") ? "active" : "")">
                     <i class="fas fa-list"></i> Danh mục
                 </a>
             </li>
