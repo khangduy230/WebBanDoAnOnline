@@ -1,0 +1,226 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+    
+}
+
+<main class="dashboard container-fluid py-4">
+
+    <!-- 1. TOP STATS CARDS -->
+    <div class="row g-3 mb-4">
+        <!-- Ngân sách -->
+        <div class="col-md-3">
+            <div class="card stat-card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-bold">Ngân sách (Tháng)</div>
+                    <div class="h3 text-primary fw-bold mt-2" id="lbl_NganSach">0</div>
+                    <div class="small text-muted"><i class="fas fa-wallet me-1"></i> Kế hoạch chi tiêu</div>
+                </div>
+            </div>
+        </div>
+        <!-- Chi tiêu -->
+        <div class="col-md-3">
+            <div class="card stat-card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-bold">Chi tiêu thực tế</div>
+                    <div class="h3 text-danger fw-bold mt-2" id="lbl_ChiTieu">0</div>
+                    <div class="small text-success" id="lbl_TrangThaiNganSach">An toàn</div>
+                </div>
+            </div>
+        </div>
+        <!-- Doanh thu -->
+        <div class="col-md-3">
+            <div class="card stat-card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-bold">Doanh thu bán hàng</div>
+                    <div class="h3 text-success fw-bold mt-2" id="lbl_DoanhThu">0</div>
+                    <div class="small text-success"><i class="fas fa-arrow-up me-1"></i> Tích lũy tháng</div>
+                </div>
+            </div>
+        </div>
+        <!-- Đơn mới -->
+        <div class="col-md-3">
+            <div class="card stat-card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-bold">Đơn hàng mới</div>
+                    <div class="h3 text-warning fw-bold mt-2" id="lbl_DonMoi">0</div>
+                    <div class="small text-muted">Chờ xác nhận</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MAIN PANELS -->
+    <div class="row g-3">
+        <!-- CỘT TRÁI -->
+        <div class="col-lg-8">
+            <!-- Biểu đồ (Giả lập) -->
+            <div class="card dashboard-panel mb-3 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 fw-bold text-secondary">Tổng quan tài chính</h5>
+                        <span class="badge bg-light text-dark border">Tháng này</span>
+                    </div>
+                    <!-- Placeholder -->
+                    <div class="chart-placeholder mb-3 bg-light rounded d-flex align-items-center justify-content-center text-muted" style="height: 220px; border: 2px dashed #dee2e6;">
+                        <div class="text-center">
+                            <i class="fas fa-chart-area fs-1 mb-2 text-secondary opacity-50"></i>
+                            <div>Biểu đồ biến động doanh thu</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng Menu -->
+            <div class="card dashboard-panel border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="mb-3 fw-bold text-secondary">Món ăn được yêu thích</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr class="small text-muted text-uppercase">
+                                    <th>Tên món</th>
+                                    <th>Giá bán</th>
+                                    <th>Trạng thái</th>
+                                    <th>Đánh giá</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_MenuBody">
+                                <!-- JS render data -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI -->
+        <div class="col-lg-4">
+            <!-- Voucher -->
+            <div class="card dashboard-panel mb-3 border-0 shadow-sm">
+                <div class="position-relative">
+                    <img src="https://via.placeholder.com/400x150?text=PROMOTION" class="card-img-top" alt="Voucher" style="height:120px; object-fit:cover; filter: brightness(0.9);" />
+                    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                        <h5 class="text-white fw-bold text-shadow">KHUYẾN MÃI</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold">Chương trình đang chạy</h6>
+                    <p class="small text-muted mb-0" id="lbl_VoucherInfo">Đang tải...</p>
+                </div>
+            </div>
+
+            <!-- Nhân sự -->
+            <div class="card dashboard-panel border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Nhân sự mới</h6>
+                    <ul class="list-unstyled user-list mb-0" id="list_Staff">
+                        <!-- JS render data -->
+                    </ul>
+                    <div class="text-center mt-3 border-top pt-2">
+                        <a href="@Url.Action("LayNguoiDung", "NguoiDung")" class="small text-decoration-none fw-bold">Xem tất cả nhân viên</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var url_domain = window.location.origin;
+
+    // --- CÁC HÀM TIỆN ÍCH ---
+    function formatMoney(n) {
+        return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + "đ";
+    }
+
+    function createBadge(status) {
+        if (status === 'Còn hàng') return '<span class="badge bg-success-subtle text-success">Còn hàng</span>';
+        if (status === 'Hết hàng') return '<span class="badge bg-danger-subtle text-danger">Hết hàng</span>';
+        return '<span class="badge bg-secondary-subtle text-secondary">' + status + '</span>';
+    }
+
+    function getInitials(name) {
+        if (!name) return '';
+        var parts = name.split(' ');
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    // --- LOGIC CHÍNH ---
+    $(document).ready(function () {
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/QuanLy/GetDashboardData',
+            contentType: false, processData: false, cache: false,
+            success: function (response) {
+                var data = JSON.parse(response);
+                if (data.Error) { console.log(data.Error); return; }
+
+                // 1. Stats
+                $("#lbl_NganSach").text(formatMoney(data.Stats.NganSach));
+                $("#lbl_ChiTieu").text(formatMoney(data.Stats.ChiTieu));
+                $("#lbl_DoanhThu").text(formatMoney(data.Stats.DoanhThu));
+                $("#lbl_DonMoi").text(data.Stats.DonMoi);
+
+                // Check ngân sách
+                if (data.Stats.ChiTieu > data.Stats.NganSach) {
+                    $("#lbl_TrangThaiNganSach").html('<i class="fas fa-exclamation-triangle"></i> Vượt ngân sách!').removeClass("text-success").addClass("text-danger");
+                }
+
+                // 2. Menu Table
+                var menuHtml = "";
+                if (data.Menu.length === 0) {
+                    menuHtml = '<tr><td colspan="4" class="text-center small text-muted">Chưa có món ăn nào.</td></tr>';
+                } else {
+                    for (var i = 0; i < data.Menu.length; i++) {
+                        var item = data.Menu[i];
+                        menuHtml += `
+                        <tr>
+                            <td class="fw-bold text-dark">${item.TenSP}</td>
+                            <td>${formatMoney(item.Gia)}</td>
+                            <td>${createBadge(item.TrangThai)}</td>
+                            <td><i class="fas fa-star text-warning"></i> ${item.DiemDanhGia}</td>
+                        </tr>`;
+                    }
+                }
+                $("#tbl_MenuBody").html(menuHtml);
+
+                // 3. Staff List
+                var staffHtml = "";
+                if (data.Staff.length === 0) {
+                    staffHtml = '<li class="text-center small text-muted">Chưa có nhân sự.</li>';
+                } else {
+                    for (var i = 0; i < data.Staff.length; i++) {
+                        var u = data.Staff[i];
+                        var roleColor = u.VaiTro === "Quản lý" ? "text-primary" : "text-muted";
+                        staffHtml += `
+                        <li class="d-flex align-items-center py-2 border-bottom-dashed">
+                            <div class="avatar me-3 bg-light text-primary d-flex align-items-center justify-content-center rounded-circle fw-bold border" style="width:40px;height:40px">
+                                ${getInitials(u.HoTen)}
+                            </div>
+                            <div>
+                                <div class="fw-bold small text-dark">${u.HoTen}</div>
+                                <div class="small ${roleColor}" style="font-size:11px">${u.VaiTro}</div>
+                            </div>
+                        </li>`;
+                    }
+                }
+                $("#list_Staff").html(staffHtml);
+
+                // 4. Voucher
+                if (data.Voucher) {
+                    $("#lbl_VoucherInfo").html(`
+                        <span class="fw-bold text-danger">${data.Voucher.TenVoucher}</span>
+                        <br/>${data.Voucher.MoTaThem || ''}
+                    `);
+                } else {
+                    $("#lbl_VoucherInfo").text("Không có chương trình nào đang chạy.");
+                }
+            },
+            error: function (err) {
+                console.log("Lỗi tải Dashboard: " + err);
+            }
+        });
+    });
+</script>

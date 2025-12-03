@@ -1,0 +1,137 @@
+﻿@{
+    ViewBag.Title = "Quản lý Voucher";
+    
+}
+
+<main class="voucher-page container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div><h3 class="mb-0">Quản lý Voucher</h3><hr /></div>
+        <div class="d-flex align-items-center">
+            <input id="txt_search_voucher" class="form-control me-2" style="width:220px;" placeholder="Tìm theo tên hoặc mã" />
+            <a href="@Url.Action("ThemVoucher", "Voucher")" class="btn btn-warning text-white">Thêm voucher</a>
+        </div>
+    </div>
+
+    <!-- Lưới voucher -->
+    <div id="voucher_grid" class="row g-3">
+        <!-- JS nạp dữ liệu -->
+    </div>
+
+    <!-- Phân trang -->
+    <div id="pagination" class="d-flex justify-content-center mt-4"></div>
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var url_domain = window.location.origin;
+    var currentPage = 1;
+
+    // Hàm format tiền tệ
+    function formatMoney(n) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+    }
+
+    // Hàm format ngày
+    function formatDate(str) {
+        if (!str) return "";
+        var parts = str.split('-');
+        return parts[2] + '/' + parts[1] + '/' + parts[0];
+    }
+
+    function loadVouchers(searchTerm, page = 1) {
+        currentPage = page;
+        var term = searchTerm || $("#txt_search_voucher").val();
+
+        var formData = new FormData();
+        formData.append('searchTerm', term);
+        formData.append('page', page);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/Voucher/Lay_DSVoucher',
+            data: formData,
+            processData: false, contentType: false, cache: false,
+            success: function (res) {
+                var data = JSON.parse(res);
+                var vouchers = data.Vouchers;
+                var grid = $("#voucher_grid");
+                grid.empty();
+
+                if (vouchers.length === 0) {
+                    grid.html('<div class="col-12 text-center text-muted">Không có voucher nào.</div>');
+                    return;
+                }
+
+                vouchers.forEach(function (v) {
+                    // Hiển thị giảm giá
+                    let giamText = (v.LoaiGiam === 'Phần trăm')
+                        ? `Giảm <span class="text-danger fw-bold">${v.GiaTri}%</span>`
+                        : `Giảm <span class="text-danger fw-bold">${formatMoney(v.GiaTri)}</span>`;
+
+                    let dkText = v.DieuKienToiThieu > 0
+                        ? `Đơn tối thiểu: ${formatMoney(v.DieuKienToiThieu)}`
+                        : "Không yêu cầu tối thiểu";
+
+                    let luot = (v.SoLuotConLai == null) ? "∞" : v.SoLuotConLai;
+
+                    var html = `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body position-relative">
+                                <h5 class="card-title text-primary fw-bold">${v.TenVoucher}</h5>
+                                <div class="mb-2">${giamText}</div>
+                                <div class="small text-muted mb-2">${dkText}</div>
+
+                                <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mb-3">
+                                    <span class="fw-bold text-dark">CODE: ${v.MaCode}</span>
+                                    <span class="badge bg-warning text-dark">Còn: ${luot}</span>
+                                </div>
+
+                                <div class="small text-secondary">
+                                    <i class="far fa-calendar-alt"></i> ${formatDate(v.NgayBatDau)} - ${formatDate(v.NgayKetThuc)}
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white d-flex justify-content-end gap-2">
+                                <a href="/Voucher/SuaVoucher/${v.MaVoucher}" class="btn btn-sm btn-outline-primary">Sửa</a>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteVoucher(${v.MaVoucher})">Xóa</button>
+                            </div>
+                        </div>
+                    </div>`;
+                    grid.append(html);
+                });
+
+                renderPagination(data.TotalPages, data.CurrentPage);
+            },
+            error: function () { alert("Lỗi tải dữ liệu."); }
+        });
+    }
+
+    function deleteVoucher(id) {
+        if (!confirm("Bạn muốn xóa voucher này?")) return;
+        var fd = new FormData(); fd.append('id', id);
+        $.ajax({
+            type: "POST", url: url_domain + '/Voucher/DeleteVoucher',
+            data: fd, processData: false, contentType: false,
+            success: function (res) {
+                alert(res);
+                loadVouchers();
+            }
+        });
+    }
+
+    function renderPagination(totalPages, current) {
+        if (totalPages <= 1) { $("#pagination").html(''); return; }
+        var html = '<nav><ul class="pagination">';
+        // ... (Logic phân trang giống các bài trước) ...
+        html += '</ul></nav>';
+        $("#pagination").html(html);
+    }
+
+    $(document).ready(function () {
+        loadVouchers('');
+        $("#txt_search_voucher").keyup(function () {
+            setTimeout(() => loadVouchers($(this).val(), 1), 500);
+        });
+    });
+</script>
