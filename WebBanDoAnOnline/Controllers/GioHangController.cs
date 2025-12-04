@@ -11,7 +11,7 @@ namespace WebBanDoAnOnline.Controllers
     public class GioHangController : Controller
     {
         // GET: GioHang
-        public ActionResult Index()
+        public ActionResult KH_GioHang()
         {
             if (Session["TaiKhoan"] == null) return RedirectToAction("Login", "TaiKhoan");
             return View();
@@ -75,7 +75,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // 2: Thêm vào giỏ (ThemGioHang)
        
-        public string AddToCart()
+        public string ThemGioHang()
         {
             string id_str = Request["productId"];
             string qty_str = Request["quantity"];

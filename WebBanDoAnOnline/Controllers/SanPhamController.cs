@@ -135,7 +135,7 @@ namespace WebBanDoAnOnline.Controllers
         
         // API 3: Thêm mới
         
-        public string InsertSP()
+        public string ThemSanPham()
         {
             try
             {
@@ -182,8 +182,8 @@ namespace WebBanDoAnOnline.Controllers
 
         
         // API 4: Cập nhật
-        // CapNhatSanPham
-        public string UpdateSP()
+       
+        public string CapNhatSanPham()
         {
             try
             {
@@ -232,7 +232,7 @@ namespace WebBanDoAnOnline.Controllers
         
         // API 5: Xóa 
        
-        public string Delete()
+        public string XoaSanPham()
         {
             try
             {
@@ -263,7 +263,7 @@ namespace WebBanDoAnOnline.Controllers
         }
         // API: Cập nhật trạng thái nhanh (NhanVien)
         
-        public string UpdateStock()
+        public string CapNhatTrangThai()
         {
             try
             {

@@ -239,7 +239,7 @@
 
 <h4 class="mb-4">Địa chỉ nhận hàng</h4>
 
-<button class="btn-add-new" onclick="openModal()">
+<button class="btn-add-new" onclick="MoModal()">
     <i class="fas fa-plus"></i> Thêm địa chỉ mới
 </button>
 
@@ -280,7 +280,7 @@
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn-cancel" onclick="closeModal()">Hủy</button>
+                <button type="button" class="btn-cancel" onclick="DongModal()">Hủy</button>
                 <button type="submit" class="btn-save">Lưu</button>
             </div>
         </form>
@@ -313,11 +313,11 @@
             });
         });
 
-        // Load danh sách địa chỉ
-        function loadAddressList() {
+        
+        function loadDSDiaChi() {
             $.ajax({
                 type: "POST",
-                url: url_domain + '/CaiDat/GetDiaChi',
+                url: url_domain + '/CaiDat/LayDiaChi',
                 contentType: false,
                 processData: false,
                 cache: false,
@@ -335,8 +335,8 @@
             });
         }
 
-        // Hiển thị danh sách địa chỉ
-        function renderAddressList(data) {
+        
+        function HienThiDSDiaChi(data) {
             if (data.length === 0) {
                 $('#address-list').html('<div class="text-center py-4 text-muted">Chưa có địa chỉ nào</div>');
                 return;
@@ -375,7 +375,7 @@
         }
 
 
-        function openModal() {
+        function MoModal() {
             isEditMode = false;
             $('#modalTitle').text('Thêm địa chỉ mới');
             $('#addressForm')[0].reset();
@@ -388,12 +388,12 @@
             }, 300);
         }
 
-        function closeModal() {
+        function DongModal() {
             $('#modalOverlay').removeClass('show');
         }
 
 
-        function editAddress(addr) {
+        function SuaDiaChi(addr) {
             isEditMode = true;
             $('#modalTitle').text('Cập nhật địa chỉ');
             $('#maDC').val(addr.MaDC);
@@ -435,7 +435,7 @@
         }
 
         // Đặt địa chỉ mặc định
-        function setDefault(maDC) {
+        function DatDiaChiMacDInh(maDC) {
             if (!confirm('Đặt làm địa chỉ mặc định?')) return;
 
             var formData = new FormData();
@@ -463,7 +463,7 @@
             });
         }
 
-        function deleteAddress(maDC) {
+        function XoaDiaChi(maDC) {
             if (!confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
 
             var formData = new FormData();

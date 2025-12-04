@@ -13,7 +13,7 @@ namespace WebBanDoAnOnline.Controllers
         private BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
         // GET: /ThongBao/Index
-        public ActionResult Index(int? openId)
+        public ActionResult KH_ThongBao(int? openId)
         {
             if (Session["TaiKhoan"] == null) return RedirectToAction("Login", "TaiKhoan");
 
@@ -42,7 +42,7 @@ namespace WebBanDoAnOnline.Controllers
 
         //  Lấy số lượng tin chưa đọc
 
-        public string GetUnreadCount()
+        public string LayThongTinChuaDoc()
         {
             // Nếu chưa đăng nhập -> trả về false
             if (Session["TaiKhoan"] == null)
@@ -61,7 +61,7 @@ namespace WebBanDoAnOnline.Controllers
 
         //  Đánh dấu tất cả là đã đọc
         
-        public string MarkAllRead()
+        public string DanhDauTatCaDaDoc()
         {
             if (Session["TaiKhoan"] == null)
             {
@@ -96,7 +96,7 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
         // LayThongBao
-        public JsonResult GetThongBao()
+        public JsonResult LayThongBao()
         {
             
             if (Session["TaiKhoan"] == null)
@@ -126,8 +126,8 @@ namespace WebBanDoAnOnline.Controllers
 
             return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
         }
-
-        public JsonResult MarkAsRead(int id)
+        
+        public JsonResult DanhDauDaDoc(int id)
         {
             if (Session["TaiKhoan"] == null)
             {
@@ -149,7 +149,7 @@ namespace WebBanDoAnOnline.Controllers
             return Json(new { success = false });
         }
 
-        public JsonResult GetAllThongBaoJson()
+        public JsonResult LayTatCaThongBao()
         {
             if (Session["TaiKhoan"] == null) return Json(new { success = false }, JsonRequestBehavior.AllowGet);
 

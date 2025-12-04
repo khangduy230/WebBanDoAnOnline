@@ -9,12 +9,12 @@
     if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
 
     // Hàm format tiền tệ
-    function formatMoney(n) {
+    function DinhDangTienTe(n) {
         return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + " VNĐ";
     }
 
     // Cập nhật số lượng (+/-)
-    function Update_Qty(id, delta) {
+    function CapNhatSoLuong(id, delta) {
         var formData = new FormData();
         formData.append('id', id);
         formData.append('delta', delta);
@@ -31,7 +31,7 @@
     }
 
     // Cập nhật ghi chú
-    function Update_Note(id, input_obj) {
+    function CapNhatGhiChu(id, input_obj) {
         var formData = new FormData();
         formData.append('id', id);
         formData.append('ghichu', $(input_obj).val());
@@ -45,7 +45,7 @@
     }
 
     // Xóa sản phẩm
-    function Del_confirm(id) {
+    function XoaSanPham(id) {
         if (confirm("Xóa món này khỏi giỏ?")) {
             var formData = new FormData();
             formData.append('id', id);
@@ -54,7 +54,7 @@
                 type: "POST",
                 url: url_domain + '/GioHang/Xoa_SP_GioHang',
                 data: formData, processData: false, contentType: false,
-                success: function () { LoadDataGioHang(); }
+                success: function () { TaiDuLieuGioHang(); }
             });
         }
     }
@@ -109,7 +109,7 @@
 <!-- 3. SCRIPT LOGIC CHÍNH (Render & Checkbox & Checkout) -->
 <script>
     // --- A. HÀM LOAD DỮ LIỆU ---
-    function LoadDataGioHang() {
+    function TaiDuLieuGioHang() {
         $.ajax({
             type: "POST",
             url: url_domain + '/GioHang/Lay_DSGioHang',
@@ -215,7 +215,7 @@
     });
 
     // 3. Hàm tính tổng tiền dựa trên các món ĐANG CHỌN
-    function RecalculateTotal() {
+    function TongTien() {
         var total = 0;
         $('.cart-line').each(function () {
             // Chỉ cộng tiền những dòng có checkbox đang tích
@@ -227,7 +227,7 @@
     }
 
     // --- C. HÀM CHUYỂN TRANG THANH TOÁN (QUAN TRỌNG) ---
-    function ToCheckout() {
+    function DenThanhToan() {
         var selectedIds = [];
 
         // Lấy ID của những món đang được tích
@@ -253,7 +253,7 @@
             success: function (response) {
                 if (response === "OK") {
                     // Thành công -> Chuyển sang trang thanh toán
-                    window.location.href = "/ThanhToan/Index";
+                    window.location.href = "/ThanhToan/KH_ThanhToan";
                 } else {
                     alert(response);
                 }

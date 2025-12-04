@@ -494,13 +494,13 @@
             });
         });
 
-        function loadOrders(status) {
+        function LayDonMua(status) {
             var formData = new FormData();
             formData.append('status', status);
 
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("GetOrders", "CaiDat")',
+                url: '@Url.Action("LayDonMua", "CaiDat")',
                 data: formData,
                 contentType: false,
                 processData: false,
@@ -518,8 +518,8 @@
             });
         }
 
-
-        function renderOrders(orders) {
+        
+        function DanhSachDonMua(orders) {
             var html = '';
 
             if (orders.length === 0) {
@@ -528,7 +528,7 @@
                         <i class="fas fa-shopping-bag"></i>
                         <h5>Chưa có đơn hàng nào</h5>
                         <p>Hãy khám phá và đặt món ngon ngay thôi!</p>
-                        <a href="/SanPham/Index" class="btn-shop-now">
+                        <a href="/SanPham/KH_DanhSachSanPham" class="btn-shop-now">
                             <i class="fas fa-utensils"></i> Đặt món ngay
                         </a>
                     </div>
@@ -587,10 +587,10 @@
                                 </div>
                             </div>
 
-                            <!-- Product List (ĐÃ SỬA LỖI ẢNH Ở ĐÂY) -->
+                           
                             <div class="product-list">
                                 ${order.SanPhams.map(sp => {
-                        // Xử lý đường dẫn ảnh: Bỏ dấu ~ và thêm slash đầu nếu thiếu
+                       
                         var rawImg = sp.Anh || "";
                         var imgSrc = rawImg.replace("~", "");
                         if (!imgSrc) imgSrc = "/Content/Images/default-food.jpg"; // Ảnh mặc định
@@ -635,8 +635,8 @@
             $('#order-list').html(html);
         }
 
-        //  HÀM XỬ LÝ TRẠNG THÁI
-        function getStatusInfo(trangThai) {
+        
+        function XuLyTrangThai(trangThai) {
 
             switch (trangThai) {
                 case 'Chờ xác nhận':
@@ -655,7 +655,7 @@
         }
 
         // HÀM TẠO TIMELINE THEO TRẠNG THÁI
-        function getTimelineSteps(trangThai) {
+        function TaoDongThoiGian(trangThai) {
 
             var steps = [
                 { icon: 'fas fa-file-invoice', label: 'Đã đặt', class: 'completed' },
@@ -703,7 +703,8 @@
             return { steps: steps, progress: progress };
         }
 
-        function getActionButtons(trangThai, maDH) {
+        
+        function NutHanhDong(trangThai, maDH) {
             var buttons = '';
 
             // CHỈ hiển thị nút Hủy khi trạng thái là "Chờ xác nhận"
@@ -727,12 +728,12 @@
             return buttons;
         }
 
-        // Định dạng tiền tệ
-        function formatCurrency(n) {
+        
+        function DinhDangTienTe(n) {
             return new Intl.NumberFormat('vi-VN').format(n);
         }
 
-        function cancelOrder(id) {
+        function HuyDonMua(id) {
             if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.')) {
 
                 var formData = new FormData();
@@ -767,9 +768,9 @@
     
 
 
-        function reOrder(id) {
+        function DatLai(id) {
             
-            window.location.href = '/SanPham/Index';
+            window.location.href = '/SanPham/KH_DanhSachSanPham';
         }
     </script>
 }

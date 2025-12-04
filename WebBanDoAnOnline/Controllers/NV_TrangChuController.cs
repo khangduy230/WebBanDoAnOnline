@@ -56,8 +56,8 @@ namespace WebBanDoAnOnline.Controllers
         
         //  1: LẤY DANH SÁCH ĐƠN HÀNG (JSON)
        
-        // LayDonHang
-        public string GetOrders()
+        
+        public string LayDonHang()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
             string filterStatus = Request["status"]; 
@@ -119,8 +119,8 @@ namespace WebBanDoAnOnline.Controllers
 
         
         // API 2: CẬP NHẬT TRẠNG THÁI ĐƠN
-        // CapNhatTrangThai
-        public string UpdateStatus()
+        
+        public string CapNhatTrangThai()
         {
             try
             {
@@ -168,9 +168,9 @@ namespace WebBanDoAnOnline.Controllers
 
 
         // 3: LẤY CHI TIẾT 1 ĐƠN HÀNG
-        //LayChiTietDonHang
+      
 
-        public string GetOrderDetail()
+        public string LayChiTietDonHang()
         {
             string id_str = Request["id"];
             if (string.IsNullOrEmpty(id_str)) return "{}";

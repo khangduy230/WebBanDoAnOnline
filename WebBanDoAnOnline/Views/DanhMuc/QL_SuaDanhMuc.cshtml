@@ -67,20 +67,20 @@
     // ----- CÁC HÀM XỬ LÝ GIAO DIỆN -----
 
     // Hàm reset form về trạng thái thêm mới ban đầu
-    function resetForm() {
-        $("#hide_MaDM").val(""); // Xóa ID đang sửa
-        $("#txt_TenDM").val(""); // Xóa text
-        $("#form_title").text("Thêm mới Danh mục"); // Đặt lại tiêu đề
-        $("#btn_Huy").hide(); // Ẩn nút Hủy
+    function DatLaiForm() {
+        $("#hide_MaDM").val(""); 
+        $("#txt_TenDM").val(""); 
+        $("#form_title").text("Thêm mới Danh mục"); 
+        $("#btn_Huy").hide(); 
         $("#txt_TenDM").focus();
     }
 
     // Hàm chuẩn bị form cho việc sửa
-    function prepareEditForm(maDM, tenDM) {
-        $("#hide_MaDM").val(maDM); // Gán ID vào input ẩn
-        $("#txt_TenDM").val(tenDM); // Gán tên vào ô text
-        $("#form_title").text("Cập nhật Danh mục: " + tenDM); // Đổi tiêu đề
-        $("#btn_Huy").show(); // Hiện nút Hủy
+    function SuaForm(maDM, tenDM) {
+        $("#hide_MaDM").val(maDM); 
+        $("#txt_TenDM").val(tenDM); 
+        $("#form_title").text("Cập nhật Danh mục: " + tenDM); 
+        $("#btn_Huy").show(); 
 
         // Cuộn lên đầu trang để người dùng thấy form
         $('html, body').animate({ scrollTop: 0 }, 'slow');
@@ -91,7 +91,7 @@
     // ----- CÁC HÀM GỌI API BẰNG AJAX -----
 
     // Hàm tải và hiển thị danh sách danh mục
-    function loadCategories() {
+    function TaiDanhMuc() {
         $.ajax({
             type: "POST",
             url: url_domain + '/DanhMuc/Lay_DSDM',

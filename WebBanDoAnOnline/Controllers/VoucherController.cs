@@ -107,7 +107,7 @@ namespace WebBanDoAnOnline.Controllers
        
         // API 3: THÊM MỚI VOUCHER
         
-        public string InsertVoucher()
+        public string ThemMoiVoucher()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
             string maCode = Request["txt_MaCode"];
@@ -182,7 +182,7 @@ namespace WebBanDoAnOnline.Controllers
        
         // API 4: CẬP NHẬT VOUCHER
        
-        public string UpdateVoucher()
+        public string CapNhatVoucher()
         {
             string id_str = Request["txt_MaVoucher_hide"];
             if (string.IsNullOrEmpty(id_str)) return "Lỗi ID";
@@ -256,7 +256,7 @@ namespace WebBanDoAnOnline.Controllers
       
         // API 5: XÓA VOUCHER
         
-        public string DeleteVoucher()
+        public string XoaVoucher()
         {
             string id_str = Request["id"];
             int id = int.Parse(id_str);

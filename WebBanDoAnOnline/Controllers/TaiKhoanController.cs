@@ -31,7 +31,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // --- API LOGIN 
         
-        public JsonResult Login_act(string txt_acc, string txt_pass)
+        public JsonResult XuLyDangNhap(string txt_acc, string txt_pass)
         {
             if (string.IsNullOrEmpty(txt_acc) || string.IsNullOrEmpty(txt_pass))
             {
@@ -83,7 +83,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // API REGISTER 
         
-        public JsonResult Register_act(string txt_name, string txt_user, string txt_phone, string txt_email, string txt_pass, string txt_repass)
+        public JsonResult XuLiDangKy(string txt_name, string txt_user, string txt_phone, string txt_email, string txt_pass, string txt_repass)
         {
             if (string.IsNullOrEmpty(txt_name) || string.IsNullOrEmpty(txt_user) || string.IsNullOrEmpty(txt_pass))
                 return Json(new { success = false, message = "Vui lòng nhập đầy đủ thông tin." });
@@ -134,7 +134,7 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        public ActionResult LogOff()
+        public ActionResult DangXuat()
         {
             Session["TaiKhoan"] = null;
             Session.Clear();

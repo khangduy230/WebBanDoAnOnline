@@ -40,7 +40,7 @@ namespace WebBanDoAnOnline.Controllers
         }
 
         // 2. LẤY DỮ LIỆU DASHBOARD 
-        public string GetDashboardData()
+        public string LayDuLieuDashBoard()
         {
             try
             {

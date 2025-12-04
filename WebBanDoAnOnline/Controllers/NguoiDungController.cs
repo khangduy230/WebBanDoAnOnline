@@ -87,7 +87,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // 3. THÊM MỚI 
         
-        public string Insert()
+        public string ThemMoiNguoiDung()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
@@ -143,7 +143,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // 4. CẬP NHẬT 
         [HttpPost]
-        public string Update()
+        public string CapNhatNguoiDung()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
             string id_str = Request["txt_MaTK_hide"]; 
@@ -192,7 +192,7 @@ namespace WebBanDoAnOnline.Controllers
         // 5. XÓA
 
         // AJAX: Đảo trạng thái khóa/mở khóa
-        public string ToggleStatus()
+        public string DatTrangThai()
         {
             string id_str = Request["id"];
             if (string.IsNullOrEmpty(id_str)) return "Lỗi ID";

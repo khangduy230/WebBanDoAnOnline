@@ -11,7 +11,7 @@ namespace WebBanDoAnOnline.Controllers
     public class ThanhToanController : Controller
     {
         // 1. Mở trang thanh toán
-        public ActionResult Index()
+        public ActionResult KH_ThanhToan()
         {
             if (Session["TaiKhoan"] == null)
             {
@@ -19,13 +19,6 @@ namespace WebBanDoAnOnline.Controllers
             }
             return View();
         }
-
-        // 2. Trang báo thành công 
-        public ActionResult Success()
-        {
-            return View();
-        }
-
         
         // API 1: LẤY DỮ LIỆU THANH TOÁN 
         

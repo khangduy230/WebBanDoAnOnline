@@ -37,7 +37,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // 2. API lấy dữ liệu sản phẩm cho trang chủ
         
-        public string GetHomeDataJson()
+        public string LaySanPhamTrangChu()  
         {
             try
             {
@@ -77,7 +77,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // 3.  lấy thông tin Header 
        
-        public string GetHeaderInfo()
+        public string LayThongTinHeader() 
         {
             // Kiểm tra session
             if (Session["TaiKhoan"] == null)

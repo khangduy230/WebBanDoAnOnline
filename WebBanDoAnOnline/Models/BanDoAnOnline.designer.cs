@@ -76,8 +76,14 @@ namespace WebBanDoAnOnline.Models
 		{
 			OnCreated();
 		}
-		
-		public BanDoAnOnlineDataContext(System.Data.IDbConnection connection) : 
+
+        public BanDoAnOnlineDataContext() :
+        base(global::System.Configuration.ConfigurationManager.ConnectionStrings["BanDoAnOnlineConnectionString"].ConnectionString, mappingSource)
+        {
+            OnCreated();
+        }
+
+        public BanDoAnOnlineDataContext(System.Data.IDbConnection connection) : 
 				base(connection, mappingSource)
 		{
 			OnCreated();

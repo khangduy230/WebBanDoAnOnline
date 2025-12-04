@@ -30,7 +30,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // POST: CaiDat/GetProfile (CaiDat/LayHoSo)
         
-        public string GetProfile()
+        public string LayHoSo()
         {
             try
             {
@@ -69,7 +69,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // POST: CaiDat/SaveProfile (CaiDat/LuuHoSo)
         [HttpPost]
-        public string SaveProfile()
+        public string LuuHoSo()
         {
             try
             {
@@ -156,7 +156,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // POST: API lấy danh sách đơn hàng theo trạng thái
         // LayDonMua
-        public string GetOrders()
+        public string LayDonMua()
         {
             try
             {
@@ -286,7 +286,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // POST: CaiDat/ChangePassword (Đổi mật khẩu)
         [HttpPost]
-        public string ChangePassword()
+        public string DoiMatKhau()
         {
             try
             {
@@ -364,7 +364,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // GET: Lấy danh sách địa chỉ (LayDiaChi)
         [HttpPost]
-        public string GetDiaChi()
+        public string LayDiaChi()
         {
             try
             {
@@ -542,7 +542,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // GET: Lấy danh sách voucher của user (LayDSVoucher)
         [HttpPost]
-        public string GetVoucherList()
+        public string LayDSVoucher()
         {
             try
             {

@@ -169,7 +169,7 @@
 
                 $.ajax({
                     type: "POST",
-                    url: url_domain + '/CaiDat/ChangePassword',
+                    url: url_domain + '/CaiDat/DoiMatKhau',
                     data: formData,
                     contentType: false,
                     processData: false,
@@ -196,7 +196,7 @@
             });
 
             // Hàm kiểm tra độ mạnh mật khẩu
-            function checkPasswordStrength(password) {
+            function KiemTraDoManhMatKhau(password) {
                 var strength = 0;
 
                 if (password.length >= 6) strength++;

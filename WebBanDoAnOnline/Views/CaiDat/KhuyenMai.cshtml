@@ -211,7 +211,7 @@
         var url_domain = window.location.origin;
 
         $(document).ready(function () {
-            loadVoucherList();
+            LayDSVoucher();
 
             // Enter để lưu voucher
             $('#voucherCodeInput').keypress(function (e) {
@@ -221,10 +221,10 @@
             });
         });
 
-        function loadVoucherList() {
+        function LayDSVoucher() {
             $.ajax({
                 type: "POST",
-                url: url_domain + '/CaiDat/GetVoucherList',
+                url: url_domain + '/CaiDat/LayDSVoucher',
                 contentType: false,
                 processData: false,
                 cache: false,
@@ -242,7 +242,7 @@
             });
         }
 
-        function renderVoucherList(data) {
+        function HienThiDSVoucher(data) {
             if (data.length === 0) {
                 $('#voucher-list').html(`
                         <div class="empty-voucher">
@@ -321,7 +321,7 @@
                     alert(res.message);
                     if (res.success) {
                         $('#voucherCodeInput').val('');
-                        loadVoucherList();
+                        LayDSVoucher();
                     }
                 },
                 error: function () {

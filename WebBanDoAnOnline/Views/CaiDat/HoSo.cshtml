@@ -140,10 +140,10 @@
             });
         });
 
-        function loadProfile() {
+        function LayHoSo() {
             $.ajax({
                 type: "POST",
-                url: url_domain + '/CaiDat/GetProfile',
+                url: url_domain + '/CaiDat/LayHoSo',
                 contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
@@ -163,7 +163,7 @@
             });
         }
 
-        function saveProfile() {
+        function LuuHoSo() {
             var btn = $(".btn-save");
             btn.prop("disabled", true).text("Đang lưu...");
 
@@ -178,7 +178,7 @@
 
             $.ajax({
                 type: "POST",
-                url: url_domain + '/CaiDat/SaveProfile',
+                url: url_domain + '/CaiDat/LuuHoSo',
                 data: formData, contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
