@@ -3,7 +3,7 @@
     Layout = "~/Views/Shared/_KH_Layout.cshtml";
 }
 
-<!-- 1. CÁC HÀM XỬ LÝ SỰ KIỆN CƠ BẢN (Update, Delete) -->
+<!-- 1. CÁC HÀM XỬ LÝ SỰ KIỆN CƠ BẢN -->
 <script>
     var url_domain = '@Url.Content("~")';
     if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
@@ -97,8 +97,8 @@
                 <div class="fw-semibold fs-5 text-nowrap">
                     Tổng cộng: <span id="grandTotal" class="text-danger fw-bold">0 VNĐ</span>
                 </div>
-                <!-- Nút Mua Hàng gọi hàm ToCheckout() -->
-                <button type="button" onclick="ToCheckout()" class="btn btn-warning px-4 py-2 fw-bold text-white shadow-sm text-nowrap">
+                <!-- Nút Mua Hàng gọi hàm DenThanhToan() -->
+                <button type="button" onclick="DenThanhToan()" class="btn btn-warning px-4 py-2 fw-bold text-white shadow-sm text-nowrap">
                     Mua hàng
                 </button>
             </div>
@@ -106,7 +106,7 @@
     </div>
 </section>
 
-<!-- 3. SCRIPT LOGIC CHÍNH (Render & Checkbox & Checkout) -->
+<!-- 3. SCRIPT LOGIC CHÍNH -->
 <script>
     // --- A. HÀM LOAD DỮ LIỆU ---
     function TaiDuLieuGioHang() {
@@ -134,7 +134,7 @@
                     var img = item.Anh ? item.Anh.replace('~', '') : '/img/no-image.jpg';
                     var noteVal = item.GhiChu ? item.GhiChu : "";
 
-                    // QUAN TRỌNG: Thêm data-id và data-line-total để JS tính toán
+                    // --- SỬA LỖI TẠI ĐÂY: Thay tên hàm tiếng Anh bằng tên hàm tiếng Việt đã khai báo ---
                     html_str += `
                     <div class="cart-line p-3 border rounded-3 bg-white shadow-sm position-relative"
                          data-id="${item.MaSP}"
@@ -143,7 +143,6 @@
                         <div class="row g-3 align-items-center">
                             <!-- Cột 1: Checkbox + Ảnh + Tên -->
                             <div class="col-md-6 d-flex align-items-center gap-3">
-                                <!-- Checkbox chọn món -->
                                 <input type="checkbox" class="form-check-input cart-item-check" checked style="transform: scale(1.2); cursor: pointer;" />
 
                                 <img src="${img}" style="width:70px; height:70px; object-fit:cover; border-radius:8px"
@@ -154,19 +153,21 @@
                                     <div class="small text-muted">
                                         Đơn giá: <span class="text-primary fw-bold">${DinhDangTienTe(item.GiaHienTai)}</span>
                                     </div>
+                                    <!-- Sửa onblur="Update_Note" thành "CapNhatGhiChu" -->
                                     <input type="text" class="form-control form-control-sm mt-2"
                                            placeholder="Ghi chú món ăn..."
                                            value="${noteVal}"
-                                           onblur="Update_Note(${item.MaSP}, this)" />
+                                           onblur="CapNhatGhiChu(${item.MaSP}, this)" />
                                 </div>
                             </div>
 
                             <!-- Cột 2: Số lượng -->
                             <div class="col-md-2 text-center">
                                 <div class="btn-group btn-group-sm border rounded">
-                                    <button type="button" class="btn btn-light border-end" onclick="Update_Qty(${item.MaSP}, -1)">-</button>
+                                    <!-- Sửa Update_Qty thành CapNhatSoLuong -->
+                                    <button type="button" class="btn btn-light border-end" onclick="CapNhatSoLuong(${item.MaSP}, -1)">-</button>
                                     <button type="button" class="btn btn-white fw-bold px-3" disabled style="color:#000; background:#fff">${item.SoLuong}</button>
-                                    <button type="button" class="btn btn-light border-start" onclick="Update_Qty(${item.MaSP}, 1)">+</button>
+                                    <button type="button" class="btn btn-light border-start" onclick="CapNhatSoLuong(${item.MaSP}, 1)">+</button>
                                 </div>
                             </div>
 
@@ -177,8 +178,9 @@
 
                             <!-- Cột 4: Xóa -->
                             <div class="col-md-2 text-center">
+                                <!-- Sửa Del_confirm thành XoaSanPham -->
                                 <button type="button" class="btn btn-outline-danger btn-sm border-0 rounded-circle p-2"
-                                        onclick="Del_confirm(${item.MaSP})" title="Xóa món này">
+                                        onclick="XoaSanPham(${item.MaSP})" title="Xóa món này">
                                     <i class="fa-regular fa-trash-can"></i>
                                 </button>
                             </div>
@@ -190,7 +192,9 @@
 
                 // Mặc định check all khi mới load
                 $('#checkAll').prop('checked', true);
-                RecalculateTotal();
+
+                // --- SỬA LỖI: Gọi hàm TongTien thay vì RecalculateTotal ---
+                TongTien();
             },
             error: function (err) { console.log(err); }
         });
@@ -202,19 +206,19 @@
     $(document).on('change', '#checkAll', function () {
         var isChecked = $(this).is(':checked');
         $('.cart-item-check').prop('checked', isChecked);
-        RecalculateTotal();
+        TongTien(); // Sửa tên hàm
     });
 
     // 2. Sự kiện Click vào từng checkbox con
     $(document).on('change', '.cart-item-check', function () {
         var total = $('.cart-item-check').length;
         var checked = $('.cart-item-check:checked').length;
-        // Nếu chọn hết thì tích luôn CheckAll, ngược lại bỏ tích
+
         $('#checkAll').prop('checked', (total === checked && total > 0));
-        RecalculateTotal();
+        TongTien(); // Sửa tên hàm
     });
 
-    // 3. Hàm tính tổng tiền dựa trên các món ĐANG CHỌN
+    // 3. Hàm tính tổng tiền (Đã có, chỉ cần gọi đúng tên)
     function TongTien() {
         var total = 0;
         $('.cart-line').each(function () {
@@ -226,11 +230,10 @@
         $("#grandTotal").text(DinhDangTienTe(total));
     }
 
-    // --- C. HÀM CHUYỂN TRANG THANH TOÁN (QUAN TRỌNG) ---
+    // --- C. HÀM CHUYỂN TRANG THANH TOÁN ---
     function DenThanhToan() {
         var selectedIds = [];
 
-        // Lấy ID của những món đang được tích
         $('.cart-item-check:checked').each(function () {
             var id = $(this).closest('.cart-line').attr('data-id');
             if (id) selectedIds.push(id);
@@ -241,18 +244,16 @@
             return;
         }
 
-        // Gửi danh sách ID lên Server để lưu Session
         var formData = new FormData();
-        formData.append('selectedIds', selectedIds.join(',')); // Gửi chuỗi "1,2,5"
+        formData.append('selectedIds', selectedIds.join(','));
 
         $.ajax({
             type: "POST",
-            url: url_domain + '/GioHang/LuuSanPhamThanhToan', // API mới tạo ở bước 1
+            url: url_domain + '/GioHang/LuuSanPhamThanhToan',
             data: formData,
             processData: false, contentType: false,
             success: function (response) {
                 if (response === "OK") {
-                    // Thành công -> Chuyển sang trang thanh toán
                     window.location.href = "/ThanhToan/KH_ThanhToan";
                 } else {
                     alert(response);
@@ -264,7 +265,6 @@
         });
     }
 
-    // Chạy lần đầu khi vào trang
     $(document).ready(function () {
         TaiDuLieuGioHang();
     });

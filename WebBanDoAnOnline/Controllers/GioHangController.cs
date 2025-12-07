@@ -73,9 +73,9 @@ namespace WebBanDoAnOnline.Controllers
             return "[]";
         }
 
-        // 2: Thêm vào giỏ (ThemGioHang)
+        // 2: Thêm vào giỏ (ThemVaoGio)
        
-        public string ThemGioHang()
+        public string ThemVaoGio()
         {
             string id_str = Request["productId"];
             string qty_str = Request["quantity"];
