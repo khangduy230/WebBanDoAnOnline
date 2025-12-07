@@ -15,7 +15,7 @@ namespace WebBanDoAnOnline.Controllers
         {
             if (Session["TaiKhoan"] == null)
             {
-                return RedirectToAction("Login", "TaiKhoan");
+                return RedirectToAction("DangNhap", "TaiKhoan");
             }
             return View();
         }
@@ -27,7 +27,7 @@ namespace WebBanDoAnOnline.Controllers
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
             var user = Session["TaiKhoan"] as TaiKhoan;
 
-            if (user == null) return "LOGIN_REQUIRED";
+            if (user == null) return "DangNhap_REQUIRED";   //Sau xem lại
 
             DateTime now = DateTime.Now;
 
@@ -94,7 +94,7 @@ namespace WebBanDoAnOnline.Controllers
                 {
                     TenSP = item.p.TenSP,
                     SoLuong = item.g.SoLuong,
-                    DonGia = giaBan,
+                    currentia = giaBan,
                     ThanhTien = thanhTien
                 });
             }
@@ -179,7 +179,7 @@ namespace WebBanDoAnOnline.Controllers
             try
             {
                 var user = Session["TaiKhoan"] as TaiKhoan;
-                if (user == null) return "LOGIN_REQUIRED";
+                if (user == null) return "DangNhap_REQUIRED"; //Sau xem lại
 
                 string addressId_str = Request["addressId"];
                 string payMethod = Request["payMethod"];
@@ -284,7 +284,7 @@ namespace WebBanDoAnOnline.Controllers
                     ct.MaSP = item.MaSP;
                     ct.TenSP = sp.TenSP;
                     ct.SoLuong = item.SoLuong;
-                    ct.DonGia = giaFinal;
+                    ct.currentia = giaFinal;
                     ct.ThanhTien = giaFinal * (ct.SoLuong ?? 1);
                     ct.GhiChu = item.GhiChu;
                     ct.Create_at = DateTime.Now;

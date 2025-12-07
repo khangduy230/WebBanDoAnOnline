@@ -64,7 +64,7 @@
                 </div>
                 <hr />
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="@Url.Action("LayVoucher", "Voucher")" class="btn btn-secondary">Hủy</a>
+                    <a href="/Voucher/LayVoucher" class="btn btn-secondary">Hủy</a>
                     <button type="button" id="btn_them" class="btn btn-success px-4">Lưu lại</button>
                 </div>
             </form>
@@ -92,7 +92,7 @@
             success: function (res) {
                 alert(res);
                 if (res.includes("thành công")) {
-                    window.location.href = '@Url.Action("LayVoucher", "Voucher")';
+                    window.location.href = '/Voucher/LayVoucher';
                 }
             },
             error: function() { alert("Lỗi kết nối server."); }

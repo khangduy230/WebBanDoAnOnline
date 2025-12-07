@@ -21,31 +21,31 @@ namespace WebBanDoAnOnline.Controllers
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
             // Tìm theo tên, email, sđt, tài khoản
-            string searchTerm = Request["searchTerm"];
+            string TimKiem = Request["TimKiem"];
             var query = db.TaiKhoans.Where(x => x.isDelete != 1);
 
-            if (!string.IsNullOrEmpty(searchTerm))
+            if (!string.IsNullOrEmpty(TimKiem))
             {
-                string lower = searchTerm.ToLower();
+                string lower = TimKiem.ToLower();
                 query = query.Where(x => x.HoTen.ToLower().Contains(lower)
                                       || x.TenTK.ToLower().Contains(lower)
                                       || x.Email.ToLower().Contains(lower)
                                       || x.SoDienThoai.Contains(lower));
             }
             // Phân trang
-            int page = 1;
-            if (!string.IsNullOrEmpty(Request["page"])) int.TryParse(Request["page"], out page);
-            int pageSize = 6;
+            int Trang = 1;
+            if (!string.IsNullOrEmpty(Request["Trang"])) int.TryParse(Request["Trang"], out Trang);
+            int TrangSize = 6;
             
             int totalItems = query.Count();
-            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-            if (totalPages == 0) totalPages = 1;
+            int TongTrang = (int)Math.Ceiling((double)totalItems / TrangSize);
+            if (TongTrang == 0) TongTrang = 1;
 
             // Lấy dữ liệu trang hiện tại
 
             var data = query.OrderByDescending(x => x.MaTK)
-                            .Skip((page - 1) * pageSize)
-                            .Take(pageSize)
+                            .Skip((Trang - 1) * TrangSize)
+                            .Take(TrangSize)
                             .Select(x => new {
                                 x.MaTK,
                                 x.HoTen,
@@ -56,7 +56,7 @@ namespace WebBanDoAnOnline.Controllers
                                 x.TrangThai
                             }).ToList();
 
-            return JsonConvert.SerializeObject(new { TotalPages = totalPages, CurrentPage = page, NguoiDungs = data });
+            return JsonConvert.SerializeObject(new { TongTrang = TongTrang, currentTrang = Trang, NguoiDungs = data });
         }
 
         // 2. LẤY CHI TIẾT 

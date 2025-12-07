@@ -222,7 +222,7 @@ namespace WebBanDoAnOnline.Models
 		
 		private System.Nullable<int> _SoLuong;
 		
-		private decimal _DonGia;
+		private decimal _currentia;
 		
 		private decimal _ThanhTien;
 		
@@ -256,8 +256,8 @@ namespace WebBanDoAnOnline.Models
     partial void OnTenSPChanged();
     partial void OnSoLuongChanging(System.Nullable<int> value);
     partial void OnSoLuongChanged();
-    partial void OnDonGiaChanging(decimal value);
-    partial void OnDonGiaChanged();
+    partial void OncurrentiaChanging(decimal value);
+    partial void OncurrentiaChanged();
     partial void OnThanhTienChanging(decimal value);
     partial void OnThanhTienChanged();
     partial void OnGhiChuChanging(string value);
@@ -389,22 +389,22 @@ namespace WebBanDoAnOnline.Models
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DonGia", DbType="Decimal(18,2) NOT NULL")]
-		public decimal DonGia
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_currentia", DbType="Decimal(18,2) NOT NULL")]
+		public decimal currentia
 		{
 			get
 			{
-				return this._DonGia;
+				return this._currentia;
 			}
 			set
 			{
-				if ((this._DonGia != value))
+				if ((this._currentia != value))
 				{
-					this.OnDonGiaChanging(value);
+					this.OncurrentiaChanging(value);
 					this.SendPropertyChanging();
-					this._DonGia = value;
-					this.SendPropertyChanged("DonGia");
-					this.OnDonGiaChanged();
+					this._currentia = value;
+					this.SendPropertyChanged("currentia");
+					this.OncurrentiaChanged();
 				}
 			}
 		}

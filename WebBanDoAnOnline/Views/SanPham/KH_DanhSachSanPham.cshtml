@@ -18,13 +18,13 @@
         border-color: #ffc107 !important;
     }
     /* CSS cho phân trang */
-    .pagination .page-item.active .page-link {
+    .pagination .Trang-item.active .Trang-link {
         background-color: #ffc107;
         border-color: #ffc107;
         color: black;
     }
 
-    .pagination .page-link {
+    .pagination .Trang-link {
         color: #333;
     }
 </style>
@@ -57,12 +57,12 @@
 <script>
     var url_domain = window.location.origin;
     var activeCategoryId = null;
-    var currentPage = 1;
+    var TrangHienTai = 1;
 
     $(document).ready(function () {
         // 1. Lấy tham số từ khóa trên URL (nếu có)
         const urlParams = new URLSearchParams(window.location.search);
-        const kwParam = urlParams.get('searchTerm');
+        const kwParam = urlParams.get('TimKiem');
 
         // 2. Kết nối input tìm kiếm ở Layout
         var searchInput = $("#global-search");
@@ -76,7 +76,7 @@
                 // Khi người dùng tự gõ -> Reset danh mục về null để tìm toàn cục
                 activeCategoryId = null;
                 $(".category-item-special").removeClass("category-item-special bg-warning text-white").addClass("category-item-circle");
-                loadProducts(null, keyword, 1);
+                TaiSanPham(null, keyword, 1);
             }, 500);
         });
 
@@ -87,19 +87,19 @@
             activeCategoryId = null;  // Không chọn danh mục nào cả
 
             // Gọi hàm load danh mục nhưng tham số là FALSE (nghĩa là chỉ vẽ ra thôi, đừng load sản phẩm mặc định)
-            loadCategories(false);
+            LayDanhMuc(false);
 
             // Load ngay sản phẩm theo từ khóa
-            loadProducts(null, kwParam, 1);
+            TaiSanPham(null, kwParam, 1);
         } else {
             // TRƯỜNG HỢP B: Vào trang bình thường
             // Tham số TRUE (nghĩa là load xong danh mục thì load luôn sản phẩm mặc định)
-            loadCategories(true);
+            LayDanhMuc(true);
         }
     });
 
-    // --- HÀM 1: TẢI DANH MỤC (Đã sửa thêm tham số autoLoadProducts) ---
-    function loadCategories(autoLoadProducts) {
+    // --- HÀM 1: TẢI DANH MỤC (Đã sửa thêm tham số autoTaiSanPham) ---
+    function LayDanhMuc(autoTaiSanPham) {
         $.ajax({
             type: "POST",
             url: url_domain + '/DanhMuc/Lay_DSDM',
@@ -109,7 +109,7 @@
                 var container = $("#menu-categories");
                 container.empty();
 
-                if (autoLoadProducts && activeCategoryId === null && cats.length > 0) {
+                if (autoTaiSanPham && activeCategoryId === null && cats.length > 0) {
                     var defaultCat = cats.find(c => c.MacDinh == true) || cats[0];
                     activeCategoryId = defaultCat.MaDM;
                 }
@@ -136,12 +136,12 @@
                            </div>
                            <span class="category-name small fw-bold">${c.TenDM}</span>`;
 
-                    var html = `<a href="javascript:void(0)" onclick="changeCategory(${c.MaDM})" class="${itemClass}" style="min-width: fit-content;">${contentHtml}</a>`;
+                    var html = `<a href="javascript:void(0)" onclick="DoiDanhMuc(${c.MaDM})" class="${itemClass}" style="min-width: fit-content;">${contentHtml}</a>`;
                     container.append(html);
                 });
 
-                if (autoLoadProducts) {
-                    loadProducts(activeCategoryId, "");
+                if (autoTaiSanPham) {
+                    TaiSanPham(activeCategoryId, "");
                 }
             },
             error: function (err) {
@@ -151,29 +151,29 @@
     }
 
     // --- HÀM 2: ĐỔI DANH MỤC KHI CLICK ---
-    function changeCategory(id) {
+    function DoiDanhMuc(id) {
         activeCategoryId = id;
         // Xóa từ khóa tìm kiếm khi bấm vào danh mục (để trải nghiệm tốt hơn)
         $("#global-search").val("");
 
-        // Gọi lại loadCategories(false) để cập nhật lại CSS (cái nào vàng, cái nào trắng)
-        // Nhưng ta cần loadProducts ngay sau đó
-        loadCategories(false);
+        
+        // Nhưng ta cần TaiSanPham ngay sau đó
+        LayDanhMuc(false);
 
         // Gọi API lấy sản phẩm theo danh mục mới
-        loadProducts(id, "", 1);
+        TaiSanPham(id, "", 1);
     }
 
     // --- HÀM 3: TẢI SẢN PHẨM (Giữ nguyên) ---
-    function loadProducts(maDM, searchTerm, page = 1) {
-        currentPage = page;
-        var finalSearchTerm = searchTerm || "";
+    function TaiSanPham(maDM, TimKiem, Trang = 1) {
+        TrangHienTai = Trang;
+        var finalTimKiem = TimKiem || "";
 
         var formData = new FormData();
         // Nếu maDM null (đang tìm kiếm toàn cục) thì không gửi maDM
         if (maDM) formData.append('maDM', maDM);
-        formData.append('searchTerm', finalSearchTerm);
-        formData.append('page', page);
+        formData.append('TimKiem', finalTimKiem);
+        formData.append('Trang', Trang);
 
         $.ajax({
             type: "POST",
@@ -208,11 +208,11 @@
                                 </div>
                                 <div class="card-body text-center p-2">
                                     <h6 class="card-title fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
-                                    <p class="card-text text-danger fw-bold mb-2">${formatCurrency(p.Gia)}</p>
+                                    <p class="card-text text-danger fw-bold mb-2">${DinhDangTienTe(p.Gia)}</p>
                                 </div>
                             </a>
                             <div class="card-footer bg-transparent border-0 text-center pb-3 pt-0">
-                                <button class="btn btn-outline-warning btn-sm rounded-pill w-100 fw-bold" onclick="addToCart(${p.MaSP})">
+                                <button class="btn btn-outline-warning btn-sm rounded-pill w-100 fw-bold" onclick="ThemVaoGio(${p.MaSP})">
                                     <i class="fa fa-shopping-cart"></i> Thêm
                                 </button>
                             </div>
@@ -222,7 +222,7 @@
                 });
 
                 // Vẽ phân trang
-                taoPhanTrang(data.TotalPages, data.CurrentPage);
+                taoPhanTrang(data.TongTrang, data.TrangHienTai);
             },
             error: function (err) {
                 console.log("Lỗi tải sản phẩm:", err);
@@ -232,39 +232,39 @@
     }
 
     // --- HÀM 4: FORMAT TIỀN (Giữ nguyên) ---
-    function formatCurrency(n) {
+    function DinhDangTienTe(n) {
         return isNaN(n) ? "0 đ" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
     }
 
     // --- HÀM 5: PHÂN TRANG (Giữ nguyên logic cũ nhưng cập nhật biến truyền vào) ---
-    function taoPhanTrang(totalPages, currentPage) {
-        if (totalPages <= 1) { $("#pagination").html(''); return; }
+    function taoPhanTrang(TongTrang, TrangHienTai) {
+        if (TongTrang <= 1) { $("#pagination").html(''); return; }
 
         var kword = $("#global-search").val() || "";
         // Nếu đang tìm kiếm thì catId phải là null để controller hiểu là tìm toàn cục
         var catIdParam = activeCategoryId ? activeCategoryId : "null";
         var kwordSafe = kword.replace(/'/g, "\\'");
 
-        var html = `<nav aria-label="Page navigation"><ul class="pagination shadow-sm">`;
+        var html = `<nav aria-label="Trang navigation"><ul class="pagination shadow-sm">`;
 
         // Nút Previous
-        var prevClass = (currentPage === 1) ? "disabled" : "";
-        html += `<li class="page-item ${prevClass}">
-                    <a class="page-link" href="javascript:void(0)" onclick="loadProducts(${catIdParam}, '${kwordSafe}', ${currentPage - 1})">&laquo;</a>
+        var prevClass = (TrangHienTai === 1) ? "disabled" : "";
+        html += `<li class="Trang-item ${prevClass}">
+                    <a class="Trang-link" href="javascript:void(0)" onclick="TaiSanPham(${catIdParam}, '${kwordSafe}', ${TrangHienTai - 1})">&laquo;</a>
                  </li>`;
 
         // Số trang
-        for (let i = 1; i <= totalPages; i++) {
-            var activeClass = (i === currentPage) ? "active" : "";
-            html += `<li class="page-item ${activeClass}">
-                        <a class="page-link" href="javascript:void(0)" onclick="loadProducts(${catIdParam}, '${kwordSafe}', ${i})">${i}</a>
+        for (let i = 1; i <= TongTrang; i++) {
+            var activeClass = (i === TrangHienTai) ? "active" : "";
+            html += `<li class="Trang-item ${activeClass}">
+                        <a class="Trang-link" href="javascript:void(0)" onclick="TaiSanPham(${catIdParam}, '${kwordSafe}', ${i})">${i}</a>
                      </li>`;
         }
 
         // Nút Next
-        var nextClass = (currentPage === totalPages) ? "disabled" : "";
-        html += `<li class="page-item ${nextClass}">
-                    <a class="page-link" href="javascript:void(0)" onclick="loadProducts(${catIdParam}, '${kwordSafe}', ${currentPage + 1})">&raquo;</a>
+        var nextClass = (TrangHienTai === TongTrang) ? "disabled" : "";
+        html += `<li class="Trang-item ${nextClass}">
+                    <a class="Trang-link" href="javascript:void(0)" onclick="TaiSanPham(${catIdParam}, '${kwordSafe}', ${TrangHienTai + 1})">&raquo;</a>
                  </li>`;
 
         html += `</ul></nav>`;
@@ -272,7 +272,7 @@
     }
 
     // --- HÀM 6: THÊM VÀO GIỎ HÀNG (Đã sửa để cập nhật số lượng ngay) ---
-    function addToCart(id) {
+    function ThemVaoGio(id) {
         // Tạo form data để gửi dữ liệu
         var formData = new FormData();
         formData.append('productId', id);
@@ -281,7 +281,7 @@
 
         $.ajax({
             type: "POST",
-            url: url_domain + '/GioHang/AddToCart',
+            url: url_domain + '/GioHang/ThemVaoGio',
             data: formData,
             processData: false,
             contentType: false,

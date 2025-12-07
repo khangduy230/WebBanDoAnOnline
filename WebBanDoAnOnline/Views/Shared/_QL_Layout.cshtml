@@ -235,7 +235,7 @@
                     <li><a class="dropdown-item" href="#"><i class="fas fa-key me-2"></i> Đổi mật khẩu</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <form action="@Url.Action("LogOff", "TaiKhoan")" method="get" id="logoutFormAdmin">
+                        <form action="@Url.Action("DangXuat", "TaiKhoan")" method="get" id="logoutFormAdmin">
                             <a class="dropdown-item text-danger" href="javascript:document.getElementById('logoutFormAdmin').submit()">
                                 <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
                             </a>
@@ -264,7 +264,7 @@
             // CẬP NHẬT AVATAR TỰ ĐỘNG TỪ DB
             $.ajax({
                 type: "POST",
-                url: url_domain + '/KH_TrangChu/GetHeaderInfo',
+                url: url_domain + '/KH_TrangChu/LayThongTinHeader',
                 contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;

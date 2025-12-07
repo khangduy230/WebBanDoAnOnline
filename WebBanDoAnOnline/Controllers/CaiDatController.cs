@@ -23,7 +23,7 @@ namespace WebBanDoAnOnline.Controllers
         {
             if (Session["TaiKhoan"] == null)
             {
-                return RedirectToAction("Login", "TaiKhoan");
+                return RedirectToAction("DangNhap", "TaiKhoan");
             }
             return View();
         }
@@ -131,7 +131,7 @@ namespace WebBanDoAnOnline.Controllers
         {
             if (Session["TaiKhoan"] == null)
             {
-                return RedirectToAction("Login", "TaiKhoan");
+                return RedirectToAction("DangNhap", "TaiKhoan");
             }
             return View();
         }
@@ -140,7 +140,7 @@ namespace WebBanDoAnOnline.Controllers
         {
             if (Session["TaiKhoan"] == null)
             {
-                return RedirectToAction("Login", "TaiKhoan");
+                return RedirectToAction("DangNhap", "TaiKhoan");
             }
             return View();
         }
@@ -149,7 +149,7 @@ namespace WebBanDoAnOnline.Controllers
         {
             if (Session["TaiKhoan"] == null)
             {
-                return RedirectToAction("Login", "TaiKhoan");
+                return RedirectToAction("DangNhap", "TaiKhoan");
             }
             return View();
         }
@@ -228,7 +228,7 @@ namespace WebBanDoAnOnline.Controllers
                             {
                                 TenSP = ct.TenSP ?? (ct.SanPham != null ? ct.SanPham.TenSP : "Sản phẩm"), 
                                 SoLuong = ct.SoLuong ?? 0,
-                                DonGia = ct.DonGia,
+                                currentia = ct.currentia,
                                 Anh = (ct.SanPham != null && !string.IsNullOrEmpty(ct.SanPham.Anh)) ? ct.SanPham.Anh : "/img/no-image.jpg" 
                             };
                         }).ToList();
@@ -257,7 +257,7 @@ namespace WebBanDoAnOnline.Controllers
         {
             if (Session["TaiKhoan"] == null)
             {
-                return RedirectToAction("Login", "TaiKhoan");
+                return RedirectToAction("DangNhap", "TaiKhoan");
             }
             return View();
         }
@@ -266,7 +266,7 @@ namespace WebBanDoAnOnline.Controllers
         {
             if (Session["TaiKhoan"] == null)
             {
-                return RedirectToAction("Login", "TaiKhoan");
+                return RedirectToAction("DangNhap", "TaiKhoan");
             }
             return View();
         }
@@ -307,7 +307,7 @@ namespace WebBanDoAnOnline.Controllers
                     return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Không tìm thấy tài khoản trong hệ thống" });
                 }
 
-                string currentPassword = Request.Form["CurrentPassword"];
+                string currentPassword = Request.Form["currentPassword"];
                 string newPassword = Request.Form["NewPassword"];
                 string confirmPassword = Request.Form["ConfirmPassword"];
 

@@ -41,7 +41,7 @@
 <!-- 3. JAVASCRIPT XỬ LÝ -->
 <script>
     // Hàm định dạng tiền tệ
-    function formatMoney(n) {
+    function DinhDangTienTe(n) {
         return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + "đ";
     }
 
@@ -51,7 +51,7 @@
     $(document).ready(function() {
         $.ajax({
             type: "POST",
-            url: url_domain + '/KH_TrangChu/GetDataJson',
+            url: url_domain + '/KH_TrangChu/LaySanPhamTrangChu',
             contentType: false, processData: false, cache: false,
             success: function (response) {
                 var dssp = JSON.parse(response);
@@ -76,10 +76,10 @@
                     if (sp.DangGiamGia) {
                         var percent = Math.round((1 - sp.GiaKM / sp.GiaGoc) * 100);
                         badge = `<span class="position-absolute top-0 start-0 bg-danger text-white badge m-2 shadow">-${percent}%</span>`;
-                        giaHienThi = `<span class="fw-bold text-danger fs-5">${formatMoney(sp.GiaKM)}</span>
-                                      <small class="text-decoration-line-through text-muted ms-1" style="font-size:0.9em">${formatMoney(sp.GiaGoc)}</small>`;
+                        giaHienThi = `<span class="fw-bold text-danger fs-5">${DinhDangTienTe(sp.GiaKM)}</span>
+                                      <small class="text-decoration-line-through text-muted ms-1" style="font-size:0.9em">${DinhDangTienTe(sp.GiaGoc)}</small>`;
                     } else {
-                        giaHienThi = `<span class="fw-bold text-dark fs-5">${formatMoney(sp.GiaGoc)}</span>`;
+                        giaHienThi = `<span class="fw-bold text-dark fs-5">${DinhDangTienTe(sp.GiaGoc)}</span>`;
                     }
 
                     html_str += `

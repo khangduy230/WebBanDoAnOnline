@@ -1336,7 +1336,7 @@
 
     nextWhenVisible() {
       // FIXME TODO use `document.visibilityState`
-      // Don't call next when the page isn't visible
+      // Don't call next when the Trang isn't visible
       // or the carousel or its parent isn't visible
       if (!document.hidden && isVisible(this._element)) {
         this.next();
@@ -2676,8 +2676,8 @@
 
   function getWindowScroll(node) {
     var win = getWindow(node);
-    var scrollLeft = win.pageXOffset;
-    var scrollTop = win.pageYOffset;
+    var scrollLeft = win.TrangXOffset;
+    var scrollTop = win.TrangYOffset;
     return {
       scrollLeft: scrollLeft,
       scrollTop: scrollTop
@@ -6670,7 +6670,7 @@
         return;
       }
 
-      event.stopPropagation(); // stopPropagation/preventDefault both added to support up/down keys without scrolling the page
+      event.stopPropagation(); // stopPropagation/preventDefault both added to support up/down keys without scrolling the Trang
 
       event.preventDefault();
       const isNext = [ARROW_RIGHT_KEY, ARROW_DOWN_KEY].includes(event.key);

@@ -24,7 +24,7 @@
             url: url_domain + '/GioHang/CapNhat_SoLuong',
             data: formData, processData: false, contentType: false,
             success: function (response) {
-                LoadDataGioHang(); // Load lại để cập nhật
+                TaiDuLieuGioHang(); // Load lại để cập nhật
             },
             error: function () { alert("Lỗi kết nối server"); }
         });
@@ -61,7 +61,7 @@
 </script>
 
 <!-- 2. GIAO DIỆN HTML -->
-<section class="container my-4 cart-page">
+<section class="container my-4 cart-Trang">
     <h2 class="fw-bold mb-4">Giỏ hàng</h2>
 
     <!-- Hiển thị khi giỏ hàng trống -->
@@ -152,7 +152,7 @@
                                 <div style="flex:1">
                                     <div class="fw-bold text-dark text-truncate">${item.TenSP}</div>
                                     <div class="small text-muted">
-                                        Đơn giá: <span class="text-primary fw-bold">${formatMoney(item.GiaHienTai)}</span>
+                                        Đơn giá: <span class="text-primary fw-bold">${DinhDangTienTe(item.GiaHienTai)}</span>
                                     </div>
                                     <input type="text" class="form-control form-control-sm mt-2"
                                            placeholder="Ghi chú món ăn..."
@@ -172,7 +172,7 @@
 
                             <!-- Cột 3: Thành tiền -->
                             <div class="col-md-2 text-end fw-bold text-danger fs-6">
-                                ${formatMoney(item.ThanhTien)}
+                                ${DinhDangTienTe(item.ThanhTien)}
                             </div>
 
                             <!-- Cột 4: Xóa -->
@@ -223,7 +223,7 @@
                 total += parseFloat($(this).attr('data-line-total')) || 0;
             }
         });
-        $("#grandTotal").text(formatMoney(total));
+        $("#grandTotal").text(DinhDangTienTe(total));
     }
 
     // --- C. HÀM CHUYỂN TRANG THANH TOÁN (QUAN TRỌNG) ---
@@ -266,6 +266,6 @@
 
     // Chạy lần đầu khi vào trang
     $(document).ready(function () {
-        LoadDataGioHang();
+        TaiDuLieuGioHang();
     });
 </script>

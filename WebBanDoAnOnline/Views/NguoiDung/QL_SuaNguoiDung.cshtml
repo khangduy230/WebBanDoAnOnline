@@ -45,7 +45,7 @@
                             <div class="col-6 mb-3">
                                 <label class="form-label">Trạng thái</label>
                                 <select name="slc_TrangThai" id="slc_TrangThai" class="form-select">
-                                    <option value="HoatDong">Hoạt động</option>
+                                    <option value="Hoatdong">Hoạt động</option>
                                     <option value="BiKhoa">Bị khóa</option>
                                 </select>
                             </div>
@@ -76,7 +76,7 @@
     var userId = '@ViewBag.MaTK';
 
     // 1. Load thông tin cũ
-    function loadInfo() {
+    function TaiThongTin() {
         var formData = new FormData();
         formData.append('id', userId);
 
@@ -102,15 +102,15 @@
                 else if (u.VaiTro === "Nhân viên") role = "NhanVien";
                 $("#slc_VaiTro").val(role);
 
-                // DB: "Hoạt động" -> Select: "HoatDong"
-                var status = (u.TrangThai === "Bị khóa") ? "BiKhoa" : "HoatDong";
+                // DB: "Hoạt động" -> Select: "Hoatdong"
+                var status = (u.TrangThai === "Bị khóa") ? "BiKhoa" : "Hoatdong";
                 $("#slc_TrangThai").val(status);
             }
         });
     }
 
     $(document).ready(function () {
-        if (userId) loadInfo();
+        if (userId) TaiThongTin();
 
         $("#btn_capnhat").click(function () {
         var email = $("#txt_Email").val();
@@ -129,7 +129,7 @@
 
         $.ajax({
             type: "POST",
-            url: window.location.origin + '/NguoiDung/Update',
+            url: window.location.origin + '/NguoiDung/CapNhatNguoiDung',
             data: formData,
             processData: false, contentType: false, cache: false,
             success: function (res) {

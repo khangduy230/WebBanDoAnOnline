@@ -35,7 +35,7 @@
         }
 </style>
 
-<div class="checkout-page container my-4">
+<div class="checkout-Trang container my-4">
     <div id="loading-checkout" class="text-center py-5"><div class="spinner-border text-warning"></div></div>
 
     <!-- FORM THANH TOÁN -->
@@ -117,11 +117,11 @@
     var url_domain = '@Url.Content("~")'; if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
     var currentPayMethod="COD", selectedAddressId=0, subTotal=0, shippingFee=0, discount=0, voucherCodeApplied="";
 
-    function formatMoney(n) { return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + "đ"; }
+    function DinhDangTienTe(n) { return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + "đ"; }
 
-    $(document).ready(function(){ LoadInfo(); });
+    $(document).ready(function(){ TaiThongTin(); });
 
-    function LoadInfo(){
+    function TaiThongTin(){
         $.ajax({
             type:"POST", url: url_domain+'/ThanhToan/LayThongTinThanhToan', processData:false, contentType:false,
             success: function(res){
@@ -147,7 +147,7 @@
                 d.SanPham.forEach(p => {
                     htmlCart += `<div class="d-flex justify-content-between border-bottom pb-2">
                         <div><div class="fw-bold small">${p.TenSP}</div><div class="text-muted small">x${p.SoLuong}</div></div>
-                        <div class="fw-bold small">${formatMoney(p.ThanhTien)}</div></div>`;
+                        <div class="fw-bold small">${DinhDangTienTe(p.ThanhTien)}</div></div>`;
                 });
                 $("#checkout-lines").html(htmlCart);
                 $("#count-items").text(d.SanPham.length);
@@ -160,28 +160,28 @@
                         var min = v.DieuKienToiThieu||0;
                         var ok = subTotal>=min;
                         var cls = ok ? "" : "opacity-50 bg-light";
-                        var click = ok ? `onclick="ChonVoucherInline('${v.MaCode}', this)"` : "";
-                        var txt = v.LoaiGiam==="Tiền" ? formatMoney(v.GiaTri) : v.GiaTri+"%";
+                        var click = ok ? `onclick="ChonVoucher('${v.MaCode}', this)"` : "";
+                        var txt = v.LoaiGiam==="Tiền" ? DinhDangTienTe(v.GiaTri) : v.GiaTri+"%";
                         htmlV += `<div class="border rounded p-2 mb-2 voucher-item ${cls}" ${click}>
                             <div class="d-flex justify-content-between"><span class="fw-bold text-danger">${v.MaCode}</span>
                             ${ok ? '<span class="badge bg-success">Dùng được</span>' : '<span class="badge bg-secondary">Chưa đủ ĐK</span>'}</div>
-                            <div class="small">Giảm ${txt}</div><div class="small text-muted">Tối thiểu ${formatMoney(min)}</div>
+                            <div class="small">Giảm ${txt}</div><div class="small text-muted">Tối thiểu ${DinhDangTienTe(min)}</div>
                         </div>`;
                     });
                 }
                 $("#list-voucher-inline").html(htmlV);
 
-                UpdateUI();
+                CapNhatUI();
                 $("#loading-checkout").hide(); $("#checkout-main-section").show();
             }
         });
     }
 
-    function UpdateUI(){
-        $("#lbl-subtotal").text(formatMoney(subTotal));
-        $("#lbl-shipping").text(formatMoney(shippingFee));
-        $("#lbl-discount").text("-"+formatMoney(discount));
-        $("#lbl-total").text(formatMoney(subTotal+shippingFee-discount));
+    function CapNhatUI(){
+        $("#lbl-subtotal").text(DinhDangTienTe(subTotal));
+        $("#lbl-shipping").text(DinhDangTienTe(shippingFee));
+        $("#lbl-discount").text("-"+DinhDangTienTe(discount));
+        $("#lbl-total").text(DinhDangTienTe(subTotal+shippingFee-discount));
     }
 
     function ChonDiaChi(id, el){ selectedAddressId=id; $(".address-card").removeClass("active"); $(el).addClass("active"); }
@@ -189,7 +189,7 @@
         currentPayMethod=m; $(".btn-pay").removeClass("active"); $(el).addClass("active");
         if(m==="BANK") { alert("Chức năng đang bảo trì."); ChonPhuongThuc('COD', $(".btn-pay").first()); }
     }
-    function ChonVoucherInline(code){ $("#voucher-input").val(code); ApDungVoucher(); }
+    function ChonVoucher(code){ $("#voucher-input").val(code); ApDungVoucher(); }
 
     function ApDungVoucher(){
         var code=$("#voucher-input").val(); if(!code) return;
@@ -199,7 +199,7 @@
                 var d=JSON.parse(res);
                 if(d.ok) { discount=d.discount; voucherCodeApplied=code; $("#voucher-msg").html('<span class="text-success">'+d.msg+'</span>'); }
                 else { discount=0; voucherCodeApplied=""; $("#voucher-msg").html('<span class="text-danger">'+d.msg+'</span>'); }
-                UpdateUI();
+                CapNhatUI();
             }
         });
     }

@@ -193,7 +193,7 @@ namespace WebBanDoAnOnline.Controllers
                                sp.TenSP,
                                sp.Anh,
                                ct.SoLuong,
-                               ct.DonGia,
+                               ct.currentia,
                                ct.ThanhTien
                            }).ToList();
 

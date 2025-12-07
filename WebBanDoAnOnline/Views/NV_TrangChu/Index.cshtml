@@ -171,14 +171,14 @@
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title fw-bold text-success">Xác nhận hoàn thành</h5>
-                <button type="button" class="btn-close" onclick="closeModal('complete-modal')"></button>
+                <button type="button" class="btn-close" onclick="DongModal('complete-modal')"></button>
             </div>
             <div class="modal-body text-center py-4">
                 <i class="fas fa-check-circle text-success fs-1 mb-3"></i>
                 <p>Bạn xác nhận đơn hàng này đã giao thành công?</p>
             </div>
             <div class="modal-footer border-0 justify-content-center">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('complete-modal')">Hủy</button>
+                <button type="button" class="btn btn-secondary" onclick="DongModal('complete-modal')">Hủy</button>
                 <button type="button" class="btn btn-success text-white" id="btn-confirm-complete">Xác nhận</button>
             </div>
         </div>
@@ -191,13 +191,13 @@
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title fw-bold text-danger">Từ chối đơn hàng</h5>
-                <button type="button" class="btn-close" onclick="closeModal('reject-modal')"></button>
+                <button type="button" class="btn-close" onclick="DongModal('reject-modal')"></button>
             </div>
             <div class="modal-body">
                 <textarea id="reject-note" class="form-control" rows="4" placeholder="Nhập lý do từ chối (VD: Hết nguyên liệu, Khách hủy...)"></textarea>
             </div>
             <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('reject-modal')">Quay lại</button>
+                <button type="button" class="btn btn-secondary" onclick="DongModal('reject-modal')">Quay lại</button>
                 <button type="button" class="btn btn-danger" id="btn-confirm-reject">Từ chối đơn</button>
             </div>
         </div>
@@ -209,16 +209,16 @@
     var currentFilter = "all";
     var pendingId = 0; // Biến toàn cục lưu ID đơn đang thao tác
 
-    function formatMoney(n) { return n.toLocaleString('vi-VN') + 'đ'; }
+    function DinhDangTienTe(n) { return n.toLocaleString('vi-VN') + 'đ'; }
 
     // --- 1. LOAD DANH SÁCH ---
-    function renderOrders(filter) {
+    function HienThiDonHang(filter) {
         currentFilter = filter;
         var formData = new FormData();
         formData.append('status', filter);
 
         $.ajax({
-            type: "POST", url: url_domain + '/NV_TrangChu/GetOrders',
+            type: "POST", url: url_domain + '/NV_TrangChu/LayDonHang',
             data: formData, processData: false, contentType: false,
             success: function (response) {
                 var orders = JSON.parse(response);
@@ -256,9 +256,9 @@
                             </div>
                         </div>
                         <div class="order-footer">
-                            <div class="order-total">${formatMoney(o.price)}</div>
+                            <div class="order-total">${DinhDangTienTe(o.price)}</div>
                             <div class="order-actions">
-                                ${renderActions(o)}
+                                ${HienThiHanhDong(o)}
                             </div>
                         </div>
                     `;
@@ -268,15 +268,15 @@
         });
     }
 
-    function renderActions(order) {
+    function HienThiHanhDong(order) {
         switch (order.status) {
             case 'pending':
                 // Nút Chấp nhận và Từ chối
-                return `<button class="btn btn-warning text-white btn-action" onclick="changeStatus(${order.id}, 'accept')">Chấp nhận</button>
-                        <button class="btn btn-outline-secondary btn-action" onclick="openRejectModal(${order.id})">Từ chối</button>`;
+                return `<button class="btn btn-warning text-white btn-action" onclick="XuLyTrangThai(${order.id}, 'accept')">Chấp nhận</button>
+                        <button class="btn btn-outline-secondary btn-action" onclick="ModalTuChoi(${order.id})">Từ chối</button>`;
             case 'shipping':
                 // Nút Hoàn thành
-                return `<button class="btn btn-success btn-action" onclick="openCompleteModal(${order.id})">Hoàn thành</button>
+                return `<button class="btn btn-success btn-action" onclick="ModalHoanThanh(${order.id})">Hoàn thành</button>
                         <a href="/NV_TrangChu/ThongTinDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
             default:
                 return `<a href="/NV_TrangChu/ThongTinDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
@@ -284,7 +284,7 @@
     }
 
     // --- 2. XỬ LÝ API CẬP NHẬT ---
-    function changeStatus(id, action, note = '') {
+    function XuLyTrangThai(id, action, note = '') {
         var formData = new FormData();
         formData.append('id', id);
         formData.append('action', action);
@@ -297,9 +297,9 @@
             success: function (res) {
                 if (res === "OK") {
                     // Load lại danh sách sau khi update thành công
-                    renderOrders(currentFilter);
-                    closeModal('reject-modal');
-                    closeModal('complete-modal');
+                    HienThiDonHang(currentFilter);
+                    DongModal('reject-modal');
+                    DongModal('complete-modal');
                 } else {
                     alert(res);
                 }
@@ -309,7 +309,7 @@
     }
 
     // --- 3. XỬ LÝ MODAL TỪ CHỐI ---
-    function openRejectModal(id) {
+    function ModalTuChoi(id) {
         pendingId = id; // Lưu ID lại
         $("#reject-note").val("");
         $("#reject-modal").show().addClass("show");
@@ -319,22 +319,22 @@
     $("#btn-confirm-reject").click(function () {
         var reason = $("#reject-note").val();
         if (!reason) { alert("Vui lòng nhập lý do"); return; }
-        changeStatus(pendingId, 'reject', reason);
+        XuLyTrangThai(pendingId, 'reject', reason);
     });
 
     // --- 4. XỬ LÝ MODAL HOÀN THÀNH ---
-    function openCompleteModal(id) {
+    function ModalHoanThanh(id) {
         pendingId = id; // Lưu ID lại
         $("#complete-modal").show().addClass("show");
     }
 
     // Khi bấm nút "Xác nhận" trong Modal
     $("#btn-confirm-complete").click(function () {
-        changeStatus(pendingId, 'complete');
+        XuLyTrangThai(pendingId, 'complete');
     });
 
     // --- 5. HÀM ĐÓNG MODAL CHUNG ---
-    function closeModal(modalId) {
+    function DongModal(modalId) {
         $("#" + modalId).removeClass("show").hide();
     }
 
@@ -342,10 +342,10 @@
     $(".filter-btn").click(function () {
         $(".filter-btn").removeClass("active");
         $(this).addClass("active");
-        renderOrders($(this).data("status"));
+        HienThiDonHang($(this).data("status"));
     });
 
     $(document).ready(function () {
-        renderOrders('all');
+        HienThiDonHang('all');
     });
 </script>

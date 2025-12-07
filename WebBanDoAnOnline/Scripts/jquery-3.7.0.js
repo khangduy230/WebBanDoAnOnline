@@ -326,7 +326,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 
 jQuery.extend( {
 
-	// Unique for each copy of jQuery on the page
+	// Unique for each copy of jQuery on the Trang
 	expando: "jQuery" + ( version + Math.random() ).replace( /\D/g, "" ),
 
 	// Assume jQuery is ready without the ready module
@@ -1020,16 +1020,16 @@ function createDisabledPseudo( disabled ) {
 	return function( elem ) {
 
 		// Only certain elements can match :enabled or :disabled
-		// https://html.spec.whatwg.org/multipage/scripting.html#selector-enabled
-		// https://html.spec.whatwg.org/multipage/scripting.html#selector-disabled
+		// https://html.spec.whatwg.org/multiTrang/scripting.html#selector-enabled
+		// https://html.spec.whatwg.org/multiTrang/scripting.html#selector-disabled
 		if ( "form" in elem ) {
 
 			// Check for inherited disabledness on relevant non-disabled elements:
 			// * listed form-associated elements in a disabled fieldset
-			//   https://html.spec.whatwg.org/multipage/forms.html#category-listed
-			//   https://html.spec.whatwg.org/multipage/forms.html#concept-fe-disabled
+			//   https://html.spec.whatwg.org/multiTrang/forms.html#category-listed
+			//   https://html.spec.whatwg.org/multiTrang/forms.html#concept-fe-disabled
 			// * option elements in a disabled optgroup
-			//   https://html.spec.whatwg.org/multipage/forms.html#concept-option-disabled
+			//   https://html.spec.whatwg.org/multiTrang/forms.html#concept-option-disabled
 			// All such elements have a "form" property.
 			if ( elem.parentNode && elem.disabled === false ) {
 
@@ -1283,7 +1283,7 @@ function setDocument( node ) {
 
 		// Support: iOS 8 only
 		// https://bugs.webkit.org/show_bug.cgi?id=136851
-		// In-page `selector#id sibling-combinator selector` fails
+		// In-Trang `selector#id sibling-combinator selector` fails
 		if ( !el.querySelectorAll( "a#" + expando + "+*" ).length ) {
 			rbuggyQSA.push( ".#.+[+~]" );
 		}
@@ -4934,7 +4934,7 @@ jQuery.event = {
 			eventHandle = elemData.handle = function( e ) {
 
 				// Discard the second event of a jQuery.event.trigger() and
-				// when an event is called after a page has unloaded
+				// when an event is called after a Trang has unloaded
 				return typeof jQuery !== "undefined" && jQuery.event.triggered !== e.type ?
 					jQuery.event.dispatch.apply( elem, arguments ) : undefined;
 			};
@@ -5501,8 +5501,8 @@ jQuery.each( {
 	detail: true,
 	eventPhase: true,
 	metaKey: true,
-	pageX: true,
-	pageY: true,
+	TrangX: true,
+	TrangY: true,
 	shiftKey: true,
 	view: true,
 	"char": true,
@@ -5978,7 +5978,7 @@ jQuery.extend( {
 	clone: function( elem, dataAndEvents, deepDataAndEvents ) {
 		var i, l, srcElements, destElements,
 			clone = elem.cloneNode( true ),
-			inPage = isAttached( elem );
+			inTrang = isAttached( elem );
 
 		// Fix IE cloning issues
 		if ( !support.noCloneChecked && ( elem.nodeType === 1 || elem.nodeType === 11 ) &&
@@ -6011,7 +6011,7 @@ jQuery.extend( {
 		// Preserve script evaluation history
 		destElements = getAll( clone, "script" );
 		if ( destElements.length > 0 ) {
-			setGlobalEval( destElements, !inPage && getAll( elem, "script" ) );
+			setGlobalEval( destElements, !inTrang && getAll( elem, "script" ) );
 		}
 
 		// Return the cloned set
@@ -7937,7 +7937,7 @@ jQuery.extend( {
 			i = 0,
 
 			// Attribute names can contain non-HTML whitespace characters
-			// https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
+			// https://html.spec.whatwg.org/multiTrang/syntax.html#attributes-2
 			attrNames = value && value.match( rnothtmlwhite );
 
 		if ( attrNames && elem.nodeType === 1 ) {
@@ -10176,7 +10176,7 @@ jQuery.parseHTML = function( data, context, keepScripts ) {
 
 
 /**
- * Load a url into a page
+ * Load a url into a Trang
  */
 jQuery.fn.load = function( url, params, callback ) {
 	var selector, type, response,
@@ -10335,8 +10335,8 @@ jQuery.fn.extend( {
 		rect = elem.getBoundingClientRect();
 		win = elem.ownerDocument.defaultView;
 		return {
-			top: rect.top + win.pageYOffset,
-			left: rect.left + win.pageXOffset
+			top: rect.top + win.TrangYOffset,
+			left: rect.left + win.TrangXOffset
 		};
 	},
 
@@ -10410,8 +10410,8 @@ jQuery.fn.extend( {
 } );
 
 // Create scrollLeft and scrollTop methods
-jQuery.each( { scrollLeft: "pageXOffset", scrollTop: "pageYOffset" }, function( method, prop ) {
-	var top = "pageYOffset" === prop;
+jQuery.each( { scrollLeft: "TrangXOffset", scrollTop: "TrangYOffset" }, function( method, prop ) {
+	var top = "TrangYOffset" === prop;
 
 	jQuery.fn[ method ] = function( val ) {
 		return access( this, function( elem, method, val ) {
@@ -10430,8 +10430,8 @@ jQuery.each( { scrollLeft: "pageXOffset", scrollTop: "pageYOffset" }, function( 
 
 			if ( win ) {
 				win.scrollTo(
-					!top ? val : win.pageXOffset,
-					top ? val : win.pageYOffset
+					!top ? val : win.TrangXOffset,
+					top ? val : win.TrangYOffset
 				);
 
 			} else {

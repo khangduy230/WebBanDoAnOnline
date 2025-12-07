@@ -118,21 +118,21 @@
                     <div id="panel-guest" class="auth-panel">
                         <a href="/TaiKhoan/DangNhap" class="icon-btn"><i class="fa-regular fa-bell"></i></a>
                         <a href="~/GioHang/KH_GioHang" class="icon-btn"><i class="fa-solid fa-bag-shopping"></i></a>
-                        <a href="/TaiKhoan/DangNhap" class="btn btn-dark btn-sm rounded-pill px-3 ms-2">Đăng nhập</a>
+                        <a href="~/TaiKhoan/DangNhap" class="btn btn-dark btn-sm rounded-pill px-3 ms-2">Đăng nhập</a>
                     </div>
 
                     <!-- Panel User -->
                     <div id="panel-user" class="auth-panel">
                         <!-- Thông báo -->
                         <div class="dropdown">
-                            <a class="icon-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="loadThongBaoJSON()">
+                            <a class="icon-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="TaiThongBao()">
                                 <i class="fa-regular fa-bell"></i>
                                 <span id="notif-badge" class="badge bg-danger badge-count" style="display:none;">0</span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-end" style="width: 340px;">
                                 <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-light">
                                     <h6 class="m-0 fw-bold">Thông báo</h6>
-                                    <a href="#" onclick="markAllRead(event)" class="small text-decoration-none">Đọc tất cả</a>
+                                    <a href="#" onclick="DanhDauTatCaDaDoc(event)" class="small text-decoration-none">Đọc tất cả</a>
                                 </div>
                                 <div id="list-thong-bao" style="max-height: 350px; overflow-y: auto;">
                                     <div class="text-center py-3 text-muted"><span class="spinner-border spinner-border-sm"></span></div>
@@ -196,7 +196,7 @@
             // 1. Check Login
             $.ajax({
                 type: "POST",
-                url: url_domain + '/KH_TrangChu/GetHeaderInfo',
+                url: url_domain + '/KH_TrangChu/LayThongTinHeader',
                 contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
@@ -223,13 +223,13 @@
             $('#global-search').keypress(function (e) { if (e.which === 13) handleSearch(); });
             function handleSearch() {
                 var k = $('#global-search').val().trim();
-                if (k) window.location.href = '/SanPham/KH_DanhSachSanPham?searchTerm=' + encodeURIComponent(k);
+                if (k) window.location.href = '/SanPham/KH_DanhSachSanPham?TimKiem=' + encodeURIComponent(k);
             }
             $('.dropdown-menu').click(function (e) { e.stopPropagation(); });
         });
 
         // 3. Thông báo
-        function loadThongBaoJSON() {
+        function TaiThongBao() {
             $.post(url_domain + "/ThongBao/GetThongBao", function (response) {
                 var res = (typeof response === 'string') ? JSON.parse(response) : response;
                 var htmlStr = "";
@@ -246,16 +246,16 @@
             });
         }
 
-        function markAllRead(e) {
+        function DanhDauTatCaDaDoc(e) {
             if (e) e.preventDefault();
-            $.post(url_domain + "/ThongBao/MarkAllRead", function () {
-                loadThongBaoJSON(); $("#notif-badge").hide();
+            $.post(url_domain + "/ThongBao/DanhDauTatCaDaDoc", function () {
+                TaiThongBao(); $("#notif-badge").hide();
             });
         }
 
         // 4. Cập nhật Badge Giỏ hàng (Global function)
         function CapNhatBadgeGioHang() {
-            $.post(url_domain + '/KH_TrangChu/GetHeaderInfo', function (response) {
+            $.post(url_domain + '/KH_TrangChu/LayThongTinHeader', function (response) {
                 var d = (typeof response === 'string') ? JSON.parse(response) : response;
                 if (d.isLogin && d.cartCount > 0) {
                     $("#cart-badge").text(d.cartCount).show();
@@ -274,7 +274,7 @@
 
             $.ajax({
                 type: "POST",
-                url: url_domain + '/GioHang/AddToCart',
+                url: url_domain + '/GioHang/ThemVaoGio',
                 data: formData,
                 contentType: false, processData: false, cache: false,
                 success: function (response) {

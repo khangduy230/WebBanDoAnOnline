@@ -145,7 +145,7 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @(currentController == "SanPham" ? "active" : "")"
-                               href="@Url.Action("NhanVien", "SanPham")">
+                               href="@Url.Action("NV_DanhSachSanPham", "SanPham")">
                                 <i class="fa-solid fa-utensils me-1"></i> Tra cứu Menu
                             </a>
                         </li>
@@ -197,7 +197,7 @@
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb small">
                     <li class="breadcrumb-item text-muted">Hệ thống</li>
-                    <li class="breadcrumb-item active fw-bold text-primary" aria-current="page">@ViewBag.Title</li>
+                    <li class="breadcrumb-item active fw-bold text-primary" aria-current="Trang">@ViewBag.Title</li>
                 </ol>
             </nav>
 
@@ -223,7 +223,7 @@
             // 1. Lấy thông tin Header (Kiểm tra xem có phải nhân viên không)
             $.ajax({
                 type: "POST",
-                url: url_domain + '/KH_TrangChu/GetHeaderInfo',
+                url: url_domain + '/KH_TrangChu/LayThongTinHeader',
                 contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = JSON.parse(response);
@@ -269,7 +269,7 @@
                 }
                 else {
                     // Mặc định hoặc ở trang Sản phẩm -> Search sản phẩm
-                    window.location.href = '/SanPham/Index?searchTerm=' + encodeURIComponent(keyword);
+                    window.location.href = '/SanPham/Index?TimKiem=' + encodeURIComponent(keyword);
                 }
             }
         });

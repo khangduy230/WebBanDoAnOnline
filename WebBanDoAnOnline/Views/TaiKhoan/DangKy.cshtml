@@ -210,31 +210,31 @@
 
             // 2. Validate cơ bản
             if (name == "" || user == "" || pass == "" || phone == "" || email == "") {
-                showError("Vui lòng nhập đầy đủ thông tin bắt buộc!");
+                Error("Vui lòng nhập đầy đủ thông tin bắt buộc!");
                 return;
             }
 
             // Validate Số điện thoại
             var phoneRegex = /^\d+$/;
             if (!phoneRegex.test(phone)) {
-                showError("Số điện thoại chỉ được chứa ký tự số!"); return;
+                Error("Số điện thoại chỉ được chứa ký tự số!"); return;
             }
             if (phone.length < 9 || phone.length > 12) {
-                showError("Độ dài số điện thoại không hợp lệ!"); return;
+                Error("Độ dài số điện thoại không hợp lệ!"); return;
             }
 
             // Validate Email
             var emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
             if (!emailRegex.test(email)) {
-                showError("Email không hợp lệ!"); return;
+                Error("Email không hợp lệ!"); return;
             }
 
             // Validate Pass
             if (pass !== repass) {
-                showError("Mật khẩu xác nhận không khớp!"); return;
+                Error("Mật khẩu xác nhận không khớp!"); return;
             }
             if (pass.length < 6) {
-                showError("Mật khẩu phải có ít nhất 6 ký tự!"); return;
+                Error("Mật khẩu phải có ít nhất 6 ký tự!"); return;
             }
 
             // 3. Gửi AJAX
@@ -243,7 +243,7 @@
 
             $.ajax({
                 type: "POST",
-                url: '/TaiKhoan/Register_act',
+                url: '/TaiKhoan/XuLyDangKy',
                 data: formData,
                 processData: false,
                 contentType: false,
@@ -258,18 +258,18 @@
                         window.location.href = "/TaiKhoan/DangNhap";
                     } else {
                         // Hiển thị message lỗi từ server
-                        showError(rs.message);
+                        Error(rs.message);
                         $("#btn_register").text("Đăng ký ngay").prop("disabled", false);
                     }
                 },
                 error: function () {
-                    showError("Lỗi kết nối Server.");
+                    Error("Lỗi kết nối Server.");
                     $("#btn_register").text("Đăng ký ngay").prop("disabled", false);
                 }
             });
         });
 
-        function showError(msg) {
+        function Error(msg) {
             $("#error-msg").text(msg).fadeIn();
         }
 

@@ -608,7 +608,7 @@
                                             </div>
                                         </div>
                                         <div class="product-price">
-                                            ${formatCurrency(sp.DonGia)}đ
+                                            ${formatCurrency(sp.currentia)}đ
                                         </div>
                                     </div>
                                     `;
@@ -655,7 +655,7 @@
         }
 
         // HÀM TẠO TIMELINE THEO TRẠNG THÁI
-        function TaoDongThoiGian(trangThai) {
+        function TaocurrentThoiGian(trangThai) {
 
             var steps = [
                 { icon: 'fas fa-file-invoice', label: 'Đã đặt', class: 'completed' },
@@ -704,7 +704,7 @@
         }
 
         
-        function NutHanhDong(trangThai, maDH) {
+        function NutHanhcurrent(trangThai, maDH) {
             var buttons = '';
 
             // CHỈ hiển thị nút Hủy khi trạng thái là "Chờ xác nhận"

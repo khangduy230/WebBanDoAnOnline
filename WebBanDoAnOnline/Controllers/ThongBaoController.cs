@@ -15,7 +15,7 @@ namespace WebBanDoAnOnline.Controllers
         // GET: /ThongBao/Index
         public ActionResult KH_ThongBao(int? openId)
         {
-            if (Session["TaiKhoan"] == null) return RedirectToAction("Login", "TaiKhoan");
+            if (Session["TaiKhoan"] == null) return RedirectToAction("DangNhap", "TaiKhoan");
 
             
             if (openId.HasValue)

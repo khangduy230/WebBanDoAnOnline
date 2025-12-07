@@ -5,7 +5,7 @@
     string layoutFile = "~/Views/Shared/_KH_Layout.cshtml";
 
     // 2. Kiểm tra Session
-    // Lưu ý: HttpContext.Current.Session được dùng để truy cập Session trong ViewStart
+    // Lưu ý: HttpContext.current.Session được dùng để truy cập Session trong ViewStart
     var session = HttpContext.Current.Session;
 
     if (session["TaiKhoan"] != null)

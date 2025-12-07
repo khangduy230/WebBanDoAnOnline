@@ -17,7 +17,7 @@ body {
     background-color: #f8f9fa;
 }
 
-.page-content {
+.Trang-content {
     flex: 1 0 auto;
 }
 
@@ -1063,8 +1063,8 @@ body {
 }
 
 
-/* --- Checkout Page --- */
-.checkout-page .address-card {
+/* --- Checkout Trang --- */
+.checkout-Trang .address-card {
     border: 1px solid #e9ecef;
     border-radius: 12px;
     padding: 12px 14px;
@@ -1075,23 +1075,23 @@ body {
     transition: box-shadow .2s ease, border-color .2s ease;
 }
 
-    .checkout-page .address-card.active,
-    .checkout-page .address-card:hover {
+    .checkout-Trang .address-card.active,
+    .checkout-Trang .address-card:hover {
         border-color: var(--primary-color);
         box-shadow: 0 6px 18px rgba(0,0,0,.06);
     }
 
-.checkout-page .addr-title {
+.checkout-Trang .addr-title {
     color: var(--text-color);
 }
 
-.checkout-page .pay-method .btn.active {
+.checkout-Trang .pay-method .btn.active {
     background-color: var(--primary-color);
     color: #fff;
     border-color: var(--primary-color);
 }
 
-.checkout-page .checkout-line .btn {
+.checkout-Trang .checkout-line .btn {
     width: 34px;
     padding: 4px 0;
 }

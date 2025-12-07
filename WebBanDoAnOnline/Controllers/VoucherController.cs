@@ -24,26 +24,26 @@ namespace WebBanDoAnOnline.Controllers
             var query = db.Vouchers.Where(v => v.isDelete == null || v.isDelete == 0);
 
             // Tìm kiếm
-            string searchTerm = Request["searchTerm"];
-            if (!string.IsNullOrEmpty(searchTerm))
+            string TimKiem = Request["TimKiem"];
+            if (!string.IsNullOrEmpty(TimKiem))
             {
-                string lower = searchTerm.ToLower();
+                string lower = TimKiem.ToLower();
                 query = query.Where(v => v.TenVoucher.ToLower().Contains(lower) || v.MaCode.ToLower().Contains(lower));
             }
 
             // Phân trang
-            int page = 1;
-            if (!string.IsNullOrEmpty(Request["page"])) int.TryParse(Request["page"], out page);
-            int pageSize = 6;
+            int Trang = 1;
+            if (!string.IsNullOrEmpty(Request["Trang"])) int.TryParse(Request["Trang"], out Trang);
+            int TrangSize = 6;
 
             int totalItems = query.Count();
-            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-            if (totalPages == 0) totalPages = 1;
+            int TongTrang = (int)Math.Ceiling((double)totalItems / TrangSize);
+            if (TongTrang == 0) TongTrang = 1;
 
             // Query dữ liệu
             var listRaw = query.OrderByDescending(v => v.MaVoucher)
-                               .Skip((page - 1) * pageSize)
-                               .Take(pageSize)
+                               .Skip((Trang - 1) * TrangSize)
+                               .Take(TrangSize)
                                .ToList();
 
             // Định dạng dữ liệu trả về
@@ -63,8 +63,8 @@ namespace WebBanDoAnOnline.Controllers
             return JsonConvert.SerializeObject(new
             {
                 TotalItems = totalItems,
-                TotalPages = totalPages,
-                CurrentPage = page,
+                TongTrang = TongTrang,
+                currentTrang = Trang,
                 Vouchers = listResult
             });
         }

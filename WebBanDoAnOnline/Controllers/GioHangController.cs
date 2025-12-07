@@ -13,7 +13,7 @@ namespace WebBanDoAnOnline.Controllers
         // GET: GioHang
         public ActionResult KH_GioHang()
         {
-            if (Session["TaiKhoan"] == null) return RedirectToAction("Login", "TaiKhoan");
+            if (Session["TaiKhoan"] == null) return RedirectToAction("DangNhap", "TaiKhoan");
             return View();
         }
 

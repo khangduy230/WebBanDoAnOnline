@@ -130,37 +130,32 @@
     var url_domain = window.location.origin;
 
     // --- CÁC HÀM TIỆN ÍCH ---
-    function formatMoney(n) {
+    function DinhDangTienTe(n) {
         return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + "đ";
     }
 
-    function createBadge(status) {
+    function TaoTrangThai(status) {
         if (status === 'Còn hàng') return '<span class="badge bg-success-subtle text-success">Còn hàng</span>';
         if (status === 'Hết hàng') return '<span class="badge bg-danger-subtle text-danger">Hết hàng</span>';
         return '<span class="badge bg-secondary-subtle text-secondary">' + status + '</span>';
     }
 
-    function getInitials(name) {
-        if (!name) return '';
-        var parts = name.split(' ');
-        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-    }
+    
 
     // --- LOGIC CHÍNH ---
     $(document).ready(function () {
         $.ajax({
             type: "POST",
-            url: url_domain + '/QuanLy/GetDashboardData',
+            url: url_domain + '/QuanLy/LayDuLieuDashBoard',
             contentType: false, processData: false, cache: false,
             success: function (response) {
                 var data = JSON.parse(response);
                 if (data.Error) { console.log(data.Error); return; }
 
                 // 1. Stats
-                $("#lbl_NganSach").text(formatMoney(data.Stats.NganSach));
-                $("#lbl_ChiTieu").text(formatMoney(data.Stats.ChiTieu));
-                $("#lbl_DoanhThu").text(formatMoney(data.Stats.DoanhThu));
+                $("#lbl_NganSach").text(DinhDangTienTe(data.Stats.NganSach));
+                $("#lbl_ChiTieu").text(DinhDangTienTe(data.Stats.ChiTieu));
+                $("#lbl_DoanhThu").text(DinhDangTienTe(data.Stats.DoanhThu));
                 $("#lbl_DonMoi").text(data.Stats.DonMoi);
 
                 // Check ngân sách
@@ -178,8 +173,8 @@
                         menuHtml += `
                         <tr>
                             <td class="fw-bold text-dark">${item.TenSP}</td>
-                            <td>${formatMoney(item.Gia)}</td>
-                            <td>${createBadge(item.TrangThai)}</td>
+                            <td>${DinhDangTienTe(item.Gia)}</td>
+                            <td>${TaoTrangThai(item.TrangThai)}</td>
                             <td><i class="fas fa-star text-warning"></i> ${item.DiemDanhGia}</td>
                         </tr>`;
                     }

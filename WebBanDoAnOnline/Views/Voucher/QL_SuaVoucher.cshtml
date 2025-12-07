@@ -10,7 +10,7 @@
         </div>
         <div class="card-body">
             <form id="form-voucher-edit">
-                <input type="hidden" name="txt_MaVoucher_hide" value="@ViewBag.MaVoucher" />
+                <input type="hidden" name="txt_MaVoucher_hide" value="ViewBag.MaVoucher" />
 
                 <div class="row">
                     <div class="col-md-6">
@@ -64,7 +64,7 @@
                 </div>
                 <hr />
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="@Url.Action("LayVoucher", "Voucher")" class="btn btn-secondary">Hủy</a>
+                    <a href="~/Voucher/LayVoucher" class="btn btn-secondary">Hủy</a>
                     <button type="button" id="btn_save" class="btn btn-warning text-white px-4">Cập nhật</button>
                 </div>
             </form>
@@ -74,9 +74,9 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-    var vId = '@ViewBag.MaVoucher';
+    var vId = 'ViewBag.MaVoucher';
 
-    function loadData() {
+    function TaiDuLieu() {
         var fd = new FormData(); fd.append('id', vId);
         $.ajax({
             type: "POST",
@@ -100,7 +100,7 @@
     }
 
     $(document).ready(function() {
-        loadData();
+        TaiDuLieu();
 
         $("#btn_save").click(function() {
             // Validate
@@ -109,12 +109,12 @@
             var formData = new FormData($('#form-voucher-edit')[0]);
             $.ajax({
                 type: "POST",
-                url: window.location.origin + '/Voucher/UpdateVoucher',
+                url: window.location.origin + '/Voucher/CapNhatVoucher',
                 data: formData, processData: false, contentType: false,
                 success: function(res) {
                     alert(res);
                     if(res.includes("thành công")) {
-                        window.location.href = '@Url.Action("LayVoucher", "Voucher")';
+                        window.location.href = '/Voucher/LayVoucher';
                     }
                 }
             });

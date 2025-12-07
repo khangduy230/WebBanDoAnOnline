@@ -5,7 +5,7 @@
 }
 
 <style>
-    .od-page {
+    .od-Trang {
         max-width: 900px;
         margin: 0 auto 50px;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -265,7 +265,7 @@
         }
 </style>
 
-<div class="od-page">
+<div class="od-Trang">
     <a href="/NV_TrangChu/Index" class="od-back"><i class="fas fa-arrow-left"></i> Quay lại danh sách</a>
 
     <div class="od-card">
@@ -349,14 +349,14 @@
     var url_domain = window.location.origin;
     var orderId = '@orderId';
 
-    function formatMoney(n) { return n.toLocaleString('vi-VN') + 'đ'; }
+    function DinhDangTienTe(n) { return n.toLocaleString('vi-VN') + 'đ'; }
 
     $(document).ready(function() {
         if(!orderId) { alert("Lỗi ID"); return; }
 
         var fd = new FormData(); fd.append('id', orderId);
         $.ajax({
-            type: "POST", url: url_domain + '/NV_TrangChu/GetOrderDetail', data: fd, processData: false, contentType: false,
+            type: "POST", url: url_domain + '/NV_TrangChu/LayChiTietDonHang', data: fd, processData: false, contentType: false,
             success: function(res) {
                 var d = JSON.parse(res);
                 if(!d.id) { alert("Không tìm thấy đơn hàng"); return; }
@@ -382,30 +382,30 @@
                                 <div class="item-qty">x${i.qty}</div>
                             </div>
                         </div>
-                        <div class="item-price">${formatMoney(i.price)}</div>
+                        <div class="item-price">${DinhDangTienTe(i.price)}</div>
                     </div>`;
                 });
                 $("#od-items-list").html(html);
 
                 // Calc Money
-                $("#od-subtotal").text(formatMoney(d.total - d.shipFee));
-                $("#od-ship-fee").text(formatMoney(d.shipFee));
-                $("#od-total").text(formatMoney(d.total));
+                $("#od-subtotal").text(DinhDangTienTe(d.total - d.shipFee));
+                $("#od-ship-fee").text(DinhDangTienTe(d.shipFee));
+                $("#od-total").text(DinhDangTienTe(d.total));
 
                 // Update Stepper
-                updateStepper(d.status);
+                CapNhatTienTrinh(d.status);
 
                 // Show Button
                 if(d.status === 'shipping') {
                     $("#od-complete-btn").show().click(function() {
-                        if(confirm("Xác nhận đơn hàng đã giao thành công?")) updateStatus(d.id, 'complete');
+                        if(confirm("Xác nhận đơn hàng đã giao thành công?")) CapNhatTrangThai(d.id, 'complete');
                     });
                 }
             }
         });
     });
 
-    function updateStepper(status) {
+    function CapNhatTienTrinh(status) {
         var step = 0;
         if(status === 'shipping') step = 1;
         if(status === 'completed') step = 2;
@@ -427,10 +427,10 @@
         $(`[data-step='${step}']`).addClass("active");
     }
 
-    function updateStatus(id, action) {
+    function CapNhatTrangThai(id, action) {
         var fd = new FormData(); fd.append('id', id); fd.append('action', action);
         $.ajax({
-            type: "POST", url: url_domain + '/NV_TrangChu/UpdateStatus', data: fd, processData: false, contentType: false,
+            type: "POST", url: url_domain + '/NV_TrangChu/CapNhatTrangThai', data: fd, processData: false, contentType: false,
             success: function(res) {
                 if(res === "OK") location.reload();
                 else alert(res);

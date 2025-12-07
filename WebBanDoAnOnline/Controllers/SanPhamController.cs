@@ -47,12 +47,12 @@ namespace WebBanDoAnOnline.Controllers
 
             // 1. Lấy tham số
             string maDM_str = Request["maDM"];
-            string searchTerm = Request["searchTerm"];
-            string page_str = Request["page"];
+            string TimKiem = Request["TimKiem"];
+            string Trang_str = Request["Trang"];
 
-            int currentPage = 1;
-            if (!string.IsNullOrEmpty(page_str)) int.TryParse(page_str, out currentPage);
-            int pageSize = 8;
+            int currentTrang = 1;
+            if (!string.IsNullOrEmpty(Trang_str)) int.TryParse(Trang_str, out currentTrang);
+            int TrangSize = 8;
 
             
             var query = db.SanPhams.Where(sp => (sp.isDelete == null || sp.isDelete == 0));
@@ -67,23 +67,23 @@ namespace WebBanDoAnOnline.Controllers
             }
 
             // 4. Tìm kiếm
-            if (!string.IsNullOrEmpty(searchTerm))
+            if (!string.IsNullOrEmpty(TimKiem))
             {
-                string lower = searchTerm.ToLower();
+                string lower = TimKiem.ToLower();
                 query = query.Where(sp => sp.TenSP.ToLower().Contains(lower));
             }
 
             // 5. Phân trang
             var orderedQuery = query.OrderByDescending(sp => sp.MaSP);
             int totalItems = orderedQuery.Count();
-            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-            if (totalPages < 1) totalPages = 1;
+            int TongTrang = (int)Math.Ceiling((double)totalItems / TrangSize);
+            if (TongTrang < 1) TongTrang = 1;
 
-            if (currentPage < 1) currentPage = 1;
-            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentTrang < 1) currentTrang = 1;
+            if (currentTrang > TongTrang) currentTrang = TongTrang;
 
-            var items = orderedQuery.Skip((currentPage - 1) * pageSize)
-                                    .Take(pageSize)
+            var items = orderedQuery.Skip((currentTrang - 1) * TrangSize)
+                                    .Take(TrangSize)
                                     .Select(sp => new {
                                         sp.MaSP,
                                         sp.TenSP,
@@ -97,8 +97,8 @@ namespace WebBanDoAnOnline.Controllers
             var result = new
             {
                 TotalItems = totalItems,
-                TotalPages = totalPages,
-                CurrentPage = currentPage,
+                TongTrang = TongTrang,
+                currentTrang = currentTrang,
                 Products = items
             };
 

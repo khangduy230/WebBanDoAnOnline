@@ -31,13 +31,13 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
         }
 
-    .pagination .page-item.active .page-link {
+    .pagination .Trang-item.active .Trang-link {
         background-color: #ffc107;
         border-color: #ffc107;
         color: black;
     }
 
-    .pagination .page-link {
+    .pagination .Trang-link {
         color: #333;
     }
 
@@ -99,19 +99,19 @@
 <script>
     var url_domain = window.location.origin;
     var activeCategoryId = null;
-    var currentPage = 1;
+    var currentTrang = 1;
 
     // Hàm định dạng tiền tệ
-    function formatCurrency(n) {
+    function DingDangTienTe(n) {
         return isNaN(n) ? "0 đ" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
     }
 
     $(document).ready(function () {
         // 1. Tải danh mục trước
-        loadCategories();
+        TaiDanhMuc();
 
         // 2. Tải tất cả sản phẩm
-        loadProducts(null, "", 1);
+        TaiSanPham(null, "", 1);
 
         // 3. Tìm kiếm (delay 500ms)
         var searchTimeout;
@@ -119,13 +119,13 @@
             var keyword = $(this).val();
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(function () {
-                loadProducts(activeCategoryId, keyword, 1);
+                TaiSanPham(activeCategoryId, keyword, 1);
             }, 500);
         });
     });
 
     // --- HÀM 1: TẢI DANH MỤC ---
-    function loadCategories() {
+    function TaiDanhMuc() {
         $.ajax({
             type: "POST",
             url: url_domain + '/DanhMuc/Lay_DSDM',
@@ -138,7 +138,7 @@
                 // Thêm nút "Tất cả"
                 var allActive = (activeCategoryId === null) ? 'category-item-special bg-warning text-white' : 'bg-white border text-dark';
                 container.append(`
-                    <a href="javascript:void(0)" onclick="changeCategory(null)"
+                    <a href="javascript:void(0)" onclick="ThayDoiDanhMuc(null)"
                        class="${allActive} d-flex align-items-center gap-2 p-2 px-3 rounded-pill text-decoration-none shadow-sm" style="min-width: fit-content;">
                        <i class="fas fa-utensils"></i> <span class="fw-bold">Tất cả</span>
                     </a>
@@ -157,7 +157,7 @@
                         ? `<img src="${imgUrl}" class="rounded-circle" style="width:30px; height:30px; object-fit:cover;"> <span class="fw-bold">${c.TenDM}</span>`
                         : `<div class="mb-1"><img src="${imgUrl}" class="rounded-circle border" style="width:50px; height:50px; object-fit:cover;"></div><span class="small fw-bold">${c.TenDM}</span>`;
 
-                    var html = `<a href="javascript:void(0)" onclick="changeCategory(${c.MaDM})" class="${itemClass} mx-1" style="min-width: fit-content;">${contentHtml}</a>`;
+                    var html = `<a href="javascript:void(0)" onclick="ThayDoiDanhMuc(${c.MaDM})" class="${itemClass} mx-1" style="min-width: fit-content;">${contentHtml}</a>`;
                     container.append(html);
                 });
             }
@@ -165,20 +165,20 @@
     }
 
     // --- HÀM 2: ĐỔI DANH MỤC ---
-    function changeCategory(id) {
+    function ThayDoiDanhMuc(id) {
         activeCategoryId = id;
         $("#txt_search").val(""); // Reset tìm kiếm
-        loadCategories(); // Vẽ lại để cập nhật trạng thái active
-        loadProducts(id, "", 1);
+        TaiDanhMuc(); // Vẽ lại để cập nhật trạng thái active
+        TaiSanPham(id, "", 1);
     }
 
     // --- HÀM 3: TẢI SẢN PHẨM (ADMIN) ---
-    function loadProducts(maDM, searchTerm, page) {
-        currentPage = page;
+    function TaiSanPham(maDM, TimKiem, Trang) {
+        currentTrang = Trang;
         var formData = new FormData();
         if (maDM) formData.append('maDM', maDM);
-        formData.append('searchTerm', searchTerm || "");
-        formData.append('page', page);
+        formData.append('TimKiem', TimKiem || "");
+        formData.append('Trang', Trang);
 
         $.ajax({
             type: "POST",
@@ -215,7 +215,7 @@
                                     </div>
                                     <div class="card-body text-center p-2">
                                         <h6 class="card-title fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
-                                        <p class="card-text text-danger fw-bold mb-2">${formatCurrency(p.Gia)}</p>
+                                        <p class="card-text text-danger fw-bold mb-2">${DingDangTienTe(p.Gia)}</p>
                                     </div>
                                 </a>
 
@@ -224,7 +224,7 @@
                                     <a href="${url_domain}/SanPham/SuaSanPham/${p.MaSP}" class="btn btn-sm btn-warning text-white fw-bold px-3">
                                         <i class="fas fa-edit"></i> Sửa
                                     </a>
-                                    <button class="btn btn-sm btn-outline-danger fw-bold px-3" onclick="Del_confirm(${p.MaSP})">
+                                    <button class="btn btn-sm btn-outline-danger fw-bold px-3" onclick="XoaSanPham(${p.MaSP})">
                                         <i class="fas fa-trash"></i> Xóa
                                     </button>
                                 </div>
@@ -235,7 +235,7 @@
                 });
 
                 // Vẽ phân trang
-                taoPhanTrang(data.TotalPages, data.CurrentPage);
+                taoPhanTrang(data.TongTrang, data.currentTrang);
             },
             error: function (err) {
                 console.log("Lỗi tải sản phẩm:", err);
@@ -244,19 +244,19 @@
     }
 
     // --- HÀM 4: XÓA SẢN PHẨM ---
-    function Del_confirm(id) {
+    function XoaSanPham(id) {
         if (confirm("Bạn chắc chắn muốn xóa món ăn này?")) {
             var formData = new FormData();
             formData.append('id', id);
 
             $.ajax({
                 type: "POST",
-                url: url_domain + '/SanPham/Delete',
+                url: url_domain + '/SanPham/XoaSanPham',
                 data: formData, processData: false, contentType: false,
                 success: function (res) {
                     alert(res);
                     // Load lại trang hiện tại
-                    loadProducts(activeCategoryId, $("#txt_search").val(), currentPage);
+                    TaiSanPham(activeCategoryId, $("#txt_search").val(), currentTrang);
                 },
                 error: function () { alert("Lỗi kết nối server."); }
             });
@@ -264,28 +264,28 @@
     }
 
     // --- HÀM 5: PHÂN TRANG ---
-    function taoPhanTrang(totalPages, currentPage) {
-        if (totalPages <= 1) { $("#pagination").html(''); return; }
+    function taoPhanTrang(TongTrang, currentTrang) {
+        if (TongTrang <= 1) { $("#pagination").html(''); return; }
 
         var html = `<nav><ul class="pagination shadow-sm">`;
         // Previous
-        var prevClass = (currentPage === 1) ? "disabled" : "";
-        html += `<li class="page-item ${prevClass}">
-                    <a class="page-link" href="javascript:void(0)" onclick="loadProducts(activeCategoryId, $('#txt_search').val(), ${currentPage - 1})">&laquo;</a>
+        var prevClass = (currentTrang === 1) ? "disabled" : "";
+        html += `<li class="Trang-item ${prevClass}">
+                    <a class="Trang-link" href="javascript:void(0)" onclick="TaiSanPham(activeCategoryId, $('#txt_search').val(), ${currentTrang - 1})">&laquo;</a>
                  </li>`;
 
         // Numbers
-        for (let i = 1; i <= totalPages; i++) {
-            var activeClass = (i === currentPage) ? "active" : "";
-            html += `<li class="page-item ${activeClass}">
-                        <a class="page-link" href="javascript:void(0)" onclick="loadProducts(activeCategoryId, $('#txt_search').val(), ${i})">${i}</a>
+        for (let i = 1; i <= TongTrang; i++) {
+            var activeClass = (i === currentTrang) ? "active" : "";
+            html += `<li class="Trang-item ${activeClass}">
+                        <a class="Trang-link" href="javascript:void(0)" onclick="TaiSanPham(activeCategoryId, $('#txt_search').val(), ${i})">${i}</a>
                      </li>`;
         }
 
         // Next
-        var nextClass = (currentPage === totalPages) ? "disabled" : "";
-        html += `<li class="page-item ${nextClass}">
-                    <a class="page-link" href="javascript:void(0)" onclick="loadProducts(activeCategoryId, $('#txt_search').val(), ${currentPage + 1})">&raquo;</a>
+        var nextClass = (currentTrang === TongTrang) ? "disabled" : "";
+        html += `<li class="Trang-item ${nextClass}">
+                    <a class="Trang-link" href="javascript:void(0)" onclick="TaiSanPham(activeCategoryId, $('#txt_search').val(), ${currentTrang + 1})">&raquo;</a>
                  </li>`;
 
         html += `</ul></nav>`;
