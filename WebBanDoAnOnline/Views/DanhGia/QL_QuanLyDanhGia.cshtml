@@ -1,0 +1,455 @@
+﻿@{
+    ViewBag.Title = "Quản lý đánh giá";
+    Layout = "~/Views/Shared/_QL_Layout.cshtml";
+}
+
+<style>
+    /* General Styles */
+    .danhgia-container {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background-color: #ffffff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .danhgia-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .danhgia-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    /* Search Box */
+    .search-box {
+        position: relative;
+        flex-grow: 1;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 10px 40px 10px 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: #0d6efd;
+    }
+
+    .search-box i {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+    }
+
+    /* Action Buttons */
+    .action-btn {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        white-space: nowrap;
+    }
+
+    .btn-hide { background-color: #ffc107; color: #333; }
+    .btn-hide:hover { background-color: #e0a800; }
+
+    .btn-delete { background-color: #dc3545; color: white; }
+    .btn-delete:hover { background-color: #c82333; }
+
+    .btn-view-hidden { background-color: #6c757d; color: white; }
+    .btn-view-hidden:hover { background-color: #5a6268; }
+    .btn-view-hidden.active { background-color: #0d6efd; }
+
+    /* Table Styles */
+    .danhgia-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .danhgia-table th, .danhgia-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+
+    .danhgia-table th {
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        font-size: 12px;
+    }
+
+    .danhgia-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .danhgia-table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    /* Table Content */
+    .customer-info, .product-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .avatar, .product-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid #eee;
+    }
+
+    .rating .stars { color: #ffc107; }
+    .rating .rating-text { font-size: 12px; color: #777; }
+
+    .comment-cell { max-width: 300px; }
+    .comment-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .actions-cell a {
+        color: #0d6efd;
+        text-decoration: none;
+        font-weight: 500;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+    .actions-cell a:hover { text-decoration: underline; }
+    .actions-cell a.delete-link { color: #dc3545; }
+
+    /* Modal Styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 1050;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal-content-box {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        width: 500px;
+        max-width: 90%;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        position: relative;
+    }
+
+    .modal-header h3 { font-weight: 700; margin-bottom: 20px; }
+    .original-review { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    .modal-content-box textarea {
+        width: 100%;
+        min-height: 120px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        resize: vertical;
+    }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+    .modal-btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; }
+    .btn-close-modal { background: #6c757d; color: white; }
+    .btn-submit-reply { background: #0d6efd; color: white; }
+</style>
+
+<div class="danhgia-container">
+    <div class="danhgia-header">
+        <h1>Quản lý đánh giá</h1>
+    </div>
+
+    <div class="danhgia-actions">
+        <div class="search-box">
+            <input type="text" id="input-tim-kiem" placeholder="Tìm theo khách hàng, sản phẩm, bình luận...">
+            <i class="fas fa-search"></i>
+        </div>
+        <button id="btn-an-chon" class="action-btn btn-hide">Ẩn đánh giá</button>
+        <button id="btn-xoa-chon" class="action-btn btn-delete">Xoá đánh giá</button>
+        <button id="btn-xem-an" class="action-btn btn-view-hidden">Xem đánh giá đã ẩn</button>
+    </div>
+
+    <table class="danhgia-table">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="check-all"></th>
+                <th>Khách hàng</th>
+                <th>Sản phẩm</th>
+                <th>Đánh giá</th>
+                <th class="comment-cell">Bình luận</th>
+                <th>Thời gian</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="tbody-danh-gia">
+            <!-- Dữ liệu sẽ được render bằng JS -->
+        </tbody>
+    </table>
+    <div id="loading-spinner" class="text-center p-5" style="display:none;">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+</div>
+
+<!-- Modal Trả lời Đánh giá -->
+<div id="modal-tra-loi" class="modal-overlay">
+    <div class="modal-content-box">
+        <div class="modal-header">
+            <h3>Trả lời đánh giá</h3>
+        </div>
+        <div id="original-review-content" class="original-review">
+            <!-- Nội dung đánh giá gốc -->
+        </div>
+        <textarea id="textarea-phan-hoi" placeholder="Viết lời của bạn tại đây"></textarea>
+        <div class="modal-actions">
+            <button class="modal-btn btn-close-modal" onclick="dongModal()">Quay lại</button>
+            <button class="modal-btn btn-submit-reply" onclick="guiTraLoi()">Trả lời</button>
+        </div>
+        <input type="hidden" id="hidden-ma-dg" />
+    </div>
+</div>
+
+@section scripts {
+    <script>let dangXemDaAn = false;
+    let urlDomain = window.location.origin;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        taiDanhSachDanhGia();
+
+        document.getElementById('input-tim-kiem').addEventListener('keyup', function (e) {
+            if (e.key === 'Enter') {
+                taiDanhSachDanhGia();
+            }
+        });
+
+        document.getElementById('btn-xem-an').addEventListener('click', function () {
+            dangXemDaAn = !dangXemDaAn;
+            this.classList.toggle('active', dangXemDaAn);
+            this.textContent = dangXemDaAn ? 'Xem đánh giá chưa ẩn' : 'Xem đánh giá đã ẩn';
+            taiDanhSachDanhGia();
+        });
+
+        document.getElementById('check-all').addEventListener('change', function () {
+            document.querySelectorAll('.check-item').forEach(chk => chk.checked = this.checked);
+        });
+
+        document.getElementById('btn-an-chon').addEventListener('click', () => xuLyHangLoat('an'));
+        document.getElementById('btn-xoa-chon').addEventListener('click', () => xuLyHangLoat('xoa'));
+    });
+
+    function taiDanhSachDanhGia() {
+        const tuKhoa = document.getElementById('input-tim-kiem').value;
+        const tbody = document.getElementById('tbody-danh-gia');
+        const spinner = document.getElementById('loading-spinner');
+
+        spinner.style.display = 'block';
+        tbody.innerHTML = '';
+
+        const formData = new FormData();
+        formData.append('tuKhoa', tuKhoa);
+        formData.append('trangThaiAn', dangXemDaAn ? 'da_an' : 'chua_an');
+
+        fetch(urlDomain + '/DanhGia/LayDanhSachDanhGia', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(res => {
+            spinner.style.display = 'none';
+            if (res.success) {
+                renderDanhSach(res.data);
+            } else {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi: ${res.message}</td></tr>`;
+            }
+        })
+        .catch(() => {
+            spinner.style.display = 'none';
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi kết nối server.</td></tr>`;
+        });
+    }
+
+    function renderDanhSach(data) {
+        const tbody = document.getElementById('tbody-danh-gia');
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted">Không có đánh giá nào.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        data.forEach(dg => {
+            const avatar = dg.Avatar ? dg.Avatar.replace('~', '') : '/img/default-avatar.png';
+            const anhSP = dg.AnhSanPham ? dg.AnhSanPham.replace('~', '') : '/img/no-image.jpg';
+            const hanhDongAn = dg.DaAn ? `<a onclick="anHienDanhGia(${dg.MaDG})">Hủy ẩn</a>` : `<a onclick="anHienDanhGia(${dg.MaDG})">Ẩn</a>`;
+
+            html += `
+                <tr>
+                    <td><input type="checkbox" class="check-item" data-id="${dg.MaDG}"></td>
+                    <td>
+                        <div class="customer-info">
+                            <img src="${avatar}" class="avatar" alt="Avatar">
+                            <span>${dg.TenKhachHang}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="product-info">
+                            <img src="${anhSP}" class="product-img" alt="Sản phẩm">
+                            <span>${dg.TenSanPham}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="rating">
+                            <div class="stars">${taoSoSao(dg.SoSao)}</div>
+                            <div class="rating-text">${nhanXetSao(dg.SoSao)}</div>
+                        </div>
+                    </td>
+                    <td class="comment-cell">
+                        <p class="comment-text" title="${dg.BinhLuan}">${dg.BinhLuan || 'Không có bình luận'}</p>
+                        ${dg.PhanHoi ? `<p class="fst-italic text-muted small mt-1" title="Phản hồi: ${dg.PhanHoi}"><strong>QL:</strong> ${dg.PhanHoi}</p>` : ''}
+                    </td>
+                    <td>${dg.ThoiGian}</td>
+                    <td class="actions-cell">
+                        <a onclick="moModalTraLoi(${dg.MaDG}, '${dg.TenKhachHang}', '${dg.BinhLuan}', ${dg.SoSao})">Trả lời</a>
+                        ${hanhDongAn}
+                        <a class="delete-link" onclick="xoaDanhGia(${dg.MaDG})">Xoá</a>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function taoSoSao(soSao) {
+        let saoHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            saoHtml += `<i class="fa-${i <= soSao ? 'solid' : 'regular'} fa-star"></i>`;
+        }
+        return saoHtml;
+    }
+
+    function nhanXetSao(soSao) {
+        if (soSao >= 4) return 'Hài lòng';
+        if (soSao === 3) return 'Bình thường';
+        return 'Không hài lòng';
+    }
+
+    function anHienDanhGia(maDG) {
+        const hanhDong = dangXemDaAn ? 'hiện' : 'ẩn';
+        if (!confirm(`Bạn có chắc muốn ${hanhDong} đánh giá này?`)) return;
+
+        const formData = new FormData();
+        formData.append('maDG', maDG);
+
+        fetch(urlDomain + '/DanhGia/ToggleAnDanhGia', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) taiDanhSachDanhGia();
+            });
+    }
+
+    function xoaDanhGia(maDG) {
+        if (!confirm('Bạn có chắc chắn muốn XÓA VĨNH VIỄN đánh giá này? Hành động này không thể hoàn tác.')) return;
+
+        const formData = new FormData();
+        formData.append('maDG', maDG);
+
+        fetch(urlDomain + '/DanhGia/XoaDanhGia', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) taiDanhSachDanhGia();
+            });
+    }
+
+    function xuLyHangLoat(hanhDong) {
+        const ids = Array.from(document.querySelectorAll('.check-item:checked')).map(chk => chk.dataset.id);
+        if (ids.length === 0) {
+            alert('Vui lòng chọn ít nhất một đánh giá.');
+            return;
+        }
+
+        const tenHanhDong = hanhDong === 'an' ? (dangXemDaAn ? 'hiện' : 'ẩn') : 'xóa';
+        if (!confirm(`Bạn có chắc muốn ${tenHanhDong} ${ids.length} đánh giá đã chọn?`)) return;
+
+        const promises = ids.map(id => {
+            const formData = new FormData();
+            formData.append('maDG', id);
+            const url = hanhDong === 'an' ? '/DanhGia/ToggleAnDanhGia' : '/DanhGia/XoaDanhGia';
+            return fetch(urlDomain + url, { method: 'POST', body: formData }).then(res => res.json());
+        });
+
+        Promise.all(promises).then(() => {
+            alert(`Đã ${tenHanhDong} các đánh giá đã chọn.`);
+            taiDanhSachDanhGia();
+        });
+    }
+
+    function moModalTraLoi(maDG, tenKH, BinhLuan, soSao) {
+        document.getElementById('hidden-ma-dg').value = maDG;
+        const reviewContent = document.getElementById('original-review-content');
+        reviewContent.innerHTML = `
+            <div class="customer-info">
+                <img src="/img/default-avatar.png" class="avatar" alt="Avatar">
+                <strong>${tenKH}</strong>
+            </div>
+            <p class="my-2">${BinhLuan}</p>
+            <div class="rating">
+                <div class="stars">${taoSoSao(soSao)}</div>
+            </div>
+        `;
+        document.getElementById('modal-tra-loi').classList.add('show');
+    }
+
+    function dongModal() {
+        document.getElementById('modal-tra-loi').classList.remove('show');
+    }
+
+    function guiTraLoi() {
+        const maDG = document.getElementById('hidden-ma-dg').value;
+        const BinhLuan = document.getElementById('textarea-phan-hoi').value;
+
+        if (!BinhLuan.trim()) {
+            alert('Vui lòng nhập nội dung phản hồi.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('maDG', maDG);
+        formData.append('BinhLuan', BinhLuan);
+
+        fetch(urlDomain + '/DanhGia/TraLoiDanhGia', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    dongModal();
+                    taiDanhSachDanhGia();
+                }
+            });
+    }</script>
+}

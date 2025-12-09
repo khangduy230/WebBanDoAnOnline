@@ -119,7 +119,7 @@ namespace WebBanDoAnOnline.Controllers
                
                 Id = x.MaTB,
                 TieuDe = x.Title,
-                NoiDungCon = x.Subtitle,
+                BinhLuanCon = x.Subtitle,
                 ThoiGian = x.CreatedAt.ToString("dd/MM HH:mm"),
                 DaDoc = x.IsRead
             });
@@ -163,7 +163,7 @@ namespace WebBanDoAnOnline.Controllers
             var data = list.Select(x => new {
                 MaTB = x.MaTB, 
                 TieuDe = x.Title,
-                NoiDung = x.Subtitle, 
+                BinhLuan = x.Subtitle, 
                 ThoiGian = x.CreatedAt.ToString("dd/MM/yyyy HH:mm"),
                 DaDoc = x.IsRead
             });

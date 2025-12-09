@@ -177,23 +177,28 @@
                 </a>
             </li>
             <li>
-                <a href="@Url.Action("LaySanPham", "SanPham")" class="menu-item @(ViewBag.Title.ToString().Contains("sản phẩm") ? "active" : "")">
+                <a href="@Url.Action("QL_DanhSachSanPham", "SanPham")" class="menu-item @(ViewBag.Title.ToString().Contains("sản phẩm") ? "active" : "")">
                     <i class="fas fa-hamburger"></i> Món ăn
                 </a>
             </li>
             <li>
-                <a href="@Url.Action("SuaDanhMuc", "DanhMuc")" class="menu-item @(ViewBag.Title.ToString().Contains("Danh mục") ? "active" : "")">
+                <a href="@Url.Action("QL_SuaDanhMuc", "DanhMuc")" class="menu-item @(ViewBag.Title.ToString().Contains("Danh mục") ? "active" : "")">
                     <i class="fas fa-list"></i> Danh mục
                 </a>
             </li>
             <li>
-                <a href="@Url.Action("LayVoucher", "Voucher")" class="menu-item @(ViewBag.Title.ToString().Contains("Voucher") ? "active" : "")">
+                <a href="@Url.Action("QL_DanhSachVoucher", "Voucher")" class="menu-item @(ViewBag.Title.ToString().Contains("Voucher") ? "active" : "")">
                     <i class="fas fa-ticket-alt"></i> Khuyến mãi
                 </a>
             </li>
             <li>
-                <a href="@Url.Action("LayNguoiDung", "NguoiDung")" class="menu-item @(ViewBag.Title.ToString().Contains("Người dùng") ? "active" : "")">
+                <a href="@Url.Action("QL_DanhSachNguoiDung", "NguoiDung")" class="menu-item @(ViewBag.Title.ToString().Contains("Người dùng") ? "active" : "")">
                     <i class="fas fa-users"></i> Tài khoản
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("QL_QuanLyDanhGia", "DanhGia")" class="menu-item @(ViewBag.Title.ToString().Contains("Đánh giá") ? "active" : "")">
+                    <i class="fas fa-star"></i> Đánh giá
                 </a>
             </li>
             <li class="mt-3 border-top pt-3">

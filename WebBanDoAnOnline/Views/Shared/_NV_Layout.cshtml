@@ -149,7 +149,12 @@
                                 <i class="fa-solid fa-utensils me-1"></i> Tra cứu Menu
                             </a>
                         </li>
-                        
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "DanhGia" ? "active" : "")"
+                               href="~/DanhGia/NV_QuanLyDanhGia">
+                                <i class="fa-solid fa-star me-1"></i> Tra cứu Đánh giá
+                            </a>
+                        </li>
                     </ul>
 
                     <!-- Khu vực bên phải: Search + User -->
@@ -177,7 +182,7 @@
                                 <li><a class="dropdown-item" href="~/CaiDat/HoSo"><i class="fa-regular fa-id-card me-2"></i> Hồ sơ</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form action="/TaiKhoan/LogOff" method="post" id="logoutFormStaff">
+                                    <form action="/TaiKhoan/DangXuat" method="post" id="logoutFormStaff">
                                         <a class="dropdown-item text-danger" href="javascript:document.getElementById('logoutFormStaff').submit()">
                                             <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng xuất
                                         </a>
@@ -197,7 +202,7 @@
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb small">
                     <li class="breadcrumb-item text-muted">Hệ thống</li>
-                    <li class="breadcrumb-item active fw-bold text-primary" aria-current="Trang">@ViewBag.Title</li>
+                    <li class="breadcrumb-item active fw-bold text-primary" aria-current="page">@ViewBag.Title</li>
                 </ol>
             </nav>
 
@@ -264,7 +269,7 @@
                 // Logic rẽ nhánh dựa trên trang đang đứng
                 if (currentCtrl === 'NV_TrangChu') {
                     // Nếu đang ở trang Đơn hàng -> Search đơn hàng
-                    // Giả sử Action tìm kiếm đơn là /NV_TrangChu/Index?search=...
+                    // Giả sử Action tìm kiếm đơn là /NV_TrangChu/Index?searchOrder=...
                     window.location.href = '/NV_TrangChu/Index?searchOrder=' + encodeURIComponent(keyword);
                 }
                 else {

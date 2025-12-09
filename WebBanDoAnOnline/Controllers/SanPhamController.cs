@@ -38,9 +38,13 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-        
+        public ActionResult KH_ChiTietSanPham(int id)
+        {
+            ViewBag.MaSP = id;
+            return View();
+        }
         // 1: Lấy danh sách 
-        
+
         public string Lay_Menu()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
@@ -105,9 +109,9 @@ namespace WebBanDoAnOnline.Controllers
             return JsonConvert.SerializeObject(result);
         }
 
-        
+
         // API 2: Lấy thông tin 1 sản phẩm (Để sửa/Xem chi tiết)
-        
+
         public string LayTTSP()
         {
             string id_str = Request["id"];
@@ -132,9 +136,9 @@ namespace WebBanDoAnOnline.Controllers
             return "{}";
         }
 
-        
+
         // API 3: Thêm mới
-        
+
         public string ThemSanPham()
         {
             try
@@ -285,6 +289,62 @@ namespace WebBanDoAnOnline.Controllers
             catch (Exception ex)
             {
                 return "Lỗi: " + ex.Message;
+            }
+        }
+
+        public string DoiTrangThaiYeuThich()
+        {
+            try
+            {
+                var user = Session["TaiKhoan"] as TaiKhoan;
+                if (user == null) return "LOGIN_REQUIRED";
+
+                string id_str = Request["id"];
+                if (string.IsNullOrEmpty(id_str)) return "Thiếu id";
+                int maSP = int.Parse(id_str);
+
+                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+
+                var fav = db.SanPhamYeuThiches
+                    .FirstOrDefault(f => f.MaTK == user.MaTK && f.MaSP == maSP);
+
+                if (fav == null)
+                {
+                    // Thêm mới yêu thích
+                    var newFav = new SanPhamYeuThich
+                    {
+                        MaTK = user.MaTK,
+                        MaSP = maSP,
+                        Create_at = DateTime.Now,
+                        isDelete = 0
+                    };
+                    db.SanPhamYeuThiches.InsertOnSubmit(newFav);
+                    db.SubmitChanges();
+                    return "ADDED";
+                }
+                else
+                {
+                    if (fav.isDelete == 1)
+                    {
+                        // Khôi phục
+                        fav.isDelete = 0;
+                        fav.Update_at = DateTime.Now;
+                        db.SubmitChanges();
+                        return "ADDED";
+                    }
+                    else
+                    {
+                        // Ẩn mềm (bỏ yêu thích)
+                        fav.isDelete = 1;
+                        fav.Delete_at = DateTime.Now;
+                        db.SubmitChanges();
+                        return "REMOVED";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return "ERROR: " + ex.Message;
             }
         }
     }

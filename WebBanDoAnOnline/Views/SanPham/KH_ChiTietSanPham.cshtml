@@ -1,0 +1,445 @@
+﻿
+@{
+    ViewBag.Title = "KH_ChiTietSanPham";
+    Layout = "~/Views/Shared/_KH_Layout.cshtml";
+}
+
+<style>
+    :root {
+        --mau-chu: #222;
+        --mau-phu: #666;
+        --mau-canh-bao: #F58634;
+        --mau-nut: #ff8a00;
+        --mau-nut-hover: #e67e00;
+        --mau-nen-xam: #f5f5f5;
+        --mau-duong-ke: #e6e6e6;
+        --mau-sao: #ffb703;
+        --mau-xanh: #27ae60;
+        --mau-den: #111;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: var(--mau-chu);
+        background: #fff;
+    }
+
+
+    /* Phan tieu de san pham */
+    .khung-san-pham {
+        margin: 24px auto;
+        max-width: 980px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--mau-den);
+        color: #fff;
+    }
+
+    .khung-noi-dung {
+        display: flex;
+        gap: 24px;
+        padding: 24px;
+        align-items: center;
+    }
+
+    .anh-san-pham {
+        width: 360px;
+        height: 220px;
+        border-radius: 10px;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 2px solid #333;
+    }
+
+        .anh-san-pham img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    .thong-tin-chinh {
+        flex: 1;
+    }
+
+    .ten-san-pham {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .ten-san-pham h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+    .gia-san-pham {
+        font-weight: 800;
+        font-size: 18px;
+    }
+
+    .nhom-thong-so {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(120px,1fr));
+        gap: 12px;
+        margin-top: 10px;
+    }
+
+    .thong-so {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #ddd;
+    }
+
+        .thong-so .sao {
+            color: var(--mau-xanh);
+        }
+
+    .nhom-nut {
+        display: flex;
+        gap: 12px;
+        margin-top: 18px;
+    }
+
+    .nut {
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        font-weight: 700;
+        transition: .2s;
+        background: #fff;
+        color: var(--mau-chu);
+    }
+
+        .nut:hover {
+            transform: translateY(-1px);
+        }
+
+    .nut-phu {
+        border-color: #fff;
+        background: transparent;
+        color: #fff;
+    }
+
+    .nut-chinh {
+        background: var(--mau-nut);
+        color: #fff;
+        border-color: var(--mau-nut);
+    }
+
+        .nut-chinh:hover {
+            background: var(--mau-nut-hover);
+            border-color: var(--mau-nut-hover);
+        }
+
+    /* Mo ta */
+    .khoi-noi-dung {
+        max-width: 980px;
+        margin: 24px auto;
+        padding: 0 8px;
+    }
+
+    .tieu-de-nho {
+        font-weight: 800;
+        margin: 0 0 8px 0;
+        font-size: 18px;
+    }
+
+    .doan-van {
+        color: var(--mau-phu);
+        line-height: 1.7;
+        font-size: 15px;
+        background: var(--mau-nen-xam);
+        padding: 16px;
+        border-radius: 10px;
+        border: 1px dashed var(--mau-duong-ke);
+    }
+
+    /* Danh gia */
+    .khoi-danh-gia {
+        margin-top: 24px;
+    }
+
+    .bo-loc-danh-gia {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 8px 0 16px;
+    }
+
+    .nut-loc {
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--mau-duong-ke);
+        background: #fff;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--mau-phu);
+    }
+
+        .nut-loc.chon {
+            background: var(--mau-canh-bao);
+            color: #fff;
+            border-color: var(--mau-canh-bao);
+        }
+
+    .item-danh-gia {
+        display: grid;
+        grid-template-columns: 64px 1fr 120px;
+        gap: 16px;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--mau-duong-ke);
+    }
+
+    .avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid var(--mau-duong-ke);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+    }
+
+    .noi-dung-danh-gia .ten {
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+    .noi-dung-danh-gia .van-ban {
+        color: var(--mau-chu);
+        margin-bottom: 6px;
+    }
+
+    .hang-sao {
+        color: var(--mau-sao);
+        margin-bottom: 4px;
+        font-size: 16px;
+    }
+
+    .cam-xuc {
+        color: var(--mau-canh-bao);
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .thoi-gian {
+        color: var(--mau-phu);
+        font-size: 12px;
+        text-align: right;
+    }
+
+    /* Chan trang */
+    .chan-trang {
+        margin-top: 28px;
+        background: var(--mau-canh-bao);
+        color: #fff;
+        padding: 24px;
+    }
+
+        .chan-trang .dong {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .chan-trang a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+    .lien-he {
+        font-size: 13px;
+        opacity: .9;
+    }
+
+    /* Responsive */
+    @@media (max-width: 860px) {
+        .khung-noi-dung {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .anh-san-pham {
+            width: 100%;
+            height: 220px;
+        }
+
+        .nhom-thong-so {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .item-danh-gia {
+            grid-template-columns: 48px 1fr;
+        }
+
+        .thoi-gian {
+            text-align: left;
+        }
+    }
+</style>
+
+
+<section class="khung-san-pham">
+    <div class="khung-noi-dung" id="khung_noi_dung_san_pham">
+        <div class="anh-san-pham">
+            <!-- KHÔNG đặt mặc định cứng, sẽ thay sau khi tải -->
+            <img id="anh_san_pham" src="" alt="Ảnh sản phẩm" />
+        </div>
+
+        <div class="thong-tin-chinh">
+            <div class="ten-san-pham">
+                <h1 id="ten_san_pham"></h1>
+                <div class="gia-san-pham" id="gia_san_pham"></div>
+            </div>
+
+            <div class="nhom-thong-so">
+                <div class="thong-so">
+                    <span class="sao">★</span>
+                    <span id="diem_danh_gia"></span>
+                </div>
+                <div class="thong-so">🍽️ <span id="loai_mon"></span></div>
+                <div class="thong-so">⏱️ <span id="thoi_gian_giao"></span></div>
+            </div>
+
+            <div class="nhom-nut">
+                <button class="nut nut-phu" id="nut_uu_thich" onclick="ChonYeuThich()">❤ Yêu thích</button>
+                <button class="nut nut-chinh" onclick="ThemVaoGio()">Thêm vào giỏ hàng</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="khoi-noi-dung">
+    <h2 class="tieu-de-nho">Mô tả món ăn:</h2>
+    <div class="doan-van" id="mo_ta_mon_an"></div>
+
+    <div class="khoi-danh-gia">
+        <h2 class="tieu-de-nho">Đánh giá sản phẩm:</h2>
+
+        <div class="bo-loc-danh-gia">
+            <button class="nut-loc chon" onclick="BoLocDanhGia('all', this)">Tất cả</button>
+            <button class="nut-loc" onclick="BoLocDanhGia(1, this)">1 sao</button>
+            <button class="nut-loc" onclick="BoLocDanhGia(2, this)">2 sao</button>
+            <button class="nut-loc" onclick="BoLocDanhGia(3, this)">3 sao</button>
+            <button class="nut-loc" onclick="BoLocDanhGia(4, this)">4 sao</button>
+            <button class="nut-loc" onclick="BoLocDanhGia(5, this)">5 sao</button>
+        </div>
+
+        <div id="danh_sach_danh_gia"></div>
+    </div>
+</section>
+
+<script>
+    var url_domain = window.location.origin;
+    var sanPhamId = @ViewBag.MaSP;
+    var du_lieu_danh_gia = []; // nếu sau này có API danh giá chi tiết thì nạp vào đây
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var form = new FormData();
+        form.append('id', sanPhamId);
+
+        fetch(url_domain + '/SanPham/LayTTSP', { method: 'POST', body: form })
+            .then(r => r.text())
+            .then(t => {
+                var sp = JSON.parse(t);
+                if (sp.Error) { console.error(sp.Error); return; }
+                if (!sp || !sp.MaSP) return;
+
+                // Bind dữ liệu từ DB (Controller đã trả về đầy đủ trường)
+                document.getElementById("ten_san_pham").textContent = sp.TenSP || "";
+                document.getElementById("gia_san_pham").textContent = DinhDangTienTe(sp.Gia || 0);
+                document.getElementById("mo_ta_mon_an").textContent = sp.MoTa || "";
+
+                var imgUrl = (sp.Anh || "/img/no-image.jpg").replace('~', '');
+                document.getElementById("anh_san_pham").src = imgUrl;
+
+                document.getElementById("loai_mon").textContent = sp.TenDM || "Khác";
+                document.getElementById("diem_danh_gia").textContent = (sp.DiemTrungBinh || 0).toFixed(1);
+                document.getElementById("thoi_gian_giao").textContent = sp.ThoiGianGiao || ""; // ví dụ "30 phút"
+            })
+            .catch(err => console.error("LayTTSP error:", err));
+    });
+
+    function ChonYeuThich() {
+        var form = new FormData();
+        form.append('id', sanPhamId);
+
+        fetch(url_domain + '/SanPham/DoiTrangThaiYeuThich', { method: 'POST', body: form })
+            .then(r => r.text())
+            .then(res => {
+                var nut = document.getElementById("nut_uu_thich");
+                if (res === "LOGIN_REQUIRED") {
+                    if (confirm("Bạn cần đăng nhập để sử dụng yêu thích. Đến trang đăng nhập?")) {
+                        window.location.href = "/TaiKhoan/DangNhap";
+                    }
+                    return;
+                }
+                if (res === "ADDED") {
+                    nut.classList.add("dang-chon");
+                    nut.textContent = "✔ Đã thêm yêu thích";
+                } else if (res === "REMOVED") {
+                    nut.classList.remove("dang-chon");
+                    nut.textContent = "❤ Yêu thích";
+                } else {
+                    alert(res);
+                }
+            })
+            .catch(err => console.error("Đổi trạng thái yêu thích lỗi:", err));
+    }
+
+    function ThemVaoGio() {
+        if (typeof ThemVaoGio === 'function') {
+            ThemVaoGio(sanPhamId); // dùng hàm global từ _KH_Layout.cshtml
+        } else {
+            alert("Không tìm thấy hàm thêm giỏ hàng.");
+        }
+    }
+
+    function VeDanhGia(ds) {
+        var khung = document.getElementById("danh_sach_danh_gia");
+        khung.innerHTML = "";
+        if (!ds || ds.length === 0) {
+            khung.innerHTML = '<div class="text-muted">Chưa có đánh giá nào.</div>';
+            return;
+        }
+        ds.forEach(function (d) {
+            var item = document.createElement("div");
+            item.className = "item-danh-gia";
+            item.innerHTML = `
+                <div class="avatar">🙂</div>
+                <div class="noi-dung-danh-gia">
+                    <div class="ten">${d.ten}</div>
+                    <div class="van-ban">${d.vanban}</div>
+                    <div class="hang-sao">${VeSao(d.sao)}</div>
+                    <div class="cam-xuc">${d.camxuc || ''}</div>
+                </div>
+                <div class="thoi-gian">${d.thoigian}</div>`;
+            khung.appendChild(item);
+        });
+    }
+
+    function BoLocDanhGia(muc, nut) {
+        document.querySelectorAll(".nut-loc").forEach(n => n.classList.remove("chon"));
+        nut.classList.add("chon");
+        var loc = du_lieu_danh_gia.filter(d => muc === "all" ? true : d.sao === muc);
+        VeDanhGia(loc);
+    }
+
+    function DinhDangTienTe(n) { return new Intl.NumberFormat('vi-VN').format(n) + "đ"; }
+    function VeSao(s) { var out=""; for (var i=1;i<=5;i++) out += (i<=s) ? "★" : "☆"; return out; }
+</script>

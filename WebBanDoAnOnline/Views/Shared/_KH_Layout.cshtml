@@ -160,7 +160,7 @@
                                 <li><a class="dropdown-item" href="~/CaiDat/DonMua"><i class="fa-solid fa-receipt me-2"></i> Đơn mua</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form action="/TaiKhoan/LogOff" method="post" id="logoutForm">
+                                    <form action="/TaiKhoan/DangXuat" method="post" id="logoutForm">
                                         <a class="dropdown-item text-danger" href="javascript:document.getElementById('logoutForm').submit()">
                                             <i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất
                                         </a>
@@ -239,7 +239,7 @@
                         var bg = item.DaDoc ? "bg-white" : "bg-warning-subtle";
                         htmlStr += `<a href="/ThongBao/KH_ThongBao?openId=${item.Id}" class="dropdown-item p-2 border-bottom ${bg}">
                                             <div class="d-flex"><div class="me-3 mt-1 text-warning"><i class="fas fa-bell"></i></div>
-                                            <div><div class="fw-bold small">${item.TieuDe}</div><div class="small text-muted">${item.NoiDungCon || ''}</div></div></div></a>`;
+                                            <div><div class="fw-bold small">${item.TieuDe}</div><div class="small text-muted">${item.BinhLuanCon || ''}</div></div></div></a>`;
                     }
                 } else { htmlStr = '<div class="text-center py-3 small text-muted">Không có thông báo.</div>'; }
                 $("#list-thong-bao").html(htmlStr);
