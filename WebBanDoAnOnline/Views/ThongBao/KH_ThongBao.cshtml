@@ -100,23 +100,35 @@
 
     // --- CÁC HÀM XỬ LÝ CLICK GIỮ NGUYÊN ---
 
+    // --- SỬA LẠI ĐOẠN NÀY TRONG FILE VIEW ---
+
     function danhDauDaDoc1Tin(id, element) {
         var btn = $(element);
-        if (btn.hasClass('bg-white')) return; // Đã đọc rồi thì thôi
+        if (btn.hasClass('bg-white')) return;
 
-        // Gọi server
-        $.post('/ThongBao/DanhDauTatCaDaDoc', { id: id });
-
-        // Đổi màu giao diện ngay lập tức
-        btn.removeClass('bg-warning-subtle').addClass('bg-white');
-        btn.find('.icon-chuong').removeClass('text-warning').addClass('text-secondary');
+        // SỬA URL: Gọi đúng hàm DanhDauDaDoc(int id)
+        $.post('/ThongBao/DanhDauDaDoc', { id: id }, function (res) {
+            if (res.success) {
+                // Đổi màu giao diện
+                btn.removeClass('bg-warning-subtle').addClass('bg-white');
+                btn.find('.icon-chuong').removeClass('text-warning').addClass('text-secondary');
+            }
+        });
     }
 
     function danhDauTatCa() {
         if (!confirm("Đánh dấu tất cả là đã đọc?")) return;
-        $.post('/ThongBao/MarkAllRead', function (res) {
-            // Vì load bằng Ajax nên chỉ cần gọi lại hàm load là xong, không cần reload trang
-            TaiDanhSachThongBao();
+
+        // SỬA URL: Gọi đúng hàm DanhDauTatCaDaDoc()
+        $.post('/ThongBao/DanhDauTatCaDaDoc', function (res) {
+            // Chuỗi JSON trả về cần parse hoặc dùng trực tiếp nếu $.post tự xử lý
+            var data = (typeof res === 'string') ? JSON.parse(res) : res;
+
+            if (data.success) {
+                TaiDanhSachThongBao(); // Load lại danh sách
+            } else {
+                alert("Lỗi: " + data.message);
+            }
         });
     }
 </script>

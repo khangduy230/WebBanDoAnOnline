@@ -206,7 +206,7 @@
     </div>
 </div>
 
-@section Scripts {
+
     <script>
         var url_domain = window.location.origin;
 
@@ -225,31 +225,31 @@
             $.ajax({
                 type: "POST",
                 url: url_domain + '/CaiDat/LayDSVoucher',
-                contentType: false,
-                processData: false,
-                cache: false,
+                contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     if (res.success) {
-                        renderVoucherList(res.data);
+                        // SỬA LỖI: Gọi đúng tên hàm HienThiDSVoucher
+                        HienThiDSVoucher(res.data);
                     } else {
-                        $('#voucher-list').html('<div class="alert alert-danger">' + res.message + '</div>');
+                        $('#voucher-list').html('<div class="alert alert-danger text-center">' + res.message + '</div>');
                     }
                 },
                 error: function () {
-                    $('#voucher-list').html('<div class="alert alert-danger">Lỗi khi tải danh sách voucher</div>');
+                    $('#voucher-list').html('<div class="alert alert-danger text-center">Lỗi khi tải danh sách voucher</div>');
                 }
             });
         }
 
+        // Hàm hiển thị danh sách
         function HienThiDSVoucher(data) {
             if (data.length === 0) {
                 $('#voucher-list').html(`
-                        <div class="empty-voucher">
-                            <i class="fas fa-ticket-alt"></i>
-                            <p>Chưa có voucher khả dụng</p>
-                        </div>
-                    `);
+                            <div class="empty-voucher">
+                                <i class="fas fa-ticket-alt"></i>
+                                <p>Chưa có voucher khả dụng</p>
+                            </div>
+                        `);
                 return;
             }
 
@@ -257,7 +257,6 @@
             for (var i = 0; i < data.length; i++) {
                 var v = data[i];
 
-                // Xác định status badge và class
                 var statusHtml = '';
                 var cardClass = '';
                 var quantityHtml = '';
@@ -269,42 +268,34 @@
                     statusHtml = '<span class="voucher-status status-used">Hết lượt</span>';
                     cardClass = 'disabled-voucher';
                 } else {
-                    // Còn hạn - Hiển thị số lượng
                     statusHtml = '<span class="voucher-status status-active">Còn hạn</span>';
-
                     var qtyClass = v.SoLuotConLai <= 10 ? 'low-stock' : '';
-                    quantityHtml = '<div class="voucher-quantity ' + qtyClass + '">' +
-                        '<i class="fas fa-box"></i> Còn lại: ' + v.SoLuotConLai + ' lượt' +
-                        '</div>';
+                    quantityHtml = `<div class="voucher-quantity ${qtyClass}"><i class="fas fa-box"></i> Còn lại: ${v.SoLuotConLai} lượt</div>`;
                 }
 
                 html += `
-                        <div class="voucher-card ${cardClass}">
-                            <div class="voucher-icon">
-                                <i class="fas fa-ticket-alt"></i>
-                            </div>
-                            <div class="voucher-info">
-                                <div class="voucher-title">${v.TenVoucher}</div>
-                                <div class="voucher-expiry">
-                                    <i class="far fa-clock"></i> Thời gian khả dụng: ${v.ThoiGian}
+                            <div class="voucher-card ${cardClass}">
+                                <div class="voucher-icon"><i class="fas fa-ticket-alt"></i></div>
+                                <div class="voucher-info">
+                                    <div class="voucher-title">${v.TenVoucher}</div>
+                                    <div class="text-success fw-bold small mb-1">${v.GiaTriText}</div>
+                                    <div class="voucher-expiry"><i class="far fa-clock"></i> HSD: ${v.ThoiGian}</div>
+                                    ${quantityHtml}
                                 </div>
-                                ${quantityHtml}
-                            </div>
-                            <div class="voucher-code-display">${v.MaCode}</div>
-                            ${statusHtml}
-                        </div>
-                    `;
+                                <div class="d-flex flex-column align-items-center gap-2">
+                                    <div class="voucher-code-display">${v.MaCode}</div>
+                                    <!-- Thêm nút sao chép mã -->
+                                    <button class="btn btn-sm btn-outline-secondary w-100" onclick="CopyMa('${v.MaCode}')">Sao chép</button>
+                                </div>
+                                ${statusHtml}
+                            </div>`;
             }
             $('#voucher-list').html(html);
         }
 
         function luuVoucher() {
             var code = $('#voucherCodeInput').val().trim();
-
-            if (!code) {
-                alert('Vui lòng nhập mã voucher');
-                return;
-            }
+            if (!code) { alert('Vui lòng nhập mã voucher'); return; }
 
             var formData = new FormData();
             formData.append('maCode', code);
@@ -312,10 +303,7 @@
             $.ajax({
                 type: "POST",
                 url: url_domain + '/CaiDat/LuuVoucher',
-                data: formData,
-                contentType: false,
-                processData: false,
-                cache: false,
+                data: formData, contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     alert(res.message);
@@ -324,10 +312,12 @@
                         LayDSVoucher();
                     }
                 },
-                error: function () {
-                    alert('Lỗi kết nối server');
-                }
+                error: function () { alert('Lỗi kết nối server'); }
             });
         }
+
+        function CopyMa(code) {
+            navigator.clipboard.writeText(code);
+            alert("Đã sao chép mã: " + code);
+        }
     </script>
-}

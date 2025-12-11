@@ -160,12 +160,7 @@
                     <!-- Khu vực bên phải: Search + User -->
                     <div class="d-flex align-items-center gap-4">
 
-                        <!-- Search Bar Thông minh -->
-                        <div class="search-wrapper d-none d-lg-block">
-                            <input type="text" id="staff-search" class="search-input"
-                                   placeholder="@(currentController == "NV_TrangChu" ? "Tìm mã đơn, tên khách..." : "Tìm tên món ăn...")">
-                            <button class="search-btn" id="staff-search-icon"><i class="fa-solid fa-magnifying-glass"></i></button>
-                        </div>
+                        
 
                         <!-- Thông tin nhân viên -->
                         <div class="dropdown">
@@ -258,25 +253,7 @@
                 }
             });
 
-            // 2. Xử lý Search Context (Quan trọng)
-            $('#staff-search-icon').click(handleStaffSearch);
-            $('#staff-search').keypress(function (e) { if (e.which === 13) handleStaffSearch(); });
-
-            function handleStaffSearch() {
-                var keyword = $('#staff-search').val().trim();
-                if (!keyword) return;
-
-                // Logic rẽ nhánh dựa trên trang đang đứng
-                if (currentCtrl === 'NV_TrangChu') {
-                    // Nếu đang ở trang Đơn hàng -> Search đơn hàng
-                    // Giả sử Action tìm kiếm đơn là /NV_TrangChu/Index?searchOrder=...
-                    window.location.href = '/NV_TrangChu/Index?searchOrder=' + encodeURIComponent(keyword);
-                }
-                else {
-                    // Mặc định hoặc ở trang Sản phẩm -> Search sản phẩm
-                    window.location.href = '/SanPham/Index?TimKiem=' + encodeURIComponent(keyword);
-                }
-            }
+            
         });
     </script>
 

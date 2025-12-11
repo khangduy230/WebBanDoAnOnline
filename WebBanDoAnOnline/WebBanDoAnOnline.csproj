@@ -159,6 +159,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Business\TroGiupThongBao.cs" />
     <Compile Include="Controllers\CaiDatController.cs" />
     <Compile Include="Controllers\DanhGiaController.cs" />
     <Compile Include="Controllers\DanhMucController.cs" />
@@ -336,7 +337,7 @@
     <Content Include="Views\CaiDat\XoaTaiKhoan.cshtml" />
     <Content Include="Views\Shared\_NV_Layout.cshtml" />
     <Content Include="Views\NV_TrangChu\Index.cshtml" />
-    <Content Include="Views\NV_TrangChu\NV_ThongTinDonHang.cshtml" />
+    <Content Include="Views\NV_TrangChu\ThongTinDonHang.cshtml" />
     <Content Include="Views\SanPham\NV_DanhSachSanPham.cshtml" />
     <Content Include="Views\SanPham\KH_ChiTietSanPham.cshtml" />
     <Content Include="Views\DanhGia\QL_QuanLyDanhGia.cshtml" />

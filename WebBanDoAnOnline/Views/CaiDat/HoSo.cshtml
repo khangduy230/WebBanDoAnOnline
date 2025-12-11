@@ -111,14 +111,15 @@
     <button type="submit" class="btn-save">Lưu thay đổi</button>
 </form>
 
-@section Scripts {
+
+
     <script>
         var selectedAvatar = null;
-        var url_domain = window.location.origin;
+        var url_domain = window.location.origin; // Lấy domain gốc (ví dụ: localhost:1234)
 
         $(document).ready(function () {
-            // Load dữ liệu khi vào trang
-            loadProfile();
+            // 1. SỬA LỖI: Gọi đúng tên hàm LayHoSo() thay vì loadProfile()
+            LayHoSo();
 
             // Xem trước ảnh khi chọn file
             $('#avatarInput').change(function (e) {
@@ -136,33 +137,49 @@
             // Xử lý Lưu
             $('#profileForm').submit(function (e) {
                 e.preventDefault();
-                saveProfile();
+                // 2. SỬA LỖI: Gọi đúng tên hàm LuuHoSo() thay vì saveProfile()
+                LuuHoSo();
             });
         });
 
+        // Hàm lấy thông tin hồ sơ
         function LayHoSo() {
             $.ajax({
                 type: "POST",
-                url: url_domain + '/CaiDat/LayHoSo',
+                // Đảm bảo đường dẫn Controller/Action chính xác
+                url: '/CaiDat/LayHoSo',
                 contentType: false, processData: false, cache: false,
                 success: function (response) {
+                    // Parse JSON nếu server trả về chuỗi
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
+
                     if (res.success) {
                         $('#fullName').val(res.data.HoTen || '');
                         $('#email').val(res.data.Email || '');
                         $('#phone').val(res.data.SoDienThoai || '');
 
-                        // Xử lý đường dẫn ảnh và thêm timestamp để tránh cache
+                        // Xử lý đường dẫn ảnh
                         if (res.data.Avatar) {
+                            // Thêm timestamp (?v=...) để tránh trình duyệt cache ảnh cũ
                             var imgUrl = res.data.Avatar.replace("~", "") + "?v=" + new Date().getTime();
                             $('#avatarPreview').attr('src', imgUrl);
                         }
+                    } else {
+                        // Nếu chưa đăng nhập hoặc lỗi, chuyển hướng hoặc thông báo
+                        if (res.message === "Chưa đăng nhập") {
+                            window.location.href = "/TaiKhoan/DangNhap";
+                        } else {
+                            alert(res.message);
+                        }
                     }
                 },
-                error: function () { alert('Lỗi tải thông tin.'); }
+                error: function () {
+                    console.error("Lỗi gọi API LayHoSo");
+                }
             });
         }
 
+        // Hàm lưu thông tin hồ sơ
         function LuuHoSo() {
             var btn = $(".btn-save");
             btn.prop("disabled", true).text("Đang lưu...");
@@ -178,14 +195,15 @@
 
             $.ajax({
                 type: "POST",
-                url: url_domain + '/CaiDat/LuuHoSo',
-                data: formData, contentType: false, processData: false, cache: false,
+                url: '/CaiDat/LuuHoSo',
+                data: formData,
+                contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
+
                     if (res.success) {
                         alert('Cập nhật thành công!');
-
-                        // QUAN TRỌNG: Reload lại trang để cập nhật Header/Avatar mới
+                        // Reload trang để cập nhật ảnh trên Header (nếu có)
                         window.location.reload();
                     } else {
                         alert(res.message);
@@ -199,4 +217,4 @@
             });
         }
     </script>
-}
+

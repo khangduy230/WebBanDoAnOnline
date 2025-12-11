@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Data.Linq;
 using System.IO;
 using System.Linq;
@@ -160,96 +161,139 @@ namespace WebBanDoAnOnline.Controllers
         {
             try
             {
-                if (Session["TaiKhoan"] == null)
-                {
-                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Chưa đăng nhập" });
-                }
-
+                if (Session["TaiKhoan"] == null) return JsonConvert.SerializeObject(new { success = false, message = "Chưa đăng nhập" });
                 var sessionUser = Session["TaiKhoan"] as TaiKhoan;
                 string statusFilter = Request.Form["status"];
 
+                // Tối ưu query
                 var loadOptions = new DataLoadOptions();
-                loadOptions.LoadWith<DonHang>(d => d.DiaChi);     // Tải luôn thông tin địa chỉ
                 loadOptions.LoadWith<DonHang>(d => d.ChiTietDonHangs);
                 loadOptions.LoadWith<ChiTietDonHang>(ct => ct.SanPham);
-                db.LoadOptions = loadOptions;  // Áp dụng tùy chọn tải dữ liệu
+                db.LoadOptions = loadOptions;
 
-                // Lấy đơn hàng của user chưa bị xóa
+                // Query cơ bản
                 var query = db.DonHangs.Where(d => d.MaTK == sessionUser.MaTK && (d.isDelete == null || d.isDelete == 0));
 
-                // Áp dụng bộ lọc trạng thái
+                // Lọc theo trạng thái
                 if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "all")
                 {
                     switch (statusFilter)
                     {
-                        case "pending":
-                            
-                            query = query.Where(d => d.TrangThai == "Chờ xác nhận");
-                            break;
-                        case "shipping":
-                            
-                            query = query.Where(d => d.TrangThai == "Đã xác nhận" || d.TrangThai == "Đang giao");
-                            break;
-                        case "completed":
-                            
-                            query = query.Where(d => d.TrangThai == "Đã nhận hàng");
-                            break;
-                        case "cancelled":
-                            
-                            query = query.Where(d => d.TrangThai == "Đã hủy");
-                            break;
+                        case "pending": query = query.Where(d => d.TrangThai == "Chờ xác nhận"); break;
+                        case "shipping": query = query.Where(d => d.TrangThai == "Đã xác nhận" || d.TrangThai == "Đang giao"); break;
+                        case "completed": query = query.Where(d => d.TrangThai == "Đã nhận hàng"); break;
+                        case "cancelled": query = query.Where(d => d.TrangThai == "Đã hủy"); break;
                     }
                 }
 
-                var orders = query.OrderByDescending(d => d.Create_at).ToList();   // Lấy danh sách đơn hàng
-                
-                var data = orders.Select(d =>
+                var list = query.OrderByDescending(d => d.Create_at).ToList();
+
+                // Lấy danh sách các mã đơn hàng để tối ưu truy vấn
+                var listMaDH = list.Select(x => x.MaDH).ToList();
+
+                // Lấy tất cả đánh giá của các đơn hàng này vào bộ nhớ (để tránh query lặp trong vòng lặp)
+                var listDanhGia = db.DanhGias.Where(dg => listMaDH.Contains(dg.MaDH ?? 0) && (dg.isDelete == 0 || dg.isDelete == null)).ToList();
+
+                var data = list.Select(d => new
                 {
-                    var diaChiText = "Tại cửa hàng";
-                    if (d.DiaChi != null)
-                    {
-                        var tenNguoiNhan = d.DiaChi.TenNguoiNhan ?? "";
-                        var sdt = d.DiaChi.SDTNhan ?? "";
-                        var diaChi = d.DiaChi.DiaChiCuThe ?? "";
-                        diaChiText = string.Format("{0} - {1}\n{2}", tenNguoiNhan, sdt, diaChi);
-                    }
-                    else
-                    {
-                        
-                        var user = db.TaiKhoans.FirstOrDefault(u => u.MaTK == d.MaTK);
-                        if (user != null) diaChiText = user.HoTen + " - " + user.SoDienThoai;
-                    }
+                    MaDH = d.MaDH,
+                    MaVanDon = "DH" + d.MaDH.ToString("D6"),
+                    TrangThai = d.TrangThai,
+                    TongTien = d.TongTien,
+                    NgayTao = d.Create_at.HasValue ? d.Create_at.Value.ToString("dd/MM/yyyy HH:mm") : "",
+                    DiaChiGiaoHang = "Giao đến địa chỉ mặc định", // Hoặc query bảng DiaChi nếu cần
 
-                    var sanPhams = d.ChiTietDonHangs
-                        .Where(ct => ct.isDelete == null || ct.isDelete == 0)
-                        .Select(ct =>
-                        {
-                            return new
-                            {
-                                TenSP = ct.TenSP ?? (ct.SanPham != null ? ct.SanPham.TenSP : "Sản phẩm"), 
-                                SoLuong = ct.SoLuong ?? 0,
-                                currentia = ct.currentia,
-                                Anh = (ct.SanPham != null && !string.IsNullOrEmpty(ct.SanPham.Anh)) ? ct.SanPham.Anh : "/img/no-image.jpg" 
-                            };
-                        }).ToList();
+                    SanPhams = d.ChiTietDonHangs.Select(ct => new {
+                        MaSP = ct.MaSP,
+                        TenSP = ct.TenSP,
+                        SoLuong = ct.SoLuong,
+                        DonGia = ct.DonGia,
+                        Anh = (ct.SanPham != null && !string.IsNullOrEmpty(ct.SanPham.Anh))
+                                ? ct.SanPham.Anh.Replace("~", "")
+                                : "/img/no-image.jpg",
 
-                    return new
-                    {
-                        MaDH = d.MaDH,
-                        MaVanDon = "DH" + d.MaDH.ToString("D6"), 
-                        TrangThai = d.TrangThai, 
-                        TongTien = d.TongTien,
-                        NgayTao = d.Create_at.HasValue ? d.Create_at.Value.ToString("dd/MM/yyyy HH:mm") : "",
-                        DiaChiGiaoHang = diaChiText,
-                        SanPhams = sanPhams
-                    };
-                }).ToList();
+                        // --- QUAN TRỌNG: Kiểm tra xem sản phẩm này trong đơn này đã đánh giá chưa ---
+                        DaDanhGia = listDanhGia.Any(dg => dg.MaDH == d.MaDH && dg.MaSP == ct.MaSP)
+                    }).ToList()
+                });
 
-                return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = true, data = data });
+                return JsonConvert.SerializeObject(new { success = true, data = data });
             }
             catch (Exception ex)
             {
-                return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+            }
+        }
+
+
+
+        // --- API 3: GỬI ĐÁNH GIÁ (Mới thêm) ---
+        // --- API 3: GỬI ĐÁNH GIÁ (Đã sửa lỗi và thêm tính điểm TB) ---
+
+        [HttpPost]
+        public string GuiDanhGia()
+        {
+            try
+            {
+                if (Session["TaiKhoan"] == null)
+                    return JsonConvert.SerializeObject(new { success = false, message = "Vui lòng đăng nhập." });
+
+                var user = Session["TaiKhoan"] as TaiKhoan;
+
+                int maDH = 0, maSP = 0, soSao = 5;
+                int.TryParse(Request.Form["MaDH"], out maDH);
+                int.TryParse(Request.Form["MaSP"], out maSP);
+                int.TryParse(Request.Form["SoSao"], out soSao);
+                string binhLuan = Request.Form["BinhLuan"];
+
+                using (var context = new BanDoAnOnlineDataContext()) // Khởi tạo context mới để tránh conflict
+                {
+                    // 1. Check đơn hàng hợp lệ
+                    var dh = context.DonHangs.FirstOrDefault(d => d.MaDH == maDH && d.MaTK == user.MaTK && d.TrangThai == "Đã nhận hàng");
+                    if (dh == null) return JsonConvert.SerializeObject(new { success = false, message = "Đơn hàng không hợp lệ hoặc chưa hoàn thành." });
+
+                    // 2. Check đã đánh giá chưa
+                    var check = context.DanhGias.FirstOrDefault(x => x.MaDH == maDH && x.MaSP == maSP);
+                    if (check != null) return JsonConvert.SerializeObject(new { success = false, message = "Bạn đã đánh giá sản phẩm này rồi." });
+
+                    // 3. Insert đánh giá
+                    var dg = new DanhGia
+                    {
+                        MaTK = user.MaTK,
+                        MaSP = maSP,
+                        MaDH = maDH,
+                        SoSao = soSao,
+                        BinhLuan = binhLuan,
+                        Create_at = DateTime.Now,
+                        isDelete = 0
+                    };
+                    context.DanhGias.InsertOnSubmit(dg);
+                    context.SubmitChanges(); // Lưu đánh giá trước
+
+                    // 4. Tính điểm TB (Quan trọng: Tính lại toàn bộ đánh giá của SP đó)
+                    var sp = context.SanPhams.FirstOrDefault(s => s.MaSP == maSP);
+                    if (sp != null)
+                    {
+                        // Lấy list sao, bỏ qua các đánh giá bị xóa
+                        var ratings = context.DanhGias
+                            .Where(r => r.MaSP == maSP && (r.isDelete == 0 || r.isDelete == null))
+                            .Select(r => r.SoSao)
+                            .ToList();
+
+                        if (ratings.Any())
+                        {
+                            sp.SoLuotDanhGia = ratings.Count;
+                            sp.DiemDanhGia = ratings.Average(r => (double)r);
+                        }
+                        context.SubmitChanges();
+                    }
+                }
+
+                return JsonConvert.SerializeObject(new { success = true, message = "Cảm ơn bạn đã đánh giá!" });
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = "Lỗi: " + ex.Message });
             }
         }
 

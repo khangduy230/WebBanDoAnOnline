@@ -81,7 +81,7 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        // API REGISTER 
+        // API DangKy 
         
         public JsonResult XuLiDangKy(string txt_name, string txt_user, string txt_phone, string txt_email, string txt_pass, string txt_repass)
         {

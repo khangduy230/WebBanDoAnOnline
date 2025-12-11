@@ -4,7 +4,7 @@
 }
 
 <style>
-    /* (Giữ nguyên CSS cũ của bạn) */
+    /* CSS giữ nguyên, tôi ẩn đi cho gọn */
     .order-filters {
         display: flex;
         gap: 10px;
@@ -150,9 +150,61 @@
         padding: 6px 14px;
         border-radius: 6px;
     }
+
+    /* CSS Modal Thủ công (Không cần Bootstrap JS) */
+    .modal-custom {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1050;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .modal-custom.show {
+            display: flex;
+        }
+
+    .modal-content-custom {
+        background: white;
+        width: 90%;
+        max-width: 500px;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        animation: slideDown 0.3s ease;
+    }
+
+    @@keyframes slideDown {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
 </style>
 
 <div class="container-fluid px-0">
+
+    <div class="row mb-3">
+        <div class="col-md-6 col-12">
+            <div class="input-group">
+                <input type="text" id="global-search" class="form-control" placeholder="Tìm kiếm mã đơn, tên khách, số điện thoại...">
+                <button class="btn btn-warning text-white" type="button" onclick="TimKiemDonHang()">
+                    <i class="fas fa-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="order-filters">
         <button class="filter-btn active" data-status="all">Tất cả</button>
         <button class="filter-btn" data-status="pending">Chờ xác nhận</button>
@@ -163,127 +215,170 @@
     <div id="orders-grid" class="orders-grid">
         <div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>
     </div>
+
+    <div class="mt-4" id="pagination"></div>
+
 </div>
 
-<!-- Popup xác nhận hoàn thành -->
-<div id="complete-modal" class="modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-success">Xác nhận hoàn thành</h5>
-                <button type="button" class="btn-close" onclick="DongModal('complete-modal')"></button>
-            </div>
-            <div class="modal-body text-center py-4">
-                <i class="fas fa-check-circle text-success fs-1 mb-3"></i>
-                <p>Bạn xác nhận đơn hàng này đã giao thành công?</p>
-            </div>
-            <div class="modal-footer border-0 justify-content-center">
-                <button type="button" class="btn btn-secondary" onclick="DongModal('complete-modal')">Hủy</button>
-                <button type="button" class="btn btn-success text-white" id="btn-confirm-complete">Xác nhận</button>
-            </div>
+<!-- Modal Xác nhận Hoàn thành (Custom) -->
+<div id="complete-modal" class="modal-custom">
+    <div class="modal-content-custom text-center">
+        <h5 class="fw-bold text-success mb-3">Xác nhận hoàn thành</h5>
+        <div class="py-3"><i class="fas fa-check-circle text-success fs-1 mb-3"></i><p>Đơn hàng đã giao thành công?</p></div>
+        <div class="d-flex justify-content-center gap-2">
+            <button class="btn btn-secondary" onclick="DongModal('complete-modal')">Hủy</button>
+            <button class="btn btn-success text-white" id="btn-confirm-complete">Xác nhận</button>
         </div>
     </div>
 </div>
 
-<!-- Popup từ chối -->
-<div id="reject-modal" class="modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-danger">Từ chối đơn hàng</h5>
-                <button type="button" class="btn-close" onclick="DongModal('reject-modal')"></button>
-            </div>
-            <div class="modal-body">
-                <textarea id="reject-note" class="form-control" rows="4" placeholder="Nhập lý do từ chối (VD: Hết nguyên liệu, Khách hủy...)"></textarea>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" onclick="DongModal('reject-modal')">Quay lại</button>
-                <button type="button" class="btn btn-danger" id="btn-confirm-reject">Từ chối đơn</button>
-            </div>
+<!-- Modal Từ chối (Custom) -->
+<div id="reject-modal" class="modal-custom">
+    <div class="modal-content-custom">
+        <h5 class="fw-bold text-danger mb-3">Từ chối đơn hàng</h5>
+        <textarea id="reject-note" class="form-control mb-3" rows="4" placeholder="Nhập lý do từ chối..."></textarea>
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-secondary" onclick="DongModal('reject-modal')">Quay lại</button>
+            <button class="btn btn-danger" id="btn-confirm-reject">Từ chối đơn</button>
         </div>
     </div>
 </div>
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     var url_domain = window.location.origin;
     var currentFilter = "all";
-    var pendingId = 0; // Biến toàn cục lưu ID đơn đang thao tác
+    var pendingId = 0;
+    var activeCategoryId = null; // Biến giả để khớp với hàm TaoPhanTrang của bạn
 
     function DinhDangTienTe(n) { return n.toLocaleString('vi-VN') + 'đ'; }
 
-    // --- 1. LOAD DANH SÁCH ---
-    function HienThiDonHang(filter) {
+    // --- LOGIC PHÂN TRANG (Code bạn cung cấp) ---
+    function TaoPhanTrang(totalPages, currentPage) {
+        totalPages = parseInt(totalPages);
+        currentPage = parseInt(currentPage);
+        if (isNaN(totalPages) || totalPages <= 1) { $("#pagination").html(''); return; }
+
+        var kword = $("#global-search").val() || "";
+        // Escape dấu nháy đơn để tránh lỗi JS string
+        var kwordSafe = kword.replace(/'/g, "\\'");
+
+        // SỬA: Hàm onclick gọi về HienThiDonHang thay vì TaiSanPham
+        function renderItem(page, isActive, isDisabled, text) {
+            var activeClass = isActive ? "active" : "";
+            var disabledClass = isDisabled ? "disabled" : "";
+            // Gọi hàm HienThiDonHang với filter hiện tại
+            var clickEvent = (isDisabled || isActive) ? "" : `onclick="HienThiDonHang('${currentFilter}', ${page})"`;
+            var display = text || page;
+            return `<li class="page-item ${activeClass} ${disabledClass}"><a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a></li>`;
+        }
+        function renderDots() { return `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`; }
+
+        var html = `<nav><ul class="pagination pagination-sm justify-content-center">`;
+        html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) html += renderItem(i, i === currentPage, false, i);
+        } else {
+            html += renderItem(1, 1 === currentPage, false, 1);
+            var startPage = Math.max(2, currentPage - 1);
+            var endPage = Math.min(totalPages - 1, currentPage + 1);
+            if (startPage > 2) html += renderDots();
+            for (let i = startPage; i <= endPage; i++) html += renderItem(i, i === currentPage, false, i);
+            if (endPage < totalPages - 1) html += renderDots();
+            html += renderItem(totalPages, totalPages === currentPage, false, totalPages);
+        }
+        html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
+        html += `</ul></nav>`;
+        $("#pagination").html(html);
+    }
+
+    // --- 1. LOAD DANH SÁCH (Cập nhật) ---
+    function HienThiDonHang(filter, page = 1) {
         currentFilter = filter;
+        var keyword = $("#global-search").val();
+
         var formData = new FormData();
         formData.append('status', filter);
+        formData.append('keyword', keyword); // Gửi thêm từ khóa
+        formData.append('page', page);       // Gửi thêm số trang
+
+        // Hiển thị loading khi chuyển trang
+        $('#orders-grid').html('<div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>');
 
         $.ajax({
             type: "POST", url: url_domain + '/NV_TrangChu/LayDonHang',
             data: formData, processData: false, contentType: false,
             success: function (response) {
-                var orders = JSON.parse(response);
-                const wrap = document.getElementById('orders-grid');
-                wrap.innerHTML = '';
+                var data = JSON.parse(response);
+                var orders = data.list; // Lấy danh sách từ thuộc tính list
 
-                if (orders.length === 0) {
-                    wrap.innerHTML = '<div class="col-12 text-center py-5 text-muted">Không có đơn hàng nào.</div>';
+                var wrap = $('#orders-grid');
+                wrap.empty();
+
+                if (!orders || orders.length === 0) {
+                    wrap.html('<div class="col-12 text-center py-5 text-muted">Không tìm thấy đơn hàng nào.</div>');
+                    $("#pagination").html(''); // Xóa phân trang nếu không có dữ liệu
                     return;
                 }
 
+                // Render danh sách đơn hàng
                 orders.forEach(o => {
                     let statusClass = "status-pending";
                     if (o.status === 'shipping') statusClass = "status-shipping";
                     if (o.status === 'completed') statusClass = "status-completed";
                     if (o.status === 'cancelled') statusClass = "status-cancelled";
 
-                    const card = document.createElement('div');
-                    card.className = 'order-card';
+                    var actionHtml = HienThiHanhDong(o);
 
-                    // SỬA Ở ĐÂY: Thay #ID bằng "Mã đơn hàng: ID"
-                    card.innerHTML = `
+                    var html = `
+                    <div class="order-card">
                         <div class="order-header">
-                            <span class="order-id">Mã đơn hàng: ${o.id}</span>
+                            <span class="order-id">Mã đơn: #${o.id}</span>
                             <span class="order-status ${statusClass}">${o.statusText}</span>
                         </div>
                         <div class="order-body">
-                            <div class="order-thumb">
-                                <img src="${o.image}" onerror="this.src='/img/no-image.jpg'" />
-                            </div>
+                            <div class="order-thumb"><img src="${o.image}" onerror="this.src='/img/no-image.jpg'" /></div>
                             <div class="order-info">
                                 <h4>${o.name}</h4>
+                                <div class="order-detail"><i class="fas fa-user me-1"></i> ${o.customer}</div>
                                 <div class="order-detail"><i class="far fa-clock me-1"></i> ${o.time}</div>
                                 <div class="order-detail">Số lượng: <strong>${o.quantity}</strong> món</div>
                             </div>
                         </div>
                         <div class="order-footer">
                             <div class="order-total">${DinhDangTienTe(o.price)}</div>
-                            <div class="order-actions">
-                                ${HienThiHanhDong(o)}
-                            </div>
+                            <div class="order-actions">${actionHtml}</div>
                         </div>
-                    `;
-                    wrap.appendChild(card);
+                    </div>`;
+                    wrap.append(html);
                 });
+
+                // GỌI HÀM TẠO PHÂN TRANG
+                TaoPhanTrang(data.totalPages, data.currentPage);
             }
         });
     }
 
+    function TimKiemDonHang() {
+        // Reset về trang 1 khi bấm tìm kiếm
+        HienThiDonHang(currentFilter, 1);
+    }
+
     function HienThiHanhDong(order) {
-        switch (order.status) {
-            case 'pending':
-                // Nút Chấp nhận và Từ chối
-                return `<button class="btn btn-warning text-white btn-action" onclick="XuLyTrangThai(${order.id}, 'accept')">Chấp nhận</button>
-                        <button class="btn btn-outline-secondary btn-action" onclick="ModalTuChoi(${order.id})">Từ chối</button>`;
-            case 'shipping':
-                // Nút Hoàn thành
-                return `<button class="btn btn-success btn-action" onclick="ModalHoanThanh(${order.id})">Hoàn thành</button>
-                        <a href="/NV_TrangChu/ThongTinDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
-            default:
-                return `<a href="/NV_TrangChu/ThongTinDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
+        // Giữ nguyên code cũ
+        if (order.status === 'pending') {
+            return `<button class="btn btn-warning text-white btn-action" onclick="XuLyTrangThai(${order.id}, 'accept')">Chấp nhận</button>
+                    <button class="btn btn-outline-secondary btn-action" onclick="ModalTuChoi(${order.id})">Từ chối</button>`;
+        } else if (order.status === 'shipping') {
+            return `<button class="btn btn-success btn-action" onclick="ModalHoanThanh(${order.id})">Hoàn thành</button>
+                    <a href="/NV_TrangChu/ThongTinDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
+        } else {
+            return `<a href="/NV_TrangChu/ThongTinDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
         }
     }
 
-    // --- 2. XỬ LÝ API CẬP NHẬT ---
+    // Giữ nguyên các hàm XuLyTrangThai, Modal...
     function XuLyTrangThai(id, action, note = '') {
         var formData = new FormData();
         formData.append('id', id);
@@ -291,13 +386,12 @@
         formData.append('note', note);
 
         $.ajax({
-            type: "POST",
-            url: url_domain + '/NV_TrangChu/UpdateStatus',
+            type: "POST", url: url_domain + '/NV_TrangChu/CapNhatTrangThai',
             data: formData, processData: false, contentType: false,
             success: function (res) {
                 if (res === "OK") {
-                    // Load lại danh sách sau khi update thành công
-                    HienThiDonHang(currentFilter);
+                    // Load lại trang hiện tại (lấy từ active pagination hoặc đơn giản là trang 1)
+                    HienThiDonHang(currentFilter, 1);
                     DongModal('reject-modal');
                     DongModal('complete-modal');
                 } else {
@@ -308,44 +402,36 @@
         });
     }
 
-    // --- 3. XỬ LÝ MODAL TỪ CHỐI ---
-    function ModalTuChoi(id) {
-        pendingId = id; // Lưu ID lại
-        $("#reject-note").val("");
-        $("#reject-modal").show().addClass("show");
-    }
-
-    // Khi bấm nút "Từ chối đơn" trong Modal
-    $("#btn-confirm-reject").click(function () {
-        var reason = $("#reject-note").val();
-        if (!reason) { alert("Vui lòng nhập lý do"); return; }
-        XuLyTrangThai(pendingId, 'reject', reason);
-    });
-
-    // --- 4. XỬ LÝ MODAL HOÀN THÀNH ---
-    function ModalHoanThanh(id) {
-        pendingId = id; // Lưu ID lại
-        $("#complete-modal").show().addClass("show");
-    }
-
-    // Khi bấm nút "Xác nhận" trong Modal
-    $("#btn-confirm-complete").click(function () {
-        XuLyTrangThai(pendingId, 'complete');
-    });
-
-    // --- 5. HÀM ĐÓNG MODAL CHUNG ---
-    function DongModal(modalId) {
-        $("#" + modalId).removeClass("show").hide();
-    }
-
-    // Xử lý Filter
-    $(".filter-btn").click(function () {
-        $(".filter-btn").removeClass("active");
-        $(this).addClass("active");
-        HienThiDonHang($(this).data("status"));
-    });
+    function ModalTuChoi(id) { pendingId = id; $("#reject-note").val(""); $("#reject-modal").addClass("show"); }
+    function ModalHoanThanh(id) { pendingId = id; $("#complete-modal").addClass("show"); }
+    function DongModal(id) { $("#" + id).removeClass("show"); }
 
     $(document).ready(function () {
-        HienThiDonHang('all');
+        HienThiDonHang('all', 1);
+
+        $(".filter-btn").click(function () {
+            $(".filter-btn").removeClass("active");
+            $(this).addClass("active");
+            // Reset về trang 1 khi đổi tab filter
+            HienThiDonHang($(this).data("status"), 1);
+        });
+
+        // Sự kiện nhấn Enter ở ô tìm kiếm
+        $('#global-search').keypress(function (event) {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if (keycode == '13') {
+                TimKiemDonHang();
+            }
+        });
+
+        $("#btn-confirm-reject").click(function () {
+            var reason = $("#reject-note").val();
+            if (!reason) { alert("Vui lòng nhập lý do"); return; }
+            XuLyTrangThai(pendingId, 'reject', reason);
+        });
+
+        $("#btn-confirm-complete").click(function () {
+            XuLyTrangThai(pendingId, 'complete');
+        });
     });
 </script>

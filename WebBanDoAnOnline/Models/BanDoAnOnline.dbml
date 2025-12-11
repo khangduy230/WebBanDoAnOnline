@@ -6,7 +6,7 @@
       <Column Name="MaSP" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="TenSP" Type="System.String" DbType="NVarChar(150) NOT NULL" CanBeNull="false" />
       <Column Name="SoLuong" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="currentia" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
+      <Column Name="DonGia" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
       <Column Name="ThanhTien" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
       <Column Name="GhiChu" Type="System.String" DbType="NVarChar(500)" CanBeNull="true" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
@@ -48,6 +48,7 @@
       <Column Name="MaDH" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="SoSao" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="BinhLuan" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="PhanHoi" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Update_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="LastEdit_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
@@ -192,7 +193,6 @@
       <Association Name="SanPham_ChiTietDonHang" Member="ChiTietDonHangs" ThisKey="MaSP" OtherKey="MaSP" Type="ChiTietDonHang" />
       <Association Name="SanPham_DanhGia" Member="DanhGias" ThisKey="MaSP" OtherKey="MaSP" Type="DanhGia" />
       <Association Name="SanPham_GioHang" Member="GioHangs" ThisKey="MaSP" OtherKey="MaSP" Type="GioHang" />
-      <Association Name="SanPham_SanPhamYeuThich" Member="SanPhamYeuThiches" ThisKey="MaSP" OtherKey="MaSP" Type="SanPhamYeuThich" />
       <Association Name="DanhMuc_SanPham" Member="DanhMuc" ThisKey="MaDM" OtherKey="MaDM" Type="DanhMuc" IsForeignKey="true" />
     </Type>
   </Table>
@@ -220,7 +220,6 @@
       <Association Name="TaiKhoan_LichSuTrangThai" Member="LichSuTrangThais" ThisKey="MaTK" OtherKey="MaNhanVien" Type="LichSuTrangThai" />
       <Association Name="TaiKhoan_ThongBao" Member="ThongBaos" ThisKey="MaTK" OtherKey="MaTK" Type="ThongBao" />
       <Association Name="TaiKhoan_ThuChi" Member="ThuChis" ThisKey="MaTK" OtherKey="MaNguoiThucHien" Type="ThuChi" />
-      <Association Name="TaiKhoan_SanPhamYeuThich" Member="SanPhamYeuThiches" ThisKey="MaTK" OtherKey="MaTK" Type="SanPhamYeuThich" />
     </Type>
   </Table>
   <Table Name="dbo.ThongBao" Member="ThongBaos">
@@ -251,20 +250,6 @@
       <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
       <Association Name="DonHang_ThuChi" Member="DonHang" ThisKey="MaDH" OtherKey="MaDH" Type="DonHang" IsForeignKey="true" />
       <Association Name="TaiKhoan_ThuChi" Member="TaiKhoan" ThisKey="MaNguoiThucHien" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.SanPhamYeuThich" Member="SanPhamYeuThiches">
-    <Type Name="SanPhamYeuThich">
-      <Column Name="MaYeuThich" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="MaTK" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="MaSP" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Create_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
-      <Column Name="Update_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
-      <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
-      <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
-      <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
-      <Association Name="SanPham_SanPhamYeuThich" Member="SanPham" ThisKey="MaSP" OtherKey="MaSP" Type="SanPham" IsForeignKey="true" />
-      <Association Name="TaiKhoan_SanPhamYeuThich" Member="TaiKhoan" ThisKey="MaTK" OtherKey="MaTK" Type="TaiKhoan" IsForeignKey="true" />
     </Type>
   </Table>
 </Database>

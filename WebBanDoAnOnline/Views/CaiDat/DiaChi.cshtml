@@ -4,6 +4,7 @@
 }
 
 <style>
+    /* CSS Giữ nguyên như cũ */
     .address-card {
         background: #fff;
         border: 2px solid #e9ecef;
@@ -110,7 +111,6 @@
             background-color: #e67e00;
         }
 
-    /* Modal styles */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -162,8 +162,7 @@
             color: #333;
         }
 
-        .form-group input,
-        .form-group textarea {
+        .form-group input, .form-group textarea {
             width: 100%;
             padding: 10px 15px;
             border: 1px solid #ddd;
@@ -172,8 +171,7 @@
             box-sizing: border-box;
         }
 
-            .form-group input:focus,
-            .form-group textarea:focus {
+            .form-group input:focus, .form-group textarea:focus {
                 outline: none;
                 border-color: #F58634;
             }
@@ -280,7 +278,8 @@
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn-cancel" onclick="currentModal()">Hủy</button>
+                <!-- Sửa: onclick="DongModal()" -->
+                <button type="button" class="btn-cancel" onclick="DongModal()">Hủy</button>
                 <button type="submit" class="btn-save">Lưu</button>
             </div>
         </form>
@@ -293,38 +292,36 @@
         var isEditMode = false;
 
         $(document).ready(function () {
-            loadAddressList();
+            // 1. SỬA: Gọi đúng tên hàm TaiDSDiaChi()
+            TaiDSDiaChi();
 
             $('#addressForm').submit(function (e) {
                 e.preventDefault();
-                saveAddress();
+                LuuDiaChi(); // 2. SỬA: Gọi hàm LuuDiaChi
             });
 
-            // CHỈ ĐÓNG MODAL KHI CLICK VÀO OVERLAY (KHÔNG PHẢI MODAL-CONTENT)
             $('#modalOverlay').on('click', function (e) {
                 if (e.target.id === 'modalOverlay') {
-                    closeModal();
+                    DongModal(); // 3. SỬA: Gọi DongModal
                 }
             });
 
-            //  NGĂN SỰ KIỆN CLICK TỪ MODAL-CONTENT LAN RA OVERLAY
             $('#modalContent').on('click', function (e) {
                 e.stopPropagation();
             });
         });
 
-        
-        function loadDSDiaChi() {
+        // ĐỔI TÊN: loadDSDiaChi -> TaiDSDiaChi
+        function TaiDSDiaChi() {
             $.ajax({
                 type: "POST",
                 url: url_domain + '/CaiDat/LayDiaChi',
-                contentType: false,
-                processData: false,
-                cache: false,
+                contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     if (res.success) {
-                        renderAddressList(res.data);
+                        // 4. SỬA: Gọi HienThiDSDiaChi
+                        HienThiDSDiaChi(res.data);
                     } else {
                         $('#address-list').html('<div class="alert alert-danger">' + res.message + '</div>');
                     }
@@ -335,7 +332,7 @@
             });
         }
 
-        
+        // ĐỔI TÊN: renderAddressList -> HienThiDSDiaChi
         function HienThiDSDiaChi(data) {
             if (data.length === 0) {
                 $('#address-list').html('<div class="text-center py-4 text-muted">Chưa có địa chỉ nào</div>');
@@ -347,53 +344,55 @@
                 var addr = data[i];
                 var defaultClass = addr.MacDinh ? 'default' : '';
                 var defaultBadge = addr.MacDinh ? '<span class="default-badge">Mặc định</span>' : '';
-                var setDefaultBtn = !addr.MacDinh ? '<button class="btn-address btn-set-default" onclick="setDefault(' + addr.MaDC + ')"><i class="fas fa-star"></i> Đặt mặc định</button>' : '';
 
+                // 5. SỬA: Gọi đúng tên hàm DatDiaChiMacDinh
+                var setDefaultBtn = !addr.MacDinh ? `<button class="btn-address btn-set-default" onclick="DatDiaChiMacDinh(${addr.MaDC})"><i class="fas fa-star"></i> Đặt mặc định</button>` : '';
+
+                // JSON.stringify object để truyền vào hàm sửa
+                // Lưu ý: Replace dấu nháy đơn để tránh lỗi HTML
+                var addrJson = JSON.stringify(addr).replace(/"/g, '&quot;');
+
+                // 6. SỬA: Gọi SuaDiaChi và XoaDiaChi
                 html += `
-                                    <div class="address-card ${defaultClass}">
-                                        ${defaultBadge}
-                                        <div class="address-info">
-                                            <strong>${addr.TenNguoiNhan}</strong>
-                                            <span>SĐT: ${addr.SDT}</span>
-                                        </div>
-                                        <div class="address-info">
-                                            <span>${addr.DiaChi}</span>
-                                        </div>
-                                        <div class="address-actions">
-                                            <button class="btn-address btn-edit" onclick='editAddress(${JSON.stringify(addr)})'>
-                                                <i class="fas fa-edit"></i> Cập nhật
-                                            </button>
-                                            ${setDefaultBtn}
-                                            <button class="btn-address btn-delete" onclick="deleteAddress(${addr.MaDC})">
-                                                <i class="fas fa-trash"></i> Xóa
-                                            </button>
-                                        </div>
-                                    </div>
-                                `;
+                        <div class="address-card ${defaultClass}">
+                            ${defaultBadge}
+                            <div class="address-info">
+                                <strong>${addr.TenNguoiNhan}</strong>
+                                <span>SĐT: ${addr.SDT}</span>
+                            </div>
+                            <div class="address-info">
+                                <span>${addr.DiaChi}</span>
+                            </div>
+                            <div class="address-actions">
+                                <button class="btn-address btn-edit" onclick="ChuanBiSua(${addrJson})">
+                                    <i class="fas fa-edit"></i> Cập nhật
+                                </button>
+                                ${setDefaultBtn}
+                                <button class="btn-address btn-delete" onclick="XoaDiaChi(${addr.MaDC})">
+                                    <i class="fas fa-trash"></i> Xóa
+                                </button>
+                            </div>
+                        </div>`;
             }
             $('#address-list').html(html);
         }
-
 
         function MoModal() {
             isEditMode = false;
             $('#modalTitle').text('Thêm địa chỉ mới');
             $('#addressForm')[0].reset();
             $('#maDC').val('');
-
             $('#modalOverlay').addClass('show');
-
-            setTimeout(function () {
-                $('#tenNguoiNhan').focus();
-            }, 300);
+            setTimeout(function () { $('#tenNguoiNhan').focus(); }, 300);
         }
 
-        function currentModal() {
+        // ĐỔI TÊN: currentModal -> DongModal
+        function DongModal() {
             $('#modalOverlay').removeClass('show');
         }
 
-
-        function SuaDiaChi(addr) {
+        // Hàm này được gọi từ nút "Cập nhật"
+        function ChuanBiSua(addr) {
             isEditMode = true;
             $('#modalTitle').text('Cập nhật địa chỉ');
             $('#maDC').val(addr.MaDC);
@@ -401,11 +400,11 @@
             $('#sdt').val(addr.SDT);
             $('#diaChi').val(addr.DiaChi);
             $('#macDinh').prop('checked', addr.MacDinh);
-
             $('#modalOverlay').addClass('show');
         }
 
-        function saveAddress() {
+        // ĐỔI TÊN: saveAddress -> LuuDiaChi
+        function LuuDiaChi() {
             var formData = new FormData($('#addressForm')[0]);
             formData.append('MacDinh', $('#macDinh').is(':checked'));
 
@@ -414,55 +413,49 @@
             $.ajax({
                 type: "POST",
                 url: url_domain + url,
-                data: formData,
-                contentType: false,
-                processData: false,
-                cache: false,
+                data: formData, contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     if (res.success) {
                         alert(res.message);
-                        closeModal();
-                        loadAddressList();
+                        DongModal(); // Gọi DongModal
+                        TaiDSDiaChi(); // Gọi TaiDSDiaChi
                     } else {
                         alert(res.message);
                     }
                 },
-                error: function () {
-                    alert('Lỗi kết nối server');
-                }
+                error: function () { alert('Lỗi kết nối server'); }
             });
         }
 
-        // Đặt địa chỉ mặc định
-        function DatDiaChiMacDInh(maDC) {
+        // ĐỔI TÊN: setDefault -> DatDiaChiMacDinh
+        function DatDiaChiMacDinh(maDC) {
             if (!confirm('Đặt làm địa chỉ mặc định?')) return;
 
             var formData = new FormData();
             formData.append('MaDC', maDC);
             formData.append('MacDinh', 'true');
 
+            // Controller logic xử lý việc set các cái khác thành false rồi
+            // và Controller kiểm tra null cho các trường khác nên chỉ cần gửi MaDC và MacDinh là đủ
+
             $.ajax({
                 type: "POST",
                 url: url_domain + '/CaiDat/SuaDiaChi',
-                data: formData,
-                contentType: false,
-                processData: false,
-                cache: false,
+                data: formData, contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     if (res.success) {
-                        loadAddressList();
+                        TaiDSDiaChi();
                     } else {
                         alert(res.message);
                     }
                 },
-                error: function () {
-                    alert('Lỗi kết nối server');
-                }
+                error: function () { alert('Lỗi kết nối server'); }
             });
         }
 
+        // ĐỔI TÊN: deleteAddress -> XoaDiaChi
         function XoaDiaChi(maDC) {
             if (!confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
 
@@ -472,22 +465,17 @@
             $.ajax({
                 type: "POST",
                 url: url_domain + '/CaiDat/XoaDiaChi',
-                data: formData,
-                contentType: false,
-                processData: false,
-                cache: false,
+                data: formData, contentType: false, processData: false, cache: false,
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     if (res.success) {
                         alert(res.message);
-                        loadAddressList();
+                        TaiDSDiaChi();
                     } else {
                         alert(res.message);
                     }
                 },
-                error: function () {
-                    alert('Lỗi kết nối server');
-                }
+                error: function () { alert('Lỗi kết nối server'); }
             });
         }
     </script>

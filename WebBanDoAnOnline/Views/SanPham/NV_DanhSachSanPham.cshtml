@@ -1,204 +1,157 @@
 ﻿@{
-    ViewBag.Title = "Tra cứu món ăn";
-   
+    ViewBag.Title = "Quản lý món ăn";
+    Layout = "~/Views/Shared/_NV_Layout.cshtml";
 }
 
 <style>
-    /* Style riêng cho trang sản phẩm nhân viên */
-    .sp-card {
-        transition: transform 0.2s;
-        border: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-        .sp-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-    /* Trạng thái tồn kho */
-    .stock-badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        cursor: pointer;
-        user-select: none;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        transition: 0.2s;
-    }
-
-    .stock-ok {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .stock-out {
-        background: #f8d7da;
-        color: #842029;
-    }
-
-    /* Menu dropdown nhỏ để đổi trạng thái */
-    .stock-menu {
-        display: none;
-        position: absolute;
-        top: 35px;
-        right: 10px;
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        z-index: 10;
-        overflow: hidden;
-    }
-
-        .stock-menu.show {
-            display: block;
-        }
-
-    .stock-option {
-        display: block;
-        padding: 8px 15px;
-        font-size: 0.85rem;
-        color: #333;
-        text-decoration: none;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-
-        .stock-option:hover {
-            background: #f8f9fa;
-        }
-
-    /* Danh mục */
-    .cat-btn {
-        border: 1px solid #eee;
-        background: #fff;
-        color: #555;
-        padding: 6px 15px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        transition: 0.2s;
-        white-space: nowrap;
-    }
-
-        .cat-btn:hover, .cat-btn.active {
-            background: #ffc107;
-            color: #fff;
-            border-color: #ffc107;
-        }
+    /* CSS giữ nguyên như cũ */
+    .sp-card { transition: transform 0.2s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; }
+    .sp-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .stock-badge { position: absolute; top: 10px; right: 10px; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; cursor: pointer; user-select: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background: rgba(255, 255, 255, 0.95); border: 1px solid #eee; }
+    .status-ok { color: #198754; border-color: #198754; }
+    .status-warn { color: #ffc107; border-color: #ffc107; }
+    .status-err { color: #dc3545; border-color: #dc3545; }
+    .stock-menu { display: none; position: absolute; top: 38px; right: 10px; background: #fff; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); z-index: 10; overflow: hidden; min-width: 120px; }
+    .stock-menu.show { display: block; animation: fadeIn 0.2s; }
+    .stock-option { display: block; padding: 10px 15px; font-size: 0.85rem; color: #333; cursor: pointer; border-bottom: 1px solid #f8f9fa; }
+    .stock-option:hover { background: #f8f9fa; color: #000; }
+    .cat-btn { border: 1px solid #e0e0e0; background: #fff; color: #555; padding: 6px 16px; border-radius: 20px; font-size: 0.9rem; transition: 0.2s; white-space: nowrap; }
+    .cat-btn:hover, .cat-btn.active { background: #ffc107; color: #fff; border-color: #ffc107; font-weight: 600; }
+    .search-box { position: relative; max-width: 300px; width: 100%; }
+    .search-box input { border-radius: 20px; padding-right: 40px; border: 1px solid #ced4da; }
+    .search-box button { position: absolute; right: 5px; top: 2px; border: none; background: none; color: #ffc107; padding: 5px 10px; }
+    @@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
 <div class="container-fluid px-0">
-    <!-- 1. TOOLBAR -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 class="mb-0 fw-bold text-secondary">Danh sách món ăn</h4>
-        <!-- Bộ lọc danh mục -->
-        <div id="category-list" class="d-flex gap-2 overflow-auto pb-2" style="scrollbar-width:thin">
-            <button class="cat-btn active" onclick="BoLoc(null, this)">Tất cả</button>
-            <!-- JS render danh mục vào đây -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-4 mb-3 mb-md-0">
+            <h4 class="mb-0 fw-bold text-secondary">Quản lý thực đơn</h4>
+        </div>
+
+        <div class="col-md-4 mb-3 mb-md-0">
+            <!-- ID đổi thành global-search để khớp với hàm phân trang -->
+            <div class="search-box mx-auto ms-md-auto me-md-0">
+                <input type="text" id="global-search" class="form-control" placeholder="Tìm tên món ăn...">
+                <button onclick="TimKiemTrigger()"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+
+        <div class="col-12 mt-2">
+            <div id="category-list" class="d-flex gap-2 overflow-auto pb-2" style="scrollbar-width:thin">
+                <button class="cat-btn active" onclick="ChonDanhMuc(null, this)">Tất cả</button>
+            </div>
         </div>
     </div>
 
-    <!-- 2. GRID SẢN PHẨM -->
+    <!-- GRID SẢN PHẨM -->
     <div id="product-grid" class="row g-3">
         <div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>
     </div>
 
-    <!-- 3. PHÂN TRANG -->
+    <!-- PHÂN TRANG -->
     <div id="pagination" class="d-flex justify-content-center mt-5"></div>
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-    var url_domain = '@Url.Content("~")';
-    if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
+    var url_domain = window.location.origin;
 
-    var HienTaiCat = null;
-    var HienTaiTrang = 1;
+    // Biến toàn cục (đặt tên khớp với hàm TaoPhanTrang yêu cầu)
+    var activeCategoryId = null;
 
-    function DinhDangTienTe(n) {
-        return n.toLocaleString('vi-VN') + 'đ';
-    }
+    function DinhDangTienTe(n) { return n.toLocaleString('vi-VN') + 'đ'; }
 
     $(document).ready(function () {
         TaiDanhMuc();
-        TaiSanPham();
 
-        // Lắng nghe tìm kiếm từ Layout (nếu có)
-        var qs = new URLSearchParams(window.location.search);
-        var search = qs.get('TimKiem');
-        if(search) TaiSanPham(search);
+        // Load lần đầu: Danh mục null, Từ khóa rỗng, Trang 1
+        TaiSanPham(null, "", 1);
+
+        // Sự kiện Enter ô tìm kiếm
+        $('#global-search').keypress(function (event) {
+            if (event.keyCode == 13 || event.which == 13) {
+                TimKiemTrigger();
+            }
+        });
     });
 
-    // --- 1. LOAD DANH MỤC ---
+    // --- 1. Tải Danh Mục ---
     function TaiDanhMuc() {
         $.ajax({
-            type: "POST",
-            url: url_domain + '/DanhMuc/Lay_DSDM',
-            processData: false, contentType: false,
+            type: "POST", url: url_domain + '/DanhMuc/Lay_DSDM',
             success: function (res) {
                 var cats = JSON.parse(res);
                 cats.forEach(c => {
                     $("#category-list").append(
-                        `<button class="cat-btn" onclick="BoLoc(${c.MaDM}, this)">${c.TenDM}</button>`
+                        `<button class="cat-btn" onclick="ChonDanhMuc(${c.MaDM}, this)">${c.TenDM}</button>`
                     );
                 });
             }
         });
     }
 
-    function BoLoc(id, btn) {
+    // --- 2. Xử lý sự kiện (Wrapper Functions) ---
+    function ChonDanhMuc(id, btn) {
         $(".cat-btn").removeClass("active");
         $(btn).addClass("active");
-        HienTaiCat = id;
-        TaiSanPham();
+
+        activeCategoryId = id; // Cập nhật biến toàn cục
+        var kw = $("#global-search").val();
+        TaiSanPham(activeCategoryId, kw, 1);
     }
 
-    // --- 2. LOAD SẢN PHẨM ---
-    function TaiSanPham(TimKiem = "") {
+    function TimKiemTrigger() {
+        var kw = $("#global-search").val();
+        TaiSanPham(activeCategoryId, kw, 1);
+    }
+
+    // --- 3. CORE: Tải Sản Phẩm (Đã sửa tham số để khớp TaoPhanTrang) ---
+    function TaiSanPham(maDM, tuKhoa, trang) {
+        // Cập nhật lại activeCategoryId phòng trường hợp gọi từ phân trang
+        activeCategoryId = maDM;
+        // Cập nhật lại ô input nếu hàm được gọi từ phân trang (để đồng bộ UI)
+        if ($("#global-search").val() !== tuKhoa) $("#global-search").val(tuKhoa);
+
         var formData = new FormData();
-        if (HienTaiCat) formData.append('maDM', HienTaiCat);
-        formData.append('TimKiem', TimKiem);
-        formData.append('Trang', HienTaiTrang);
+        if (maDM !== null && maDM !== 'null') formData.append('maDM', maDM);
+        formData.append('searchTerm', tuKhoa);
+        formData.append('page', trang);
+
+        $("#product-grid").html('<div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>');
 
         $.ajax({
-            type: "POST",
-            url: url_domain + '/SanPham/Lay_Menu', // Dùng chung API lấy menu
+            type: "POST", url: url_domain + '/SanPham/Lay_Menu',
             data: formData, processData: false, contentType: false,
             success: function (res) {
                 var data = JSON.parse(res);
+                var listSP = data.Products;
                 var grid = $("#product-grid");
                 grid.empty();
 
-                if (data.Products.length === 0) {
+                if (!listSP || listSP.length === 0) {
                     grid.html('<div class="col-12 text-center text-muted py-5">Không tìm thấy món ăn nào.</div>');
+                    $("#pagination").html('');
                     return;
                 }
 
-                data.Products.forEach(p => {
+                listSP.forEach(p => {
                     var img = p.Anh ? p.Anh.replace('~', '') : '/img/no-image.jpg';
-
-                    // Logic hiển thị trạng thái
-                    var statusClass = (p.TrangThai === "Còn hàng") ? "stock-ok" : "stock-out";
-                    var statusText = p.TrangThai;
+                    var statusColor = "status-ok";
+                    if (p.TrangThai === "Hết hàng") statusColor = "status-err";
+                    if (p.TrangThai === "Tạm ngưng") statusColor = "status-warn";
 
                     var html = `
                     <div class="col-6 col-md-4 col-lg-3">
                         <div class="card h-100 sp-card position-relative">
-                            <!-- Nút đổi trạng thái nhanh -->
-                            <div class="stock-badge ${statusClass}" onclick="TrangThaiMenu(${p.MaSP})">
-                                ${statusText} <i class="fas fa-chevron-down ms-1" style="font-size:0.7em"></i>
+                            <div class="stock-badge ${statusColor}" onclick="HienMenuTrangThai(${p.MaSP})">
+                                ${p.TrangThai} <i class="fas fa-chevron-down ms-1" style="font-size:0.7em"></i>
                             </div>
                             <div class="stock-menu" id="menu-${p.MaSP}">
                                 <div class="stock-option" onclick="CapNhatTrangThai(${p.MaSP}, 'Còn hàng')">🟢 Còn hàng</div>
                                 <div class="stock-option" onclick="CapNhatTrangThai(${p.MaSP}, 'Hết hàng')">🔴 Hết hàng</div>
                                 <div class="stock-option" onclick="CapNhatTrangThai(${p.MaSP}, 'Tạm ngưng')">⚪ Tạm ngưng</div>
                             </div>
-
                             <img src="${img}" class="card-img-top" style="height:160px; object-fit:cover" onerror="this.src='/img/no-image.jpg'">
                             <div class="card-body p-3 text-center">
                                 <h6 class="fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
@@ -210,57 +163,77 @@
                     grid.append(html);
                 });
 
-                PhanTrang(data.TongTrang, data.HienTaiTrang);
+                // GỌI HÀM PHÂN TRANG BẠN CUNG CẤP
+                TaoPhanTrang(data.TotalPages, data.CurrentPage);
             }
         });
     }
 
-    // --- 3. CẬP NHẬT TRẠNG THÁI (API MỚI CẦN THÊM) ---
-    function TrangThaiMenu(id) {
-        $(".stock-menu").not(`#menu-${id}`).removeClass("show"); // Đóng cái khác
-        $(`#menu-${id}`).toggleClass("show");
+    // --- 4. HÀM PHÂN TRANG (Code gốc của bạn) ---
+    function TaoPhanTrang(totalPages, currentPage) {
+        totalPages = parseInt(totalPages);
+        currentPage = parseInt(currentPage);
+        if (isNaN(totalPages) || totalPages <= 1) { $("#pagination").html(''); return; }
+
+        var kword = $("#global-search").val() || "";
+        var kwordSafe = kword.replace(/'/g, "\\'");
+
+        // Biến activeCategoryId được lấy từ Scope toàn cục (đã khai báo ở trên)
+        var catParam = (activeCategoryId === null) ? 'null' : activeCategoryId;
+
+        function renderItem(page, isActive, isDisabled, text) {
+            var activeClass = isActive ? "active" : "";
+            var disabledClass = isDisabled ? "disabled" : "";
+            // Gọi TaiSanPham với 3 tham số: ID Danh mục, Từ khóa, Trang
+            var clickEvent = (isDisabled || isActive) ? "" : `onclick="TaiSanPham(${catParam}, '${kwordSafe}', ${page})"`;
+            var display = text || page;
+            return `<li class="page-item ${activeClass} ${disabledClass}"><a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a></li>`;
+        }
+        function renderDots() { return `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`; }
+
+        var html = `<nav><ul class="pagination pagination-sm justify-content-center">`;
+        html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) html += renderItem(i, i === currentPage, false, i);
+        } else {
+            html += renderItem(1, 1 === currentPage, false, 1);
+            var startPage = Math.max(2, currentPage - 1);
+            var endPage = Math.min(totalPages - 1, currentPage + 1);
+            if (startPage > 2) html += renderDots();
+            for (let i = startPage; i <= endPage; i++) html += renderItem(i, i === currentPage, false, i);
+            if (endPage < totalPages - 1) html += renderDots();
+            html += renderItem(totalPages, totalPages === currentPage, false, totalPages);
+        }
+        html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
+        html += `</ul></nav>`;
+        $("#pagination").html(html);
     }
 
-    // Đóng menu khi click ra ngoài
-    $(document).click(function(e) {
+    // --- 5. Xử lý Menu trạng thái (Giữ nguyên) ---
+    function HienMenuTrangThai(id) {
+        $(".stock-menu").not(`#menu-${id}`).removeClass("show");
+        $(`#menu-${id}`).toggleClass("show");
+    }
+    $(document).click(function (e) {
         if (!$(e.target).closest('.stock-badge, .stock-menu').length) {
             $(".stock-menu").removeClass("show");
         }
     });
-
     function CapNhatTrangThai(id, status) {
-        var fd = new FormData();
-        fd.append('id', id);
-        fd.append('status', status);
-
+        var fd = new FormData(); fd.append('id', id); fd.append('status', status);
         $.ajax({
-            type: "POST",
-            url: url_domain + '/SanPham/CapNhatTrangThai', // Cần thêm API này vào Controller
+            type: "POST", url: url_domain + '/SanPham/CapNhatTrangThai',
             data: fd, processData: false, contentType: false,
-            success: function(res) {
-                if(res === "OK") {
-                    TaiSanPham(); // Load lại để cập nhật màu
-                } else {
-                    alert(res);
-                }
+            success: function (res) {
+                if (res === "OK") {
+                    // Load lại trang hiện tại
+                    var kw = $("#global-search").val();
+                    // Lấy trang hiện tại từ active class trong pagination hoặc mặc định là 1
+                    var currentPage = $("#pagination .page-item.active a").text() || 1;
+                    TaiSanPham(activeCategoryId, kw, parseInt(currentPage));
+                } else alert(res);
             }
         });
-    }
-
-    // --- 4. PHÂN TRANG ---
-    function PhanTrang(Tong, HienTai) {
-        if (Tong <= 1) { $("#pagination").html(''); return; }
-        var html = '<nav><ul class="pagination">';
-        for(var i=1; i<=Tong; i++) {
-            var active = (i===HienTai) ? 'active' : '';
-            html += `<li class="Trang-item ${active}"><button class="Trang-link" onclick="DenTrang(${i})">${i}</button></li>`;
-        }
-        html += '</ul></nav>';
-        $("#pagination").html(html);
-    }
-
-    function DenTrang(p) {
-        TrangHienTai = p;
-        TaiSanPham();
     }
 </script>

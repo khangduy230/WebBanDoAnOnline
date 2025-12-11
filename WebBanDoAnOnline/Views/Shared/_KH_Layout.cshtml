@@ -219,18 +219,43 @@
             });
 
             // 2. Search
-            $('#global-search-icon').click(handleSearch);
-            $('#global-search').keypress(function (e) { if (e.which === 13) handleSearch(); });
-            function handleSearch() {
+            $('#global-search-icon').click(XuLyTimKiem);
+            $('#global-search').keypress(function (e) { if (e.which === 13) XuLyTimKiem(); });
+
+            function XuLyTimKiem() {
                 var k = $('#global-search').val().trim();
-                if (k) window.location.href = '/SanPham/KH_DanhSachSanPham?TimKiem=' + encodeURIComponent(k);
+
+                // Kiểm tra xem người dùng có đang đứng ở trang Thực đơn hay không
+                var isMenuPage = window.location.pathname.toLowerCase().includes('/SanPham/KH_DanhSachSanPham');
+
+                if (isMenuPage) {
+                    // TRƯỜNG HỢP: ĐANG Ở TRANG THỰC ĐƠN -> Tìm kiếm tại chỗ & HIỆN DANH MỤC
+                    // Kiểm tra xem hàm TaiSanPham có tồn tại không (từ View)
+                    if (typeof TaiSanPham === 'function') {
+                        // Cập nhật URL trên thanh địa chỉ mà không reload (để trông chuyên nghiệp hơn)
+                        var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?searchTerm=' + encodeURIComponent(k);
+                        window.history.pushState({ path: newUrl }, '', newUrl);
+
+                        // Logic yêu cầu: Ở trang thực đơn thì tìm kiếm CÓ hiển thị danh mục
+                        $("#menu-categories-container").fadeIn();
+
+                        // Gọi hàm tìm kiếm của View
+                        TaiSanPham(null, k, 1);
+                    }
+                } else {
+                    // TRƯỜNG HỢP: Ở TRANG KHÁC (Trang chủ, Login...) -> Chuyển trang
+                    // Logic yêu cầu: Trang ngoài chuyển vào thì KHÔNG hiển thị danh mục
+                    if (k) {
+                        window.location.href = '/SanPham/KH_DanhSachSanPham?searchTerm=' + encodeURIComponent(k);
+                    }
+                }
             }
             $('.dropdown-menu').click(function (e) { e.stopPropagation(); });
         });
 
         // 3. Thông báo
         function TaiThongBao() {
-            $.post(url_domain + "/ThongBao/GetThongBao", function (response) {
+            $.post(url_domain + "/ThongBao/LayThongBao", function (response) {
                 var res = (typeof response === 'string') ? JSON.parse(response) : response;
                 var htmlStr = "";
                 if (res.success && res.data.length > 0) {
@@ -292,7 +317,7 @@
         }
     </script>
 
-    @* QUAN TRỌNG: Sửa chữ "Scripts" thành "scripts" để khớp với các View *@
+    
     @RenderSection("scripts", required: false)
 </body>
 </html>

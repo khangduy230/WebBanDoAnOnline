@@ -4,51 +4,144 @@
 }
 
 <style>
-    /* CSS tùy chỉnh cho Category active đẹp hơn */
-    .category-item-special {
-        background-color: #ffc107 !important; /* Màu vàng */
-        color: #000 !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        transition: all 0.3s;
+    /* --- 1. CSS DANH MỤC (VIÊN THUỐC) --- */
+    .cat-btn {
+        border: 1px solid #eee;
+        background: #fff;
+        color: #555;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        white-space: nowrap;
+        cursor: pointer;
     }
 
-    .category-item-circle:hover img {
-        transform: scale(1.1);
-        transition: transform 0.3s;
-        border-color: #ffc107 !important;
-    }
-    /* CSS cho phân trang */
-    .pagination .Trang-item.active .Trang-link {
-        background-color: #ffc107;
-        border-color: #ffc107;
-        color: black;
+        .cat-btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .cat-btn.active {
+            background: #ffc107; /* Màu vàng */
+            color: #000;
+            border-color: #ffc107;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+        }
+
+    /* --- 2. CSS SẢN PHẨM (GIỐNG ẢNH MẪU) --- */
+    .product-card-custom {
+        background: #fff;
+        border: none;
+        border-radius: 20px; /* Bo góc to cho toàn bộ thẻ */
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Bóng mờ nhẹ */
+        padding: 12px; /* Khoảng cách từ viền vào nội dung */
+        transition: transform 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
-    .pagination .Trang-link {
-        color: #333;
+        .product-card-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+    .img-wrapper {
+        width: 100%;
+        height: 180px;
+        overflow: hidden;
+        border-radius: 12px; /* Bo góc cho ảnh */
+        margin-bottom: 12px;
     }
+
+        .img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .card-title-custom {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #000;
+        margin-bottom: 5px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-align: left; /* Căn trái */
+    }
+
+    .price-custom {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #222;
+        margin-bottom: 8px;
+        text-align: left; /* Căn trái */
+    }
+
+    .meta-info {
+        display: flex;
+        justify-content: space-between;
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+
+    .btn-add-custom {
+        background-color: #ffc107; /* Màu vàng chuẩn */
+        color: #000;
+        font-weight: 700;
+        border: none;
+        border-radius: 8px; /* Bo góc nút */
+        width: 100%;
+        padding: 8px 0;
+        transition: 0.2s;
+        margin-top: auto; /* Đẩy nút xuống đáy */
+    }
+
+        .btn-add-custom:hover {
+            background-color: #e0a800;
+        }
+
+    /* Thanh cuộn danh mục */
+    .category-scroll {
+        scrollbar-width: thin;
+        -ms-overflow-style: none;
+        padding-bottom: 5px;
+    }
+
+        .category-scroll::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .category-scroll::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 4px;
+        }
 </style>
 
-<!-- Khu vực Danh mục -->
-<div class="menu-categories-container mb-4 mt-3">
-    <div class="container">
-        <h3 class="mb-3 fw-bold border-bottom pb-2">Danh mục món ăn</h3>
-        <!-- ID này sẽ được JS điền dữ liệu vào -->
-        <div id="menu-categories" class="menu-categories d-flex overflow-auto gap-3 pb-2" style="scrollbar-width: thin;">
-            <!-- Các danh mục sẽ được nạp vào đây bằng JavaScript -->
-            <div class="spinner-border text-warning" role="status"><span class="visually-hidden">Loading...</span></div>
+<div class="container mb-5 mt-4">
+
+    <!-- 1. TOOLBAR: Danh mục (Căn trái) -->
+    <div class="mb-4">
+        <h4 class="fw-bold mb-3 text-start">Thực đơn</h4> <!-- Căn trái tiêu đề -->
+        <!-- Danh mục căn trái (justify-content-start) -->
+        <div id="category-list" class="category-scroll d-flex justify-content-start gap-2 overflow-auto">
+            <!-- JS sẽ render nút vào đây -->
+            <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
         </div>
     </div>
-</div>
 
-<!-- Khu vực Sản phẩm -->
-<div id="products-container" class="container mb-5">
-    <!-- Lưới sản phẩm -->
-    <div id="product_grid" class="row g-3">
-        <!-- Các thẻ sản phẩm sẽ được nạp vào đây bằng JavaScript -->
+    <!-- 2. LƯỚI SẢN PHẨM -->
+    <div id="product-grid" class="row g-3">
+        <!-- JS render sản phẩm vào đây -->
     </div>
 
-    <!-- Thanh phân trang -->
+    <!-- 3. PHÂN TRANG -->
     <div id="pagination" class="d-flex justify-content-center mt-5"></div>
 </div>
 
@@ -57,48 +150,32 @@
 <script>
     var url_domain = window.location.origin;
     var activeCategoryId = null;
-    var TrangHienTai = 1;
+    var currentPage = 1;
 
     $(document).ready(function () {
-        // 1. Lấy tham số từ khóa trên URL (nếu có)
         const urlParams = new URLSearchParams(window.location.search);
-        const kwParam = urlParams.get('TimKiem');
-
-        // 2. Kết nối input tìm kiếm ở Layout
+        const kwParam = urlParams.get('searchTerm');
         var searchInput = $("#global-search");
 
-        // 3. Bắt sự kiện gõ phím ở ô tìm kiếm (Live Search)
+        if (kwParam) {
+            searchInput.val(kwParam);
+            LayDanhMuc(false);
+            TaiSanPham(null, kwParam, 1);
+        } else {
+            LayDanhMuc(true);
+        }
+
         var searchTimeout;
-        searchInput.on("keyup", function () {
+        searchInput.off('keyup').on("keyup", function () {
             var keyword = $(this).val();
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(function () {
-                // Khi người dùng tự gõ -> Reset danh mục về null để tìm toàn cục
-                activeCategoryId = null;
-                $(".category-item-special").removeClass("category-item-special bg-warning text-white").addClass("category-item-circle");
-                TaiSanPham(null, keyword, 1);
+                TaiSanPham(activeCategoryId, keyword, 1);
             }, 500);
         });
-
-        // --- QUAN TRỌNG: PHÂN LUỒNG XỬ LÝ ---
-        if (kwParam) {
-            // TRƯỜNG HỢP A: Đang tìm kiếm từ trang khác chuyển sang
-            searchInput.val(kwParam); // Điền lại từ khóa vào ô input
-            activeCategoryId = null;  // Không chọn danh mục nào cả
-
-            // Gọi hàm load danh mục nhưng tham số là FALSE (nghĩa là chỉ vẽ ra thôi, đừng load sản phẩm mặc định)
-            LayDanhMuc(false);
-
-            // Load ngay sản phẩm theo từ khóa
-            TaiSanPham(null, kwParam, 1);
-        } else {
-            // TRƯỜNG HỢP B: Vào trang bình thường
-            // Tham số TRUE (nghĩa là load xong danh mục thì load luôn sản phẩm mặc định)
-            LayDanhMuc(true);
-        }
     });
 
-    // --- HÀM 1: TẢI DANH MỤC (Đã sửa thêm tham số autoTaiSanPham) ---
+    // --- HÀM 1: TẢI DANH MỤC ---
     function LayDanhMuc(autoTaiSanPham) {
         $.ajax({
             type: "POST",
@@ -106,207 +183,168 @@
             processData: false, contentType: false, cache: false,
             success: function (res) {
                 var cats = (typeof res === 'string') ? JSON.parse(res) : res;
-                var container = $("#menu-categories");
+                var container = $("#category-list");
                 container.empty();
 
-                if (autoTaiSanPham && activeCategoryId === null && cats.length > 0) {
-                    var defaultCat = cats.find(c => c.MacDinh == true) || cats[0];
-                    activeCategoryId = defaultCat.MaDM;
+                var allActive = (activeCategoryId === null) ? 'active' : '';
+                container.append(`<button onclick="DoiDanhMuc(null)" class="cat-btn ${allActive}">Tất cả</button>`);
+
+                if (cats && cats.length > 0) {
+                    cats.forEach(c => {
+                        var isActive = (c.MaDM == activeCategoryId) ? 'active' : '';
+                        container.append(`<button onclick="DoiDanhMuc(${c.MaDM})" class="cat-btn ${isActive}">${c.TenDM}</button>`);
+                    });
                 }
 
-                cats.forEach(c => {
-                    var isActive = (c.MaDM == activeCategoryId);
-
-                    // --- SỬA ĐOẠN NÀY ---
-                    // Xử lý đường dẫn ảnh: Bỏ dấu ~ và đảm bảo bắt đầu bằng /
-                    var rawImg = c.Anh || "";
-                    var imgUrl = rawImg.replace("~", "");
-                    if (!imgUrl) imgUrl = "https://via.placeholder.com/100?text=No+Img";
-                    // --------------------
-
-                    var itemClass = isActive
-                        ? 'category-item-special d-flex align-items-center gap-2 p-2 rounded-pill bg-warning text-white text-decoration-none'
-                        : 'category-item-circle text-center text-decoration-none text-dark';
-
-                    var contentHtml = isActive
-                        ? `<img src="${imgUrl}" alt="${c.TenDM}" class="rounded-circle" style="width:40px; height:40px; object-fit:cover;">
-                           <span class="fw-bold">${c.TenDM}</span>`
-                        : `<div class="category-image mb-1">
-                                <img src="${imgUrl}" alt="${c.TenDM}" class="rounded-circle border" style="width:60px; height:60px; object-fit:cover;">
-                           </div>
-                           <span class="category-name small fw-bold">${c.TenDM}</span>`;
-
-                    var html = `<a href="javascript:void(0)" onclick="DoiDanhMuc(${c.MaDM})" class="${itemClass}" style="min-width: fit-content;">${contentHtml}</a>`;
-                    container.append(html);
-                });
-
-                if (autoTaiSanPham) {
-                    TaiSanPham(activeCategoryId, "");
+                if (autoTaiSanPham && activeCategoryId === null) {
+                    TaiSanPham(null, "");
                 }
-            },
-            error: function (err) {
-                console.log("Lỗi tải danh mục:", err);
             }
         });
     }
 
-    // --- HÀM 2: ĐỔI DANH MỤC KHI CLICK ---
+    // --- HÀM 2: ĐỔI DANH MỤC ---
     function DoiDanhMuc(id) {
         activeCategoryId = id;
-        // Xóa từ khóa tìm kiếm khi bấm vào danh mục (để trải nghiệm tốt hơn)
         $("#global-search").val("");
 
-        
-        // Nhưng ta cần TaiSanPham ngay sau đó
-        LayDanhMuc(false);
+        // Cập nhật giao diện nút Active (Thủ công để mượt hơn)
+        $(".cat-btn").removeClass("active");
+        LayDanhMuc(false); // Render lại để cập nhật class active chính xác
 
-        // Gọi API lấy sản phẩm theo danh mục mới
         TaiSanPham(id, "", 1);
     }
 
-    // --- HÀM 3: TẢI SẢN PHẨM (Giữ nguyên) ---
-    function TaiSanPham(maDM, TimKiem, Trang = 1) {
-        TrangHienTai = Trang;
-        var finalTimKiem = TimKiem || "";
-
+    // --- HÀM 3: TẢI SẢN PHẨM (GIAO DIỆN MỚI GIỐNG ẢNH) ---
+    function TaiSanPham(maDM, searchTerm, page) {
+        currentPage = page;
         var formData = new FormData();
-        // Nếu maDM null (đang tìm kiếm toàn cục) thì không gửi maDM
-        if (maDM) formData.append('maDM', maDM);
-        formData.append('TimKiem', finalTimKiem);
-        formData.append('Trang', Trang);
+        if (maDM !== null) formData.append('maDM', maDM);
+        formData.append('searchTerm', searchTerm || "");
+        formData.append('page', page);
 
         $.ajax({
             type: "POST",
             url: url_domain + '/SanPham/Lay_Menu',
             data: formData,
-            processData: false,
-            contentType: false,
-            cache: false,
+            processData: false, contentType: false, cache: false,
             beforeSend: function () {
-                $("#product_grid").html('<div class="text-center w-100 mt-5"><div class="spinner-border text-warning" role="status"></div></div>');
+                $("#product-grid").html('<div class="col-12 text-center py-5"><div class="spinner-border text-warning" role="status"></div></div>');
             },
             success: function (res) {
                 var data = (typeof res === 'string') ? JSON.parse(res) : res;
                 var products = data.Products;
-                var grid = $("#product_grid");
+                var grid = $("#product-grid");
                 grid.empty();
 
                 if (!products || products.length === 0) {
-                    grid.html('<div class="col-12 text-center py-5 text-muted"><h5>Không tìm thấy món ăn nào phù hợp.</h5></div>');
+                    grid.html('<div class="col-12 text-center py-5 text-muted"><h5>Không tìm thấy món ăn nào.</h5></div>');
                     $("#pagination").html("");
                     return;
                 }
 
                 products.forEach(function (p) {
-                    var imgUrl = p.Anh ? url_domain + p.Anh.replace('~/', '/') : "https://via.placeholder.com/300x200";
+                    var imgUrl = p.Anh ? url_domain + p.Anh.replace('~/', '/') : "/Content/img/no-image.png";
+
+                    // Giả lập thời gian giao (nếu API chưa trả về thì mặc định ~15p cho giống ảnh)
+                    var thoiGian = p.ThoiGianGiao || "~15p";
+                    // Giả lập rating
+                    var rating = p.DiemDanhGia || 0;
+
+                    // HTML GIỐNG HỆT ẢNH MẪU
                     var html = `
                     <div class="col-6 col-md-4 col-lg-3">
-                        <div class="card h-100 shadow-sm border-0 product-card">
-                            <a href="${url_domain}/SanPham/KH_ChiTietSanPham/${p.MaSP}" class="text-decoration-none text-dark">
-                                <div style="position: relative; overflow: hidden;">
-                                    <img src="${imgUrl}" class="card-img-top" style="height:180px; object-fit:cover; transition: 0.3s;" alt="${p.TenSP}" />
+                        <div class="product-card-custom">
+                            <a href="/SanPham/KH_ChiTietSanPham?maSP=${p.MaSP}" class="text-decoration-none text-dark">
+                                <!-- Ảnh có bo góc riêng -->
+                                <div class="img-wrapper">
+                                    <img src="${imgUrl}" alt="${p.TenSP}" />
                                 </div>
-                                <div class="card-body text-center p-2">
-                                    <h6 class="card-title fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
-                                    <p class="card-text text-danger fw-bold mb-2">${DinhDangTienTe(p.Gia)}</p>
+
+                                <!-- Tiêu đề căn trái -->
+                                <h6 class="card-title-custom" title="${p.TenSP}">${p.TenSP}</h6>
+
+                                <!-- Giá tiền căn trái -->
+                                <div class="price-custom">${DinhDangTienTe(p.Gia)}</div>
+
+                                <!-- Thông tin phụ: Thời gian & Sao -->
+                                <div class="meta-info">
+                                    <span><i class="fas fa-clock text-warning"></i> ${thoiGian}</span>
+                                    <span><i class="fas fa-star text-warning"></i> ${rating}</span>
                                 </div>
                             </a>
-                            <div class="card-footer bg-transparent border-0 text-center pb-3 pt-0">
-                                <button class="btn btn-outline-warning btn-sm rounded-pill w-100 fw-bold" onclick="ThemVaoGio(${p.MaSP})">
-                                    <i class="fa fa-shopping-cart"></i> Thêm
-                                </button>
-                            </div>
+
+                            <!-- Nút Thêm màu vàng -->
+                            <button class="btn-add-custom" onclick="ThemVaoGio(${p.MaSP})">
+                                <i class="fa fa-shopping-cart"></i> Thêm
+                            </button>
                         </div>
                     </div>`;
                     grid.append(html);
                 });
 
-                // Vẽ phân trang
-                taoPhanTrang(data.TongTrang, data.TrangHienTai);
+                TaoPhanTrang(data.TotalPages, data.CurrentPage);
             },
-            error: function (err) {
-                console.log("Lỗi tải sản phẩm:", err);
+            error: function () {
                 $("#product_grid").html('<div class="text-center text-danger">Lỗi kết nối server.</div>');
             }
         });
     }
 
-    // --- HÀM 4: FORMAT TIỀN (Giữ nguyên) ---
     function DinhDangTienTe(n) {
         return isNaN(n) ? "0 đ" : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
     }
 
-    // --- HÀM 5: PHÂN TRANG (Giữ nguyên logic cũ nhưng cập nhật biến truyền vào) ---
-    function taoPhanTrang(TongTrang, TrangHienTai) {
-        if (TongTrang <= 1) { $("#pagination").html(''); return; }
+    // --- HÀM 5: PHÂN TRANG ---
+    function TaoPhanTrang(totalPages, currentPage) {
+        totalPages = parseInt(totalPages);
+        currentPage = parseInt(currentPage);
+        if (isNaN(totalPages) || totalPages <= 1) { $("#pagination").html(''); return; }
 
         var kword = $("#global-search").val() || "";
-        // Nếu đang tìm kiếm thì catId phải là null để controller hiểu là tìm toàn cục
-        var catIdParam = activeCategoryId ? activeCategoryId : "null";
         var kwordSafe = kword.replace(/'/g, "\\'");
+        var catParam = (activeCategoryId === null) ? 'null' : activeCategoryId;
 
-        var html = `<nav aria-label="Trang navigation"><ul class="pagination shadow-sm">`;
-
-        // Nút Previous
-        var prevClass = (TrangHienTai === 1) ? "disabled" : "";
-        html += `<li class="Trang-item ${prevClass}">
-                    <a class="Trang-link" href="javascript:void(0)" onclick="TaiSanPham(${catIdParam}, '${kwordSafe}', ${TrangHienTai - 1})">&laquo;</a>
-                 </li>`;
-
-        // Số trang
-        for (let i = 1; i <= TongTrang; i++) {
-            var activeClass = (i === TrangHienTai) ? "active" : "";
-            html += `<li class="Trang-item ${activeClass}">
-                        <a class="Trang-link" href="javascript:void(0)" onclick="TaiSanPham(${catIdParam}, '${kwordSafe}', ${i})">${i}</a>
-                     </li>`;
+        function renderItem(page, isActive, isDisabled, text) {
+            var activeClass = isActive ? "active" : "";
+            var disabledClass = isDisabled ? "disabled" : "";
+            var clickEvent = (isDisabled || isActive) ? "" : `onclick="TaiSanPham(${catParam}, '${kwordSafe}', ${page})"`;
+            var display = text || page;
+            return `<li class="page-item ${activeClass} ${disabledClass}"><a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a></li>`;
         }
+        function renderDots() { return `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`; }
 
-        // Nút Next
-        var nextClass = (TrangHienTai === TongTrang) ? "disabled" : "";
-        html += `<li class="Trang-item ${nextClass}">
-                    <a class="Trang-link" href="javascript:void(0)" onclick="TaiSanPham(${catIdParam}, '${kwordSafe}', ${TrangHienTai + 1})">&raquo;</a>
-                 </li>`;
+        var html = `<nav><ul class="pagination pagination-sm justify-content-center">`;
+        html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
 
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) html += renderItem(i, i === currentPage, false, i);
+        } else {
+            html += renderItem(1, 1 === currentPage, false, 1);
+            var startPage = Math.max(2, currentPage - 1);
+            var endPage = Math.min(totalPages - 1, currentPage + 1);
+            if (startPage > 2) html += renderDots();
+            for (let i = startPage; i <= endPage; i++) html += renderItem(i, i === currentPage, false, i);
+            if (endPage < totalPages - 1) html += renderDots();
+            html += renderItem(totalPages, totalPages === currentPage, false, totalPages);
+        }
+        html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
         html += `</ul></nav>`;
         $("#pagination").html(html);
     }
 
-    // --- HÀM 6: THÊM VÀO GIỎ HÀNG (Đã sửa để cập nhật số lượng ngay) ---
     function ThemVaoGio(id) {
-        // Tạo form data để gửi dữ liệu
         var formData = new FormData();
         formData.append('productId', id);
         formData.append('quantity', 1);
-        formData.append('notes', '');
-
         $.ajax({
-            type: "POST",
-            url: url_domain + '/GioHang/ThemVaoGio',
-            data: formData,
-            processData: false,
-            contentType: false,
-            cache: false,
-            success: function (response) {
-                // 1. Kiểm tra nếu chưa đăng nhập
-                if (response.indexOf("đăng nhập") !== -1) {
-                    if (confirm("Bạn cần đăng nhập để mua hàng. Đến trang đăng nhập ngay?")) {
-                        window.location.href = "/TaiKhoan/DangNhap";
-                    }
-                } else {
-                    // 2. Hiện thông báo thành công
-                    alert(response);
-
-                    // 3. QUAN TRỌNG: Gọi hàm cập nhật Badge trên Layout
-                    // Hàm này nằm ở _Layout.cshtml mà chúng ta đã sửa trước đó
-                    if (typeof CapNhatBadgeGioHang === 'function') {
-                        CapNhatBadgeGioHang();
-                    }
-                }
+            type: "POST", url: url_domain + '/GioHang/ThemVaoGio', data: formData, contentType: false, processData: false,
+            success: function (res) {
+                if (res.indexOf("đăng nhập") !== -1) {
+                    if (confirm("Cần đăng nhập để mua hàng. Đến trang đăng nhập?")) window.location.href = "/TaiKhoan/DangNhap";
+                } else { alert(res); }
             },
-            error: function (err) {
-                console.log(err);
-                alert("Có lỗi xảy ra khi thêm vào giỏ hàng.");
-            }
+            error: function () { alert("Lỗi thêm giỏ hàng."); }
         });
     }
 </script>

@@ -21,7 +21,7 @@ namespace WebBanDoAnOnline.Controllers
        
         public ActionResult QL_DanhSachSanPham()
         {
-            if (Session["TaiKhoan"] == null) return RedirectToAction("Login", "TaiKhoan");
+            if (Session["TaiKhoan"] == null) return RedirectToAction("DangNhap", "TaiKhoan");
             return View();
         }
 
@@ -38,9 +38,9 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-        public ActionResult KH_ChiTietSanPham(int id)
+        public ActionResult KH_ChiTietSanPham()
         {
-            ViewBag.MaSP = id;
+            
             return View();
         }
         // 1: Lấy danh sách 
@@ -51,17 +51,19 @@ namespace WebBanDoAnOnline.Controllers
 
             // 1. Lấy tham số
             string maDM_str = Request["maDM"];
-            string TimKiem = Request["TimKiem"];
-            string Trang_str = Request["Trang"];
+            string searchTerm = Request["searchTerm"];
+            string page_str = Request["page"];
 
-            int currentTrang = 1;
-            if (!string.IsNullOrEmpty(Trang_str)) int.TryParse(Trang_str, out currentTrang);
-            int TrangSize = 8;
+            int currentPage = 1;
+            if (!string.IsNullOrEmpty(page_str)) int.TryParse(page_str, out currentPage);
+            int pageSize = 8;
 
             
             var query = db.SanPhams.Where(sp => (sp.isDelete == null || sp.isDelete == 0));
-
-           
+            if (Session["TaiKhoan"] == "Khách hàng" || Session["TaiKhoan"] == null )
+            {
+                query = query.Where(sp => sp.TrangThai == "Còn hàng");
+            }  
 
             // 3. Lọc theo Danh mục
             if (!string.IsNullOrEmpty(maDM_str))
@@ -71,23 +73,23 @@ namespace WebBanDoAnOnline.Controllers
             }
 
             // 4. Tìm kiếm
-            if (!string.IsNullOrEmpty(TimKiem))
+            if (!string.IsNullOrEmpty(searchTerm))
             {
-                string lower = TimKiem.ToLower();
+                string lower = searchTerm.ToLower();
                 query = query.Where(sp => sp.TenSP.ToLower().Contains(lower));
             }
 
-            // 5. Phân trang
+            // 5. Phân page
             var orderedQuery = query.OrderByDescending(sp => sp.MaSP);
             int totalItems = orderedQuery.Count();
-            int TongTrang = (int)Math.Ceiling((double)totalItems / TrangSize);
-            if (TongTrang < 1) TongTrang = 1;
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages < 1) totalPages = 1;
 
-            if (currentTrang < 1) currentTrang = 1;
-            if (currentTrang > TongTrang) currentTrang = TongTrang;
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
 
-            var items = orderedQuery.Skip((currentTrang - 1) * TrangSize)
-                                    .Take(TrangSize)
+            var items = orderedQuery.Skip((currentPage - 1) * pageSize)
+                                    .Take(pageSize)
                                     .Select(sp => new {
                                         sp.MaSP,
                                         sp.TenSP,
@@ -101,8 +103,8 @@ namespace WebBanDoAnOnline.Controllers
             var result = new
             {
                 TotalItems = totalItems,
-                TongTrang = TongTrang,
-                currentTrang = currentTrang,
+                TotalPages = totalPages,
+                CurrentPage = currentPage,
                 Products = items
             };
 
@@ -112,6 +114,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // API 2: Lấy thông tin 1 sản phẩm (Để sửa/Xem chi tiết)
 
+        // --- API 2: Lấy thông tin 1 sản phẩm (Đã cập nhật tính điểm thật) ---
         public string LayTTSP()
         {
             string id_str = Request["id"];
@@ -120,20 +123,77 @@ namespace WebBanDoAnOnline.Controllers
             int id = int.Parse(id_str);
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
-            // Lấy sản phẩm chưa xóa
-            var sp = db.SanPhams.Where(o => o.MaSP == id && (o.isDelete == 0 || o.isDelete == null))
-                                .Select(s => new {
-                                    s.MaSP,
-                                    s.TenSP,
-                                    s.Gia,
-                                    s.Anh,
-                                    s.TrangThai,
-                                    s.MaDM,
-                                    s.MoTa
-                                }).SingleOrDefault();
+            // 1. Lấy thông tin sản phẩm
+            var sp = db.SanPhams.FirstOrDefault(o => o.MaSP == id && (o.isDelete == 0 || o.isDelete == null));
+            if (sp == null) return JsonConvert.SerializeObject(new { Error = "Sản phẩm không tồn tại" });
 
-            if (sp != null) return JsonConvert.SerializeObject(sp);
-            return "{}";
+            // 2. TÍNH TOÁN TỐI ƯU (Thực hiện ngay dưới Database)
+            // Tạo câu truy vấn (chưa chạy ngay)
+            var queryDanhGia = db.DanhGias.Where(d => d.MaSP == id && (d.isDelete == 0 || d.isDelete == null));
+
+            // Đếm số lượng
+            int soLuotDanhGia = queryDanhGia.Count();
+
+            // Tính trung bình (chỉ tính nếu có đánh giá để tránh lỗi chia cho 0)
+            // Ép kiểu (double) để chia ra số thập phân
+            double diemTB = 0;
+            if (soLuotDanhGia > 0)
+            {
+                diemTB = queryDanhGia.Average(d => (double)d.SoSao);
+            }
+
+            // 3. Lấy tên danh mục
+            string tenDM = "Khác";
+            var dm = db.DanhMucs.FirstOrDefault(d => d.MaDM == sp.MaDM);
+            if (dm != null) tenDM = dm.TenDM;
+
+            var result = new
+            {
+                MaSP = sp.MaSP,
+                TenSP = sp.TenSP,
+                Gia = sp.Gia,
+                Anh = sp.Anh,
+                MoTa = sp.MoTa,
+                TenDM = tenDM,
+                DiemTrungBinh = Math.Round(diemTB, 1), // Làm tròn 1 số lẻ (VD: 4.666 -> 4.7)
+                SoLuotDanhGia = soLuotDanhGia,
+                ThoiGianGiao = sp.ThoiGianGiao
+            };
+
+            return JsonConvert.SerializeObject(result);
+        }
+
+        // --- API MỚI: Lấy danh sách đánh giá của sản phẩm ---
+        public string LayDanhSachDanhGia()
+        {
+            try
+            {
+                string id_str = Request["id"];
+                if (string.IsNullOrEmpty(id_str)) return "[]";
+                int maSP = int.Parse(id_str);
+
+                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+
+                // Join bảng DanhGia với TaiKhoan để lấy tên và avatar
+                var query = from dg in db.DanhGias
+                            join tk in db.TaiKhoans on dg.MaTK equals tk.MaTK
+                            where dg.MaSP == maSP && (dg.isDelete == 0 || dg.isDelete == null)
+                            orderby dg.Create_at descending // Mới nhất lên đầu
+                            select new
+                            {
+                                TenNguoiDung = tk.HoTen,
+                                AnhDaiDien = tk.AnhDaiDien,
+                                SoSao = dg.SoSao,
+                                NoiDung = dg.BinhLuan,
+                                NgayDanhGia = string.Format("{0:dd/MM/yyyy}", dg.Create_at)
+                            };
+
+                return JsonConvert.SerializeObject(query.ToList());
+            }
+            catch
+            {
+                return "[]";
+            }
         }
 
 
@@ -292,60 +352,6 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        public string DoiTrangThaiYeuThich()
-        {
-            try
-            {
-                var user = Session["TaiKhoan"] as TaiKhoan;
-                if (user == null) return "LOGIN_REQUIRED";
-
-                string id_str = Request["id"];
-                if (string.IsNullOrEmpty(id_str)) return "Thiếu id";
-                int maSP = int.Parse(id_str);
-
-                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
-
-                var fav = db.SanPhamYeuThiches
-                    .FirstOrDefault(f => f.MaTK == user.MaTK && f.MaSP == maSP);
-
-                if (fav == null)
-                {
-                    // Thêm mới yêu thích
-                    var newFav = new SanPhamYeuThich
-                    {
-                        MaTK = user.MaTK,
-                        MaSP = maSP,
-                        Create_at = DateTime.Now,
-                        isDelete = 0
-                    };
-                    db.SanPhamYeuThiches.InsertOnSubmit(newFav);
-                    db.SubmitChanges();
-                    return "ADDED";
-                }
-                else
-                {
-                    if (fav.isDelete == 1)
-                    {
-                        // Khôi phục
-                        fav.isDelete = 0;
-                        fav.Update_at = DateTime.Now;
-                        db.SubmitChanges();
-                        return "ADDED";
-                    }
-                    else
-                    {
-                        // Ẩn mềm (bỏ yêu thích)
-                        fav.isDelete = 1;
-                        fav.Delete_at = DateTime.Now;
-                        db.SubmitChanges();
-                        return "REMOVED";
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                return "ERROR: " + ex.Message;
-            }
-        }
+        
     }
 }

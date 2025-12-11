@@ -94,7 +94,7 @@ namespace WebBanDoAnOnline.Controllers
                 {
                     TenSP = item.p.TenSP,
                     SoLuong = item.g.SoLuong,
-                    currentia = giaBan,
+                    DonGia = giaBan,
                     ThanhTien = thanhTien
                 });
             }
@@ -275,23 +275,35 @@ namespace WebBanDoAnOnline.Controllers
                 // --- LƯU CHI TIẾT ---
                 foreach (var item in cartItems)
                 {
-                    var sp = db.SanPhams.Single(p => p.MaSP == item.MaSP);
+                    // Dùng FirstOrDefault để không crash nếu lỗi dữ liệu
+                    var sp = db.SanPhams.FirstOrDefault(p => p.MaSP == item.MaSP);
+
+                    // Nếu sản phẩm không tồn tại thì bỏ qua dòng này (hoặc return lỗi tùy nghiệp vụ)
+                    if (sp == null) continue;
+
                     decimal giaFinal = sp.Gia ?? 0;
-                    if (sp.GiaKhuyenMai > 0 && sp.GiaKhuyenMai < giaFinal) giaFinal = sp.GiaKhuyenMai ?? 0;
+
+                    // Logic tính giá khuyến mãi (Copy y chang logic ở trên để đồng bộ)
+                    if (sp.GiaKhuyenMai > 0 && sp.GiaKhuyenMai < giaFinal &&
+                        (!sp.NgayBatDauKM.HasValue || sp.NgayBatDauKM <= now) &&
+                        (!sp.NgayKetThucKM.HasValue || sp.NgayKetThucKM >= now))
+                    {
+                        giaFinal = sp.GiaKhuyenMai ?? 0;
+                    }
 
                     ChiTietDonHang ct = new ChiTietDonHang();
                     ct.MaDH = dh.MaDH;
                     ct.MaSP = item.MaSP;
-                    ct.TenSP = sp.TenSP;
-                    ct.SoLuong = item.SoLuong;
-                    ct.currentia = giaFinal;
+                    ct.TenSP = sp.TenSP; // Lưu tên cứng tại thời điểm mua
+                    ct.SoLuong = item.SoLuong ?? 1;
+                    ct.DonGia = giaFinal;
                     ct.ThanhTien = giaFinal * (ct.SoLuong ?? 1);
                     ct.GhiChu = item.GhiChu;
                     ct.Create_at = DateTime.Now;
 
                     db.ChiTietDonHangs.InsertOnSubmit(ct);
 
-                    
+                    // Xóa khỏi giỏ hàng
                     db.GioHangs.DeleteOnSubmit(item);
                 }
 
