@@ -331,7 +331,7 @@
 </style>
 
 <div class="od-Trang">
-    <a href="/NV_TrangChu/Index" class="od-back"><i class="fas fa-arrow-left"></i> Quay lại danh sách</a>
+    <a href="/DonHang/NV_DanhSachDonHang" class="od-back"><i class="fas fa-arrow-left"></i> Quay lại danh sách</a>
 
     <div class="od-card">
         <!-- 1. STEPPER -->
@@ -409,7 +409,7 @@
         var fd = new FormData(); fd.append('id', orderId);
 
         $.ajax({
-            type: "POST", url: url_domain + '/NV_TrangChu/LayChiTietDonHang', data: fd, processData: false, contentType: false,
+            type: "POST", url: url_domain + '/DonHang/LayChiTietDonHang', data: fd, processData: false, contentType: false,
             success: function(res) {
                 var d = JSON.parse(res);
                 if(!d.id) { alert("Lỗi tải dữ liệu"); return; }
@@ -486,7 +486,7 @@
 
         var fd = new FormData(); fd.append('id', id); fd.append('action', action); fd.append('note', note);
         $.ajax({
-            type: "POST", url: url_domain + '/NV_TrangChu/CapNhatTrangThai', data: fd, processData: false, contentType: false,
+            type: "POST", url: url_domain + '/DonHang/CapNhatTrangThai', data: fd, processData: false, contentType: false,
             success: function(res) {
                 if(res === "OK") location.reload();
                 else alert(res);

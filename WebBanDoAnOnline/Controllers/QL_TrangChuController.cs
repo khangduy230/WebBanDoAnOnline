@@ -30,7 +30,7 @@ namespace WebBanDoAnOnline.Controllers
                 }
                 else
                 {
-                    filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "NV_TrangChu", action = "Index", area = "" }));
+                    filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "DonHang", action = "NV_DanhSachDonHang", area = "" }));
                 }
                 return;
             }

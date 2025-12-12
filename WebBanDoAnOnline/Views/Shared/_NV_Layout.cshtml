@@ -126,7 +126,7 @@
         <div class="container-fluid px-lg-5">
             <nav class="navbar navbar-expand-lg p-0">
                 <!-- Logo -->
-                <a class="navbar-brand" href="@Url.Action("Index", "NV_TrangChu")">
+                <a class="navbar-brand" href="@Url.Action("NV_DanhSachDonHang", "DonHang")">
                     FuTho <span class="text-primary fw-light">Staff</span>
                 </a>
 
@@ -138,8 +138,8 @@
                     <!-- Menu Điều hướng -->
                     <ul class="navbar-nav mx-auto">
                         <li class="nav-item">
-                            <a class="nav-link @(currentController == "NV_TrangChu" ? "active" : "")"
-                               href="@Url.Action("Index", "NV_TrangChu")">
+                            <a class="nav-link @(currentController == "DonHang" ? "active" : "")"
+                               href="@Url.Action("NV_DanhSachDonHang", "DonHang")">
                                 <i class="fa-solid fa-list-check me-1"></i> Quản lý Đơn hàng
                             </a>
                         </li>

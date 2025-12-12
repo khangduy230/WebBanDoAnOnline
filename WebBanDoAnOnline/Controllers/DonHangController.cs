@@ -8,7 +8,7 @@ using WebBanDoAnOnline.Models;
 
 namespace WebBanDoAnOnline.Controllers
 {
-    public class NV_TrangChuController : Controller
+    public class DonHangController : Controller
     {
         // Kiểm tra phiên đăng nhập và vai trò
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
@@ -27,7 +27,7 @@ namespace WebBanDoAnOnline.Controllers
             {
                 if (user.VaiTro == "Khách hàng")
                 {
-                    filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "KH_TrangChu", action = "Index", area = "" }));
+                    filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "KH_TrangChu", action = "NV_DanhSachDonHang", area = "" }));
                 }
                 else
                 {
@@ -41,13 +41,13 @@ namespace WebBanDoAnOnline.Controllers
         }
 
         // 1. GET: Trang quản lý đơn hàng
-        public ActionResult Index()
+        public ActionResult NV_DanhSachDonHang()
         {
             return View();
         }
 
         // 2. GET: Trang chi tiết đơn hàng
-        public ActionResult ThongTinDonHang(string id)
+        public ActionResult ChiTietDonHang(string id)
         {
             ViewBag.OrderId = id;
             return View();

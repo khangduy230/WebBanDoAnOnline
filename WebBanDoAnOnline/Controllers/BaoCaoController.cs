@@ -24,7 +24,7 @@ namespace WebBanDoAnOnline.Controllers
                 if (user.VaiTro == "Khách hàng")
                     filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "KH_TrangChu", action = "Index", area = "" }));
                 else
-                    filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "NV_TrangChu", action = "Index", area = "" }));
+                    filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "DonHang", action = "NV_DanhSachDonHang", area = "" }));
                 return;
             }
             base.OnActionExecuting(filterContext);

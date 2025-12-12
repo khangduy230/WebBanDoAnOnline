@@ -167,7 +167,7 @@
     <Compile Include="Controllers\GioHangController.cs" />
     <Compile Include="Controllers\KH_TrangChuController.cs" />
     <Compile Include="Controllers\NguoiDungController.cs" />
-    <Compile Include="Controllers\NV_TrangChuController.cs" />
+    <Compile Include="Controllers\DonHangController.cs" />
     <Compile Include="Controllers\SanPhamController.cs" />
     <Compile Include="Controllers\TaiKhoanController.cs" />
     <Compile Include="Controllers\ThanhToanController.cs" />
@@ -337,13 +337,14 @@
     <Content Include="Views\CaiDat\KhuyenMai.cshtml" />
     <Content Include="Views\CaiDat\XoaTaiKhoan.cshtml" />
     <Content Include="Views\Shared\_NV_Layout.cshtml" />
-    <Content Include="Views\NV_TrangChu\Index.cshtml" />
-    <Content Include="Views\NV_TrangChu\ThongTinDonHang.cshtml" />
+    <Content Include="Views\DonHang\NV_DanhSachDonHang.cshtml" />
+    <Content Include="Views\DonHang\ChiTietDonHang.cshtml" />
     <Content Include="Views\SanPham\NV_DanhSachSanPham.cshtml" />
     <Content Include="Views\SanPham\KH_ChiTietSanPham.cshtml" />
     <Content Include="Views\DanhGia\QL_QuanLyDanhGia.cshtml" />
     <Content Include="Views\DanhGia\NV_QuanLyDanhGia.cshtml" />
     <Content Include="Views\BaoCao\QL_BaoCao.cshtml" />
+    <Content Include="Views\DonHang\QL_DanhSachDonHang.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

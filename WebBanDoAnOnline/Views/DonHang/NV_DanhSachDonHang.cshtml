@@ -307,7 +307,7 @@
         $('#orders-grid').html('<div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>');
 
         $.ajax({
-            type: "POST", url: url_domain + '/NV_TrangChu/LayDonHang',
+            type: "POST", url: url_domain + '/DonHang/LayDonHang',
             data: formData, processData: false, contentType: false,
             success: function (response) {
                 var data = JSON.parse(response);
@@ -372,9 +372,9 @@
                     <button class="btn btn-outline-secondary btn-action" onclick="ModalTuChoi(${order.id})">Từ chối</button>`;
         } else if (order.status === 'shipping') {
             return `<button class="btn btn-success btn-action" onclick="ModalHoanThanh(${order.id})">Hoàn thành</button>
-                    <a href="/NV_TrangChu/ThongTinDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
+                    <a href="/DonHang/ChiTietDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
         } else {
-            return `<a href="/NV_TrangChu/ThongTinDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
+            return `<a href="/DonHang/ChiTietDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
         }
     }
 
@@ -386,7 +386,7 @@
         formData.append('note', note);
 
         $.ajax({
-            type: "POST", url: url_domain + '/NV_TrangChu/CapNhatTrangThai',
+            type: "POST", url: url_domain + '/DonHang/CapNhatTrangThai',
             data: formData, processData: false, contentType: false,
             success: function (res) {
                 if (res === "OK") {

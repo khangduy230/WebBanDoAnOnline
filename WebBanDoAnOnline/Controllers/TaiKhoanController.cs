@@ -17,7 +17,7 @@ namespace WebBanDoAnOnline.Controllers
             {
                 var user = Session["TaiKhoan"] as TaiKhoan;
                 if (user.VaiTro == "Quản lý") return RedirectToAction("Index", "QL_TrangChu");
-                if (user.VaiTro == "Nhân viên") return RedirectToAction("Index", "NV_TrangChu");
+                if (user.VaiTro == "Nhân viên") return RedirectToAction("NV_DanhSachDonHang", "DonHang");
                 return RedirectToAction("Index", "KH_TrangChu");
             }
             return View();

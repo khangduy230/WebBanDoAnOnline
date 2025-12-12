@@ -21,7 +21,7 @@ namespace WebBanDoAnOnline.Controllers
                 
                 if (user.VaiTro == "Nhân viên")
                 {
-                    return RedirectToAction("Index", "NV_TrangChu");
+                    return RedirectToAction("NV_DanhSachDonHang", "DonHang");
                 }
 
                 
