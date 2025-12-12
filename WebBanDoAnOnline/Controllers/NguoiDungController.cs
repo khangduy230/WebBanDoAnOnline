@@ -10,9 +10,9 @@ namespace WebBanDoAnOnline.Controllers
     public class NguoiDungController : Controller
     {
         
-        public ActionResult LayNguoiDung() { return View(); }
-        public ActionResult ThemNguoiDung() { return View(); }
-        public ActionResult SuaNguoiDung(int id) { ViewBag.MaTK = id; return View(); }
+        public ActionResult QL_DanhSachNguoiDung() { return View(); }
+        public ActionResult QL_ThemNguoiDung() { return View(); }
+        public ActionResult QL_SuaNguoiDung(int id) { ViewBag.MaTK = id; return View(); }
 
         // 1. LẤY DANH SÁCH 
         [HttpPost]

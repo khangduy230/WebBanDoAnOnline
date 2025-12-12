@@ -59,7 +59,7 @@
                 </div>
                 <hr />
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="@Url.Action("LayNguoiDung", "NguoiDung")" class="btn btn-secondary">Quay lại</a>
+                    <a href="@Url.Action("QL_DanhSachNguoiDung", "NguoiDung")" class="btn btn-secondary">Quay lại</a>
                     <button type="button" id="btn_them" class="btn btn-success">Lưu lại</button>
                 </div>
             </form>
@@ -124,7 +124,7 @@
                 success: function (res) {
                     alert(res);
                     if (res.toLowerCase().includes("thành công")) {
-                        window.location.href = '@Url.Action("LayNguoiDung", "NguoiDung")';
+                        window.location.href = '@Url.Action("QL_DanhSachNguoiDung", "NguoiDung")';
                     }
                 },
                 error: function (err) {

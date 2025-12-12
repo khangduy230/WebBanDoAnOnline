@@ -63,7 +63,7 @@
                 </div>
                 <hr />
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="@Url.Action("LayNguoiDung", "NguoiDung")" class="btn btn-secondary">Hủy</a>
+                    <a href="@Url.Action("QL_DanhSachNguoiDung", "NguoiDung")" class="btn btn-secondary">Hủy</a>
                     <button type="button" id="btn_capnhat" class="btn btn-warning text-white">Cập nhật</button>
                 </div>
             </form>
@@ -135,7 +135,7 @@
             success: function (res) {
                 alert(res);
                 if (res.toLowerCase().includes("thành công")) {
-                    window.location.href = '@Url.Action("LayNguoiDung", "NguoiDung")';
+                    window.location.href = '@Url.Action("QL_DanhSachNguoiDung", "NguoiDung")';
                 }
             },
             error: function () { alert("Lỗi kết nối server."); }

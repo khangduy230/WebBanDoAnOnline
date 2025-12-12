@@ -1,6 +1,6 @@
 ﻿@{
     ViewBag.Title = "Quản lý Voucher";
-    
+    Layout = "~/Views/Shared/_QL_Layout.cshtml";
 }
 
 <main class="voucher-Trang container-fluid py-4">
@@ -9,7 +9,7 @@
         <div><h3 class="mb-0">Quản lý Voucher</h3><hr /></div>
         <div class="d-flex align-items-center">
             <input id="txt_search_voucher" class="form-control me-2" style="width:220px;" placeholder="Tìm theo tên hoặc mã" />
-            <a href="@Url.Action("ThemVoucher", "Voucher")" class="btn btn-warning text-white">Thêm voucher</a>
+            <a href="@Url.Action("QL_ThemVoucher", "Voucher")" class="btn btn-warning text-white">Thêm voucher</a>
         </div>
     </div>
 

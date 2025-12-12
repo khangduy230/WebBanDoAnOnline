@@ -11,9 +11,9 @@ namespace WebBanDoAnOnline.Controllers
     public class VoucherController : Controller
     {
         // GET Views
-        public ActionResult LayVoucher() { return View(); }
-        public ActionResult ThemVoucher() { return View(); }
-        public ActionResult SuaVoucher(int id) { ViewBag.MaVoucher = id; return View(); }
+        public ActionResult QL_DanhSachVoucher() { return View(); }
+        public ActionResult QL_ThemVoucher() { return View(); }
+        public ActionResult QL_SuaVoucher(int id) { ViewBag.MaVoucher = id; return View(); }
 
         
         // API 1: LẤY DANH SÁCH VOUCHER
