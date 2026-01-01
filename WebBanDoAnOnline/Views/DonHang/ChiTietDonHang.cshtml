@@ -1,504 +1,195 @@
 ﻿@{
-    ViewBag.Title = "Thông tin đơn hàng";
-    Layout = "~/Views/Shared/_NV_Layout.cshtml";
-    var orderId = (string)(ViewBag.OrderId ?? "");
+    ViewBag.Title = "Chi tiết đơn hàng";
+    Layout = "~/Views/Shared/_QL_Layout.cshtml";
 }
 
 <style>
-    .od-Trang {
-        max-width: 900px;
-        margin: 0 auto 50px;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+    .detail-page { padding: 16px; font-family: Arial, Helvetica, sans-serif; }
+    .page-title { margin: 0 0 16px 0; font-size: 20px; font-weight: 600; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .actions { display:flex; gap:8px; margin-bottom:12px; }
+    .btn { height: 34px; padding: 6px 12px; border-radius: 6px; border: 1px solid #d1d5db; background:#fff; cursor:pointer; }
+    .btn-primary { background:#2563eb; color:#fff; border-color:#1d4ed8; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px; }
+    .item { display:flex; gap:8px; font-size:14px; }
+    .item label { color:#6b7280; min-width:120px; }
+    .status { display:inline-block; padding:4px 8px; border-radius: 999px; font-size:12px; border:1px solid transparent; }
+    .status.pending { background:#fff7ed; color:#9a3412; border-color:#fdba74; }
+    .status.confirmed { background:#ecfdf5; color:#065f46; border-color:#6ee7b7; }
+    .status.shipping { background:#eff6ff; color:#1e40af; border-color:#93c5fd; }
+    .status.completed { background:#f0fdf4; color:#166534; border-color:#86efac; }
+    .status.cancelled { background:#fef2f2; color:#991b1b; border-color:#fecaca; }
 
-    /* Back Button */
-    .od-back {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 20px;
-        text-decoration: none;
-        color: #555;
-        font-weight: 600;
-        transition: 0.2s;
-    }
-
-    .od-back:hover {
-        color: #ffc107;
-        transform: translateX(-5px);
-    }
-
-    .od-card {
-        background: #fff;
-        border-radius: 16px;
-        padding: 40px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        border: 1px solid #f0f0f0;
-    }
-
-    /* --- STEPPER FIXED CSS --- */
-    .od-steps {
-        display: flex;
-        justify-content: space-between;
-        position: relative;
-        margin-bottom: 50px;
-        margin-top: 20px;
-        padding: 0 10px; /* Giảm padding để tránh sát lề mobile */
-    }
-
-    /* Xóa bỏ đường kẻ cũ gây lỗi */
-    .od-steps::before {
-        display: none;
-    }
-
-    /* Định nghĩa đường ray (Track) */
-    .od-step-track {
-        position: absolute;
-        /* Canh giữa theo chiều dọc: (Dot height 44px / 2) - (Line height 4px / 2) = 20px */
-        top: 20px;
-        left: 50px;  /* Bắt đầu từ tâm điểm đầu tiên (Width 100px / 2) */
-        right: 50px; /* Kết thúc tại tâm điểm cuối cùng */
-        height: 4px;
-        background: #e9ecef;
-        z-index: 0;
-        border-radius: 4px;
-    }
-
-    /* Thanh tiến trình chạy bên trong Track */
-    .od-progress-active {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%; /* Chiều cao bằng cha (4px) */
-        background: #ffc107;
-        z-index: 1;
-        transition: width 0.5s ease;
-        border-radius: 4px;
-        width: 0%;
-    }
-
-    .od-step {
-        position: relative;
-        z-index: 2;
-        text-align: center;
-        width: 100px; /* Độ rộng cố định để căn giữa Dot */
-    }
-
-    .dot {
-        width: 44px;
-        height: 44px;
-        background: #e9ecef;
-        color: #6c757d;
-        border-radius: 50%;
-        margin: 0 auto 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 18px;
-        border: 4px solid #fff;
-        transition: 0.3s;
-    }
-
-    .label {
-        font-size: 13px;
-        font-weight: 600;
-        color: #adb5bd;
-        line-height: 1.3;
-    }
-
-    /* Active State */
-    .od-step.done .dot {
-        background: #ffc107;
-        color: #fff;
-    }
-
-    .od-step.done .label {
-        color: #333;
-    }
-
-    .od-step.active .dot {
-        background: #ffc107;
-        color: #fff;
-        transform: scale(1.1);
-        box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.2);
-    }
-
-    .od-step.active .label {
-        color: #ffc107;
-        font-weight: 700;
-    }
-
-    /* Cancelled State */
-    .od-step[id="step-cancelled"].active .dot {
-        background: #dc3545;
-    }
-
-    .od-step[id="step-cancelled"].active .label {
-        color: #dc3545;
-    }
-
-    .hide {
-        display: none !important;
-    }
-
-    /* Responsive cho màn hình nhỏ */
-    @@media (max-width: 500px) {
-        .od-step {
-            width: auto;
-            flex: 1;
-        }
-        .od-step-track {
-            left: 15%; /* Ước lượng tâm dot trên mobile */
-            right: 15%;
-        }
-        .label { font-size: 11px; }
-        .dot { width: 36px; height: 36px; font-size: 14px; border-width: 3px; }
-        .od-step-track { top: 16px; } /* Canh lại top cho dot nhỏ hơn */
-    }
-
-    /* INFO GRID */
-    .od-meta {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 60px;
-        margin-bottom: 40px;
-    }
-
-    @@media (max-width: 768px) {
-        .od-meta { grid-template-columns: 1fr; gap: 30px; }
-        .od-card { padding: 20px; }
-    }
-
-    .od-group h5 {
-        font-size: 14px;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: #999;
-        margin-bottom: 20px;
-        letter-spacing: 0.5px;
-        border-bottom: 2px solid #f8f9fa;
-        padding-bottom: 10px;
-    }
-
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 12px;
-        font-size: 14px;
-    }
-
-    .info-label {
-        color: #6c757d;
-    }
-
-    .info-value {
-        font-weight: 600;
-        color: #212529;
-        text-align: right;
-    }
-
-    /* ITEMS LIST */
-    .od-items {
-        border-top: 1px dashed #dee2e6;
-        padding-top: 20px;
-        margin-bottom: 30px;
-    }
-
-    .od-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 0;
-        border-bottom: 1px solid #f8f9fa;
-    }
-
-    .od-item:last-child {
-        border-bottom: none;
-    }
-
-    .item-left {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .item-img {
-        width: 60px;
-        height: 60px;
-        border-radius: 10px;
-        object-fit: cover;
-        border: 1px solid #eee;
-    }
-
-    .item-name {
-        font-weight: 700;
-        font-size: 15px;
-        color: #333;
-        margin-bottom: 2px;
-    }
-
-    .item-qty {
-        font-size: 13px;
-        color: #888;
-        background: #f8f9fa;
-        padding: 2px 8px;
-        border-radius: 4px;
-        display: inline-block;
-    }
-
-    .item-price {
-        font-weight: 700;
-        color: #333;
-    }
-
-    /* FOOTER TOTAL */
-    .od-footer {
-        background: #fcfcfc;
-        padding: 25px;
-        border-radius: 12px;
-        border: 1px solid #f0f0f0;
-    }
-
-    .total-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px solid #e9ecef;
-        font-size: 18px;
-        font-weight: 800;
-        color: #212529;
-    }
-
-    .total-val {
-        color: #ffc107;
-        font-size: 22px;
-    }
-
-    /* Button */
-    .btn-confirm {
-        width: 100%;
-        padding: 12px;
-        font-weight: 700;
-        border-radius: 8px;
-        margin-top: 20px;
-        background: #198754;
-        border: none;
-    }
-
-    .btn-confirm:hover {
-        background: #146c43;
-    }
-
-    .btn-group-action {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-    }
-
-    .btn-accept {
-        flex: 1;
-        background: #ffc107;
-        color: #000;
-        border: none;
-        padding: 10px;
-        border-radius: 8px;
-        font-weight: 700;
-    }
-
-    .btn-reject {
-        flex: 1;
-        background: #fff;
-        color: #dc3545;
-        border: 1px solid #dc3545;
-        padding: 10px;
-        border-radius: 8px;
-        font-weight: 600;
-    }
-
-    .btn-complete {
-        width: 100%;
-        background: #198754;
-        color: white;
-        border: none;
-        padding: 12px;
-        border-radius: 8px;
-        font-weight: 700;
-        margin-top: 15px;
-    }
+    .items-table { width:100%; border-collapse:collapse; font-size:14px; }
+    .items-table th, .items-table td { border-bottom:1px solid #e5e7eb; padding:8px; text-align:left; }
+    .section-title { font-weight:600; margin:10px 0 6px; }
+    @@media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
 </style>
 
-<div class="od-Trang">
-    <a href="/DonHang/NV_DanhSachDonHang" class="od-back"><i class="fas fa-arrow-left"></i> Quay lại danh sách</a>
+<div class="detail-page">
+    <h2 class="page-title">Chi tiết đơn hàng</h2>
 
-    <div class="od-card">
-        <!-- 1. STEPPER -->
-        <div class="od-steps">
-            <!-- Đường ray chứa cả nền xám và thanh vàng -->
-            <div class="od-step-track">
-                <div class="od-progress-active" id="od-progress-active" style="width: 0%;"></div>
-            </div>
+    <div class="actions">
+        <a class="btn" href="/DonHang/QL_DanhSachDonHang">← Quay lại danh sách</a>
+        <!-- Có thể thêm các nút xử lý đơn như Xác nhận, Hủy... khi tích hợp backend -->
+    </div>
 
-            <!-- Các bước -->
-            <div class="od-step" data-step="0">
-                <div class="dot"><i class="fas fa-file-invoice"></i></div>
-                <div class="label">Chờ xác nhận</div>
-            </div>
-            <div class="od-step" data-step="1">
-                <div class="dot"><i class="fas fa-shipping-fast"></i></div>
-                <div class="label">Đang giao</div>
-            </div>
-            <div class="od-step" data-step="2" id="step-completed">
-                <div class="dot"><i class="fas fa-check"></i></div>
-                <div class="label">Hoàn thành</div>
-            </div>
-            <div class="od-step hide" data-step="3" id="step-cancelled">
-                <div class="dot"><i class="fas fa-times"></i></div>
-                <div class="label">Đã hủy</div>
-            </div>
+    <div class="card">
+        <div class="grid">
+            <div class="item"><label>Mã đơn:</label><div id="dMaDon"></div></div>
+            <div class="item"><label>Ngày tạo:</label><div id="dNgayTao"></div></div>
+            <div class="item"><label>Khách hàng:</label><div id="dKhachHang"></div></div>
+            <div class="item"><label>SĐT:</label><div id="dSdt"></div></div>
+            <div class="item"><label>Địa chỉ:</label><div id="dDiaChi"></div></div>
+            <div class="item"><label>Trạng thái:</label><div id="dTrangThai"></div></div>
+            <div class="item"><label>Tổng tiền:</label><div id="dTongTien"></div></div>
+            <div class="item"><label>Ghi chú:</label><div id="dGhiChu"></div></div>
         </div>
 
-        <div class="od-meta">
-            <!-- 2. THÔNG TIN ĐƠN -->
-            <div class="od-group">
-                <h5>Thông tin đơn hàng</h5>
-                <div class="info-row"><span class="info-label">Mã đơn hàng</span> <span class="info-value text-primary" id="od-code">...</span></div>
-                <div class="info-row"><span class="info-label">Ngày đặt hàng</span> <span class="info-value" id="od-time">...</span></div>
-                <div class="info-row"><span class="info-label">Thanh toán</span> <span class="info-value badge bg-light text-dark border" id="od-pay">...</span></div>
-
-                <!-- Khu vực nút hành động -->
-                <div id="action-area"></div>
-            </div>
-
-            <!-- 3. THÔNG TIN KHÁCH -->
-            <div class="od-group">
-                <h5>Thông tin nhận hàng</h5>
-                <div class="info-row"><span class="info-label">Người nhận</span> <span class="info-value" id="od-cus-name">...</span></div>
-                <div class="info-row"><span class="info-label">Điện thoại</span> <span class="info-value" id="od-cus-phone">...</span></div>
-                <div class="info-row"><span class="info-label">Địa chỉ</span> <span class="info-value text-end" style="max-width: 220px;" id="od-cus-addr">...</span></div>
-                <div class="info-row mt-3"><span class="info-label">Ghi chú</span> <span class="info-value text-danger fst-italic" id="od-note">Không có</span></div>
-            </div>
-        </div>
-
-        <!-- 4. DANH SÁCH -->
-        <div class="od-group">
-            <h5>Chi tiết sản phẩm</h5>
-            <div class="od-items" id="od-items-list"></div>
-        </div>
-
-        <!-- 5. TỔNG TIỀN -->
-        <div class="od-footer">
-            <div class="info-row"><span class="info-label">Tổng tiền hàng</span> <span class="info-value" id="od-subtotal">0đ</span></div>
-            <div class="info-row"><span class="info-label">Phí vận chuyển</span> <span class="info-value" id="od-ship-fee">0đ</span></div>
-            <div class="info-row"><span class="info-label">Giảm giá</span> <span class="info-value text-success" id="od-discount">-0đ</span></div>
-            <div class="total-row"><span>THÀNH TIỀN</span> <span class="total-val" id="od-total">0đ</span></div>
-        </div>
+        <div class="section-title">Sản phẩm trong đơn</div>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>SL</th>
+                    <th>Đơn giá</th>
+                    <th>Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody id="itemsTbody">
+                <!-- Render bởi JS -->
+            </tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    var url_domain = window.location.origin;
-    var orderId = '@orderId';
+    // Dữ liệu mẫu giống với trang danh sách để demo (thay bằng dữ liệu server khi tích hợp)
+    const ordersData = [
+        {
+            code: "DH0001",
+            customerName: "Nguyễn Văn A",
+            phone: "0901000001",
+            address: "123 Trần Hưng Đạo, Q1, TP.HCM",
+            createdAt: "2025-12-28",
+            total: 250000,
+            status: "pending",
+            note: "Giao giờ hành chính",
+            items: [
+                { name: "Bánh mì thịt", qty: 2, price: 25000 },
+                { name: "Trà sữa trân châu", qty: 1, price: 45000 }
+            ]
+        },
+        {
+            code: "DH0002",
+            customerName: "Trần Thị B",
+            phone: "0902000002",
+            address: "55 Lê Lợi, Q1, TP.HCM",
+            createdAt: "2025-12-29",
+            total: 480000,
+            status: "confirmed",
+            note: "",
+            items: [
+                { name: "Phở bò", qty: 2, price: 60000 },
+                { name: "Cà phê sữa", qty: 2, price: 35000 }
+            ]
+        },
+        {
+            code: "DH0003",
+            customerName: "Lê Văn C",
+            phone: "0903000003",
+            address: "89 Nguyễn Huệ, Q1, TP.HCM",
+            createdAt: "2025-12-30",
+            total: 320000,
+            status: "shipping",
+            note: "Gọi trước khi giao",
+            items: [
+                { name: "Bún chả Hà Nội", qty: 2, price: 70000 },
+                { name: "Nước cam", qty: 2, price: 40000 }
+            ]
+        },
+        {
+            code: "DH0004",
+            customerName: "Phạm Thị D",
+            phone: "0904000004",
+            address: "12 Tôn Đức Thắng, Q1, TP.HCM",
+            createdAt: "2025-12-31",
+            total: 150000,
+            status: "completed",
+            note: "Khách thanh toán tiền mặt",
+            items: [
+                { name: "Cơm tấm", qty: 1, price: 45000 },
+                { name: "Soda bạc hà", qty: 2, price: 30000 }
+            ]
+        },
+        {
+            code: "DH0005",
+            customerName: "Đỗ Minh E",
+            phone: "0905000005",
+            address: "77 Pasteur, Q3, TP.HCM",
+            createdAt: "2026-01-01",
+            total: 0,
+            status: "cancelled",
+            note: "Khách hủy đơn",
+            items: []
+        }
+    ];
 
-    function DinhDangTienTe(n) { return n.toLocaleString('vi-VN') + 'đ'; }
+    const formatCurrency = (v) => (v || 0).toLocaleString("vi-VN") + " ₫";
+    const statusLabel = (s) => {
+        switch (s) {
+            case "pending": return '<span class="status pending">Chờ xử lý</span>';
+            case "confirmed": return '<span class="status confirmed">Đã xác nhận</span>';
+            case "shipping": return '<span class="status shipping">Đang giao</span>';
+            case "completed": return '<span class="status completed">Hoàn thành</span>';
+            case "cancelled": return '<span class="status cancelled">Đã hủy</span>';
+            default: return s;
+        }
+    };
 
-    $(document).ready(function() {
-        if(!orderId) return;
-        var fd = new FormData(); fd.append('id', orderId);
+    function getQueryString(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+    }
 
-        $.ajax({
-            type: "POST", url: url_domain + '/DonHang/LayChiTietDonHang', data: fd, processData: false, contentType: false,
-            success: function(res) {
-                var d = JSON.parse(res);
-                if(!d.id) { alert("Lỗi tải dữ liệu"); return; }
+    function loadDetail() {
+        const code = getQueryString("code"); // nhận từ link href trên trang danh sách
+        if (!code) {
+            alert("Thiếu mã đơn hàng (code).");
+            return;
+        }
 
-                // Bind Text
-                $("#od-code").text("#" + d.id);
-                $("#od-time").text(d.time);
-                $("#od-pay").text(d.payMethod);
-                $("#od-cus-name").text(d.cusName);
-                $("#od-cus-phone").text(d.cusPhone);
-                $("#od-cus-addr").text(d.cusAddr);
-                if(d.note) $("#od-note").text(d.note);
+        const order = ordersData.find(o => o.code === code);
+        if (!order) {
+            alert("Không tìm thấy đơn hàng " + code);
+            return;
+        }
 
-                // Render Items
-                var html = "";
-                d.items.forEach(i => {
-                    html += `<div class="od-item">
-                        <div class="item-left">
-                            <img src="${i.image}" class="item-img" onerror="this.src='/img/no-image.jpg'">
-                            <div><div class="item-name">${i.name}</div><div class="item-qty">x${i.qty}</div></div>
-                        </div>
-                        <div class="item-price">${DinhDangTienTe(i.price)}</div>
-                    </div>`;
-                });
-                $("#od-items-list").html(html);
+        document.getElementById("dMaDon").textContent = order.code;
+        document.getElementById("dNgayTao").textContent = order.createdAt;
+        document.getElementById("dKhachHang").textContent = order.customerName;
+        document.getElementById("dSdt").textContent = order.phone;
+        document.getElementById("dDiaChi").textContent = order.address;
+        document.getElementById("dTrangThai").innerHTML = statusLabel(order.status);
+        document.getElementById("dTongTien").textContent = formatCurrency(order.total);
+        document.getElementById("dGhiChu").textContent = order.note || "-";
 
-                // Money
-                $("#od-subtotal").text(DinhDangTienTe(d.subTotal));
-                $("#od-ship-fee").text(DinhDangTienTe(d.shipFee));
-                $("#od-discount").text("-" + DinhDangTienTe(d.discount));
-                $("#od-total").text(DinhDangTienTe(d.total));
-
-                // Stepper & Buttons
-                CapNhatGiaoDien(d.status, d.id);
-            }
-        });
-    });
-
-    function CapNhatGiaoDien(status, id) {
-        // 1. Update Stepper
-        var step = 0;
-        if(status === 'shipping') step = 1;
-        if(status === 'completed') step = 2;
-
-        if(status === 'cancelled') {
-            $("#step-completed").addClass("hide"); // Ẩn bước Hoàn thành
-            $("#step-cancelled").removeClass("hide").addClass("active done");
-            $("#od-progress-active").css({width: '100%', background: '#dc3545'});
+        const itemsTbody = document.getElementById("itemsTbody");
+        if (!order.items || order.items.length === 0) {
+            itemsTbody.innerHTML = `<tr><td colspan="4" style="color:#6b7280;">Không có sản phẩm</td></tr>`;
         } else {
-            var pct = (step / 2) * 100;
-            $("#od-progress-active").css('width', pct + '%');
-            $(".od-step").removeClass("active done");
-            for(let i=0; i<=step; i++) $(`[data-step='${i}']`).addClass("done");
-            $(`[data-step='${step}']`).addClass("active");
-        }
-
-        // 2. Show Buttons
-        var btnHtml = "";
-        if(status === 'pending') {
-            btnHtml = `
-            <div class="btn-group-action">
-                <button class="btn-accept" onclick="XuLyDon(${id}, 'accept')">Chấp nhận đơn</button>
-                <button class="btn-reject" onclick="TuChoiDon(${id})">Từ chối</button>
-            </div>`;
-        } else if (status === 'shipping') {
-            btnHtml = `<button class="btn-complete" onclick="XuLyDon(${id}, 'complete')"><i class="fas fa-check-circle me-2"></i> Xác nhận đã giao</button>`;
-        }
-        $("#action-area").html(btnHtml);
-    }
-
-    function XuLyDon(id, action, note='') {
-        if(action === 'complete' && !confirm("Xác nhận đơn hàng đã giao thành công?")) return;
-        if(action === 'accept' && !confirm("Chấp nhận đơn hàng này?")) return;
-
-        var fd = new FormData(); fd.append('id', id); fd.append('action', action); fd.append('note', note);
-        $.ajax({
-            type: "POST", url: url_domain + '/DonHang/CapNhatTrangThai', data: fd, processData: false, contentType: false,
-            success: function(res) {
-                if(res === "OK") location.reload();
-                else alert(res);
-            }
-        });
-    }
-
-    function TuChoiDon(id) {
-        var reason = prompt("Nhập lý do từ chối:");
-        if(reason !== null) {
-            if(reason.trim() === "") alert("Vui lòng nhập lý do");
-            else XuLyDon(id, 'reject', reason);
+            itemsTbody.innerHTML = order.items.map(i => `
+                <tr>
+                    <td>${i.name}</td>
+                    <td>${i.qty}</td>
+                    <td>${formatCurrency(i.price)}</td>
+                    <td>${formatCurrency(i.qty * i.price)}</td>
+                </tr>
+            `).join("");
         }
     }
+
+    (function init() {
+        loadDetail();
+    })();
 </script>

@@ -177,6 +177,11 @@
                 </a>
             </li>
             <li>
+                <a href="@Url.Action("QL_DanhSachDonHang", "DonHang")" class="menu-item @(ViewBag.Title.ToString().Contains("Đơn hàng") ? "active" : "")">
+                    <i class="fas fa-shipping-fast"></i> Đơn hàng
+                </a>
+            </li>
+            <li>
                 <a href="@Url.Action("QL_DanhSachSanPham", "SanPham")" class="menu-item @(ViewBag.Title.ToString().Contains("sản phẩm") ? "active" : "")">
                     <i class="fas fa-hamburger"></i> Món ăn
                 </a>

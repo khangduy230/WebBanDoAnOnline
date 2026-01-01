@@ -84,9 +84,69 @@ namespace WebBanDoAnOnline.Controllers
                 user.TrangThai
             });
         }
+        public ActionResult QL_ChiTietNguoiDung(string id)
+        {
+            ViewBag.UserId = id;
+            return View("~/Views/NguoiDung/QL_ChiTietNguoiDung.cshtml");
+        }
+
+        // API: Lấy chi tiết 1 người dùng theo MaTK
+        [HttpPost]
+        public string QL_LayChiTietNguoiDung()
+        {
+            try
+            {
+                string id_str = Request["id"];
+                if (string.IsNullOrEmpty(id_str)) return JsonConvert.SerializeObject(new { error = "invalid_id" });
+                int id = int.Parse(id_str);
+
+                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+                var tk = db.TaiKhoans.FirstOrDefault(x => x.MaTK == id);
+                if (tk == null) return JsonConvert.SerializeObject(new { error = "not_found" });
+
+                // Thống kê số đơn hàng còn lưu (không bị xóa)
+                int tongDon = db.DonHangs.Count(d => d.MaTK == id && (d.isDelete == 0 || d.isDelete == null));
+
+                // Trạng thái hoạt động
+                string trangThai = (tk.isDelete == 1 ? "Đã xóa/Khóa" : "Đang hoạt động");
+
+                // Lấy thông tin gần đây: đơn mới nhất
+                var donGanNhat = db.DonHangs
+                    .Where(d => d.MaTK == id && (d.isDelete == 0 || d.isDelete == null))
+                    .OrderByDescending(d => d.Create_at)
+                    .Select(d => new
+                    {
+                        d.MaDH,
+                        time = d.Create_at.HasValue ? d.Create_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
+                        d.TrangThai,
+                        d.TongTien
+                    })
+                    .FirstOrDefault();
+
+                var result = new
+                {
+                    id = tk.MaTK,
+                    hoTen = tk.HoTen,
+                    email = tk.Email,
+                    sdt = tk.SoDienThoai,
+                    vaiTro = tk.VaiTro,
+                    trangThai = trangThai,
+                    createAt = tk.Create_at.HasValue ? tk.Create_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
+                    updateAt = tk.Update_at.HasValue ? tk.Update_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
+                    tongDon = tongDon,
+                    donGanNhat = donGanNhat
+                };
+
+                return JsonConvert.SerializeObject(result);
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { error = "server_error", message = ex.Message });
+            }
+        }
 
         // 3. THÊM MỚI 
-        
+
         public string ThemMoiNguoiDung()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();

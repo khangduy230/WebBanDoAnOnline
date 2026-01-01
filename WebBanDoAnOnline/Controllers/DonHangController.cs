@@ -14,38 +14,26 @@ namespace WebBanDoAnOnline.Controllers
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             var user = Session["TaiKhoan"] as TaiKhoan;
-
-            // 1. Chưa đăng nhập -> Về trang login
             if (user == null)
             {
-                filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "TaiKhoan", action = "DangNhap", area = "" }));
+                filterContext.Result = RedirectToAction("DangNhap", "TaiKhoan");
                 return;
             }
-
-            // 2. Đã đăng nhập nhưng khác nhân viên
-            if (user.VaiTro != "Nhân viên")
-            {
-                if (user.VaiTro == "Khách hàng")
-                {
-                    filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "KH_TrangChu", action = "NV_DanhSachDonHang", area = "" }));
-                }
-                else
-                {
-                    filterContext.Result = new RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { controller = "QL_TrangChu", action = "Index", area = "" }));
-                }
-                return;
-            }
-
-            // Nếu là Nhân viên thì cho qua
             base.OnActionExecuting(filterContext);
         }
 
         // 1. GET: Trang quản lý đơn hàng
+
         public ActionResult NV_DanhSachDonHang()
         {
             return View();
         }
-
+        // GET: /DonHang/QL_DanhSachDonHang
+        public ActionResult QL_DanhSachDonHang()
+        {
+            
+            return View(); 
+        }
         // 2. GET: Trang chi tiết đơn hàng
         public ActionResult ChiTietDonHang(string id)
         {

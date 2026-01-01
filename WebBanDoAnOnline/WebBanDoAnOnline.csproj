@@ -345,6 +345,7 @@
     <Content Include="Views\DanhGia\NV_QuanLyDanhGia.cshtml" />
     <Content Include="Views\BaoCao\QL_BaoCao.cshtml" />
     <Content Include="Views\DonHang\QL_DanhSachDonHang.cshtml" />
+    <Content Include="Views\NguoiDung\QL_ChiTietNguoiDung.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
