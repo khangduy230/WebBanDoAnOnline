@@ -51,10 +51,10 @@
                 <label for="statusFilter">Trạng thái</label>
                 <select id="statusFilter" class="form-select">
                     <option value="">Tất cả</option>
-                    <option value="pending">Chờ xử lý</option>
+                    <option value="pending">Chờ xác nhận</option>
                     <option value="confirmed">Đã xác nhận</option>
                     <option value="shipping">Đang giao</option>
-                    <option value="completed">Hoàn thành</option>
+                    <option value="completed">Đã nhận hàng</option>
                     <option value="cancelled">Đã hủy</option>
                 </select>
             </div>
@@ -89,7 +89,7 @@
                 </tr>
             </thead>
             <tbody id="ordersTbody">
-                <!-- Render bởi JS -->
+                <!-- JS sẽ render vào đây -->
             </tbody>
         </table>
 
@@ -98,137 +98,153 @@
     </div>
 </div>
 
+<!-- Thêm jQuery nếu Layout chưa có -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
 <script>
-    // Dữ liệu mẫu (thay bằng dữ liệu thật từ server khi tích hợp)
-    const ordersData = [
-        { id: 1, code: "DH0001", customerName: "Nguyễn Văn A", phone: "0901000001", createdAt: "2025-12-28", total: 250000, status: "pending" },
-        { id: 2, code: "DH0002", customerName: "Trần Thị B", phone: "0902000002", createdAt: "2025-12-29", total: 480000, status: "confirmed" },
-        { id: 3, code: "DH0003", customerName: "Lê Văn C", phone: "0903000003", createdAt: "2025-12-30", total: 320000, status: "shipping" },
-        { id: 4, code: "DH0004", customerName: "Phạm Thị D", phone: "0904000004", createdAt: "2025-12-31", total: 150000, status: "completed" },
-        { id: 5, code: "DH0005", customerName: "Đỗ Minh E", phone: "0905000005", createdAt: "2026-01-01", total: 0, status: "cancelled" }
-    ];
+    var currentPage = 1;
+    var url_domain = window.location.origin;
 
-    const pageSize = 10;
-    let filtered = [...ordersData];
-    let currentPage = 1;
+    $(document).ready(function () {
+        // Tải dữ liệu lần đầu
+        TaiDanhSachDonHang(1);
 
-    const formatCurrency = (v) => (v || 0).toLocaleString("vi-VN") + " ₫";
-    const statusLabel = (s) => {
-        switch (s) {
-            case "pending": return '<span class="status pending">Chờ xử lý</span>';
-            case "confirmed": return '<span class="status confirmed">Đã xác nhận</span>';
-            case "shipping": return '<span class="status shipping">Đang giao</span>';
-            case "completed": return '<span class="status completed">Hoàn thành</span>';
-            case "cancelled": return '<span class="status cancelled">Đã hủy</span>';
-            default: return s;
-        }
-    };
+        // Sự kiện click nút Tìm kiếm
+        $("#btnSearch").click(function () {
+            TaiDanhSachDonHang(1);
+        });
 
-    const inDateRange = (dateStr, fromStr, toStr) => {
-        const d = new Date(dateStr);
-        if (fromStr) {
-            const f = new Date(fromStr);
-            if (d < new Date(f.getFullYear(), f.getMonth(), f.getDate())) return false;
-        }
-        if (toStr) {
-            const t = new Date(toStr);
-            const end = new Date(t.getFullYear(), t.getMonth(), t.getDate(), 23, 59, 59, 999);
-            if (d > end) return false;
-        }
-        return true;
-    };
+        // Sự kiện click nút Làm mới
+        $("#btnReset").click(function () {
+            $("#searchKeyword").val("");
+            $("#statusFilter").val("");
+            $("#dateFrom").val("");
+            $("#dateTo").val("");
+            TaiDanhSachDonHang(1);
+        });
 
-    function renderTable() {
-        const tbody = document.getElementById("ordersTbody");
-        tbody.innerHTML = "";
+        // Sự kiện nhấn Enter ở ô tìm kiếm
+        $("#searchKeyword").on("keydown", function (e) {
+            if (e.key === "Enter") TaiDanhSachDonHang(1);
+        });
+    });
 
-        const start = (currentPage - 1) * pageSize;
-        const pageItems = filtered.slice(start, start + pageSize);
+    // --- HÀM TẢI DỮ LIỆU TỪ SERVER (AJAX) ---
+    function TaiDanhSachDonHang(page) {
+        currentPage = page;
 
-        if (pageItems.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#6b7280;">Không có dữ liệu</td></tr>`;
-            renderPagination();
+        // Thu thập dữ liệu từ form
+        var formData = new FormData();
+        formData.append('keyword', $("#searchKeyword").val());
+        formData.append('status', $("#statusFilter").val());
+        formData.append('dateFrom', $("#dateFrom").val());
+        formData.append('dateTo', $("#dateTo").val());
+        formData.append('page', page);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/DonHang/LayDanhSachDonHang',
+            data: formData,
+            processData: false, contentType: false, cache: false,
+            beforeSend: function () {
+                $("#ordersTbody").html('<tr><td colspan="7" class="text-center">Đang tải dữ liệu...</td></tr>');
+            },
+            success: function (res) {
+                var data = (typeof res === 'string') ? JSON.parse(res) : res;
+
+                if (data.Error) {
+                    alert("Lỗi: " + data.Error);
+                    return;
+                }
+
+                RenderTable(data.List);
+                RenderPagination(data.TotalPages, data.CurrentPage);
+            },
+            error: function () {
+                $("#ordersTbody").html('<tr><td colspan="7" class="text-danger text-center">Lỗi kết nối server.</td></tr>');
+            }
+        });
+    }
+
+    // --- HÀM RENDER BẢNG HTML ---
+    function RenderTable(list) {
+        var tbody = $("#ordersTbody");
+        tbody.empty();
+
+        if (!list || list.length === 0) {
+            tbody.html('<tr><td colspan="7" style="text-align:center; color:#6b7280; padding:20px;">Không tìm thấy đơn hàng nào</td></tr>');
             return;
         }
 
-        const rows = pageItems.map(o => `
-            <tr>
-                <td><a href="/DonHang/ChiTietDonHang?code=${encodeURIComponent(o.code)}" title="Xem chi tiết">${o.code}</a></td>
-                <td>${o.customerName}</td>
-                <td>${o.phone}</td>
-                <td>${o.createdAt}</td>
-                <td>${formatCurrency(o.total)}</td>
-                <td>${statusLabel(o.status)}</td>
-                <td>
-                    <a class="btn btn-secondary" href="/DonHang/ChiTietDonHang?code=${encodeURIComponent(o.code)}">Xem chi tiết</a>
-                </td>
-            </tr>
-        `).join("");
-
-        tbody.innerHTML = rows;
-        renderPagination();
-    }
-
-    function renderPagination() {
-        const pag = document.getElementById("pagination");
-        pag.innerHTML = "";
-        const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-
-        const makeBtn = (text, page, disabled = false, active = false) => {
-            const btn = document.createElement("button");
-            btn.className = "page-btn" + (active ? " active" : "");
-            btn.textContent = text;
-            if (disabled) btn.disabled = true;
-            btn.addEventListener("click", () => { currentPage = page; renderTable(); });
-            return btn;
-        };
-
-        pag.appendChild(makeBtn("«", 1, currentPage === 1));
-        pag.appendChild(makeBtn("‹", Math.max(1, currentPage - 1), currentPage === 1));
-
-        const totalPagesToShow = 5;
-        const start = Math.max(1, currentPage - 2);
-        const end = Math.min(totalPages, start + totalPagesToShow - 1);
-        for (let p = start; p <= end; p++) pag.appendChild(makeBtn(String(p), p, false, p === currentPage));
-
-        pag.appendChild(makeBtn("›", Math.min(totalPages, currentPage + 1), currentPage === totalPages));
-        pag.appendChild(makeBtn("»", totalPages, currentPage === totalPages));
-    }
-
-    function applyFilter() {
-        const keyword = document.getElementById("searchKeyword").value.trim().toLowerCase();
-        const status = document.getElementById("statusFilter").value;
-        const from = document.getElementById("dateFrom").value;
-        const to = document.getElementById("dateTo").value;
-
-        filtered = ordersData.filter(o => {
-            const kwMatch = !keyword ||
-                o.code.toLowerCase().includes(keyword) ||
-                o.customerName.toLowerCase().includes(keyword) ||
-                o.phone.toLowerCase().includes(keyword);
-            const statusMatch = !status || o.status === status;
-            const dateMatch = inDateRange(o.createdAt, from, to);
-            return kwMatch && statusMatch && dateMatch;
+        list.forEach(function (o) {
+            var html = `
+                <tr>
+                    <td><a href="/DonHang/ChiTietDonHang?code=${o.code}" style="font-weight:bold; color:#2563eb; text-decoration:none;">${o.code}</a></td>
+                    <td>${o.customerName}</td>
+                    <td>${o.phone}</td>
+                    <td>${o.createdAt}</td>
+                    <td>${DinhDangTienTe(o.total)}</td>
+                    <td>${GetStatusHtml(o.status, o.statusText)}</td>
+                    <td>
+                        <a class="btn btn-secondary" href="/DonHang/ChiTietDonHang?code=${o.code}">Xem chi tiết</a>
+                    </td>
+                </tr>
+            `;
+            tbody.append(html);
         });
-
-        currentPage = 1;
-        renderTable();
     }
 
-    function resetFilter() {
-        document.getElementById("searchKeyword").value = "";
-        document.getElementById("statusFilter").value = "";
-        document.getElementById("dateFrom").value = "";
-        document.getElementById("dateTo").value = "";
-        filtered = [...ordersData];
-        currentPage = 1;
-        renderTable();
+    // --- CÁC HÀM HELPER ---
+
+    function DinhDangTienTe(n) {
+        return n.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
     }
 
-    (function init() {
-        document.getElementById("btnSearch").addEventListener("click", applyFilter);
-        document.getElementById("btnReset").addEventListener("click", resetFilter);
-        document.getElementById("searchKeyword").addEventListener("keydown", (e) => { if (e.key === "Enter") applyFilter(); });
-        renderTable();
-    })();
-</script> 
+    function GetStatusHtml(cssClass, text) {
+        // Áp dụng đúng class CSS đã định nghĩa trong style
+        return `<span class="status ${cssClass}">${text}</span>`;
+    }
+
+    function RenderPagination(totalPages, curPage) {
+        var pag = $("#pagination");
+        pag.empty();
+
+        if (totalPages <= 1) return;
+
+        // Nút Previous
+        var prevDisabled = (curPage === 1);
+        pag.append(CreatePageBtn("«", 1, prevDisabled, false));
+        pag.append(CreatePageBtn("‹", Math.max(1, curPage - 1), prevDisabled, false));
+
+        // Các nút số trang (Logic hiển thị rút gọn)
+        var start = Math.max(1, curPage - 2);
+        var end = Math.min(totalPages, start + 4);
+
+        // Điều chỉnh lại start nếu end chạm trần
+        if (end - start < 4) start = Math.max(1, end - 4);
+
+        for (var i = start; i <= end; i++) {
+            pag.append(CreatePageBtn(i, i, false, i === curPage));
+        }
+
+        // Nút Next
+        var nextDisabled = (curPage === totalPages);
+        pag.append(CreatePageBtn("›", Math.min(totalPages, curPage + 1), nextDisabled, false));
+        pag.append(CreatePageBtn("»", totalPages, nextDisabled, false));
+    }
+
+    function CreatePageBtn(text, pageIndex, disabled, active) {
+        var btn = $("<button></button>")
+            .addClass("page-btn")
+            .text(text);
+
+        if (active) btn.addClass("active");
+        if (disabled) btn.prop("disabled", true).css("opacity", "0.5").css("cursor", "default");
+        else {
+            btn.click(function () {
+                TaiDanhSachDonHang(pageIndex);
+            });
+        }
+        return btn;
+    }
+</script>

@@ -12,7 +12,7 @@
         </div>
         <div class="col-sm-6">
             <ol class="breadcrumb float-sm-end">
-                <li class="breadcrumb-item"><a href="~/SanPham/LaySanPham">Quay lại</a></li>
+                <li class="breadcrumb-item"><a href="~/SanPham/QL_DanhSachSanPham">Quay lại</a></li>
                 
             </ol>
         </div>
@@ -59,8 +59,6 @@
     </div>
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
 <script>
     var url_domain = window.location.origin;
 
@@ -68,19 +66,19 @@
 
     // Hàm reset form về trạng thái thêm mới ban đầu
     function DatLaiForm() {
-        $("#hide_MaDM").val(""); 
-        $("#txt_TenDM").val(""); 
-        $("#form_title").text("Thêm mới Danh mục"); 
-        $("#btn_Huy").hide(); 
+        $("#hide_MaDM").val("");
+        $("#txt_TenDM").val("");
+        $("#form_title").text("Thêm mới Danh mục");
+        $("#btn_Huy").hide();
         $("#txt_TenDM").focus();
     }
 
     // Hàm chuẩn bị form cho việc sửa
     function SuaForm(maDM, tenDM) {
-        $("#hide_MaDM").val(maDM); 
-        $("#txt_TenDM").val(tenDM); 
-        $("#form_title").text("Cập nhật Danh mục: " + tenDM); 
-        $("#btn_Huy").show(); 
+        $("#hide_MaDM").val(maDM);
+        $("#txt_TenDM").val(tenDM);
+        $("#form_title").text("Cập nhật Danh mục: " + tenDM);
+        $("#btn_Huy").show();
 
         // Cuộn lên đầu trang để người dùng thấy form
         $('html, body').animate({ scrollTop: 0 }, 'slow');
@@ -93,23 +91,27 @@
     // Hàm tải và hiển thị danh sách danh mục
     function TaiDanhMuc() {
         $.ajax({
-            type: "POST",
-            url: url_domain + '/DanhMuc/Lay_DSDM',
+            type: "POST", // Hoặc GET tùy vào cấu hình, ở đây Controller dùng public string nên mặc định POST vẫn nhận được nếu không chặn
+            url: '/DanhMuc/Lay_DSDM', // Nên dùng đường dẫn tương đối hoặc Url.Action nếu code trong Razor
             processData: false,
             contentType: false,
             cache: false,
             success: function (response) {
-                if (response.charAt(0) !== '[') {
+                // Kiểm tra dữ liệu trả về
+                if (!response || (typeof response === 'string' && response.charAt(0) !== '[')) {
                     $("#tbl_danhmuc_body").html(`<tr><td colspan="3" class="text-center">${response}</td></tr>`);
                     return;
                 }
-                var categories = JSON.parse(response);
+
+                // Parse JSON nếu server trả về string, nếu server trả về JSON object thì không cần parse
+                var categories = (typeof response === 'string') ? JSON.parse(response) : response;
+
                 var tableBody = $("#tbl_danhmuc_body");
                 tableBody.empty(); // Xóa dữ liệu cũ
 
                 if (categories.length === 0) {
-                     tableBody.html(`<tr><td colspan="3" class="text-center">Chưa có danh mục nào.</td></tr>`);
-                     return;
+                    tableBody.html(`<tr><td colspan="3" class="text-center">Chưa có danh mục nào.</td></tr>`);
+                    return;
                 }
 
                 categories.forEach(function (cat, index) {
@@ -126,7 +128,7 @@
             },
             error: function (err) {
                 console.log("Lỗi tải danh mục:", err);
-                alert("Không thể tải danh sách danh mục.");
+                // alert("Không thể tải danh sách danh mục.");
             }
         });
     }
@@ -135,17 +137,22 @@
 
     $(document).ready(function () {
         // Tải danh sách ngay khi trang được mở
-        loadCategories();
+        TaiDanhMuc(); // SỬA: Thay loadCategories() bằng TaiDanhMuc()
 
         // Sự kiện khi nhấn nút "Hủy"
         $("#btn_Huy").on('click', function () {
-            resetForm();
+            DatLaiForm(); // SỬA: Thay resetForm() bằng DatLaiForm()
         });
 
         // Sự kiện khi nhấn nút "Lưu"
         $("#btn_Luu").on('click', function () {
             var maDM = $("#hide_MaDM").val();
             var tenDM = $("#txt_TenDM").val();
+
+            if (!tenDM) {
+                alert("Vui lòng nhập tên danh mục");
+                return;
+            }
 
             var url_api = "";
             var formData = new FormData();
@@ -154,11 +161,11 @@
             // Quyết định gọi API Thêm hay Sửa
             if (maDM) {
                 // Nếu có maDM -> đây là chế độ Sửa
-                url_api = url_domain + '/DanhMuc/SuaDM';
+                url_api = '/DanhMuc/SuaDM';
                 formData.append("maDM", maDM);
             } else {
                 // Nếu không có maDM -> đây là chế độ Thêm
-                url_api = url_domain + '/DanhMuc/ThemDM';
+                url_api = '/DanhMuc/ThemDM';
             }
 
             $.ajax({
@@ -172,33 +179,32 @@
                     alert(response);
                     // Nếu thành công, làm mới danh sách và reset form
                     if (response.toLowerCase().includes("thành công")) {
-                        loadCategories();
-                        resetForm();
+                        TaiDanhMuc(); // SỬA: Gọi lại hàm tải danh sách
+                        DatLaiForm(); // SỬA: Reset form
                     }
                 },
                 error: function (err) {
-                     console.log("Lỗi:", err);
-                     alert("Thao tác thất bại.");
+                    console.log("Lỗi:", err);
+                    alert("Thao tác thất bại.");
                 }
             });
         });
 
         // Gán sự kiện cho các nút "Sửa" và "Xóa" trên bảng
-        // Phải dùng cách này vì các nút này được tạo ra sau khi trang đã tải
         $('#tbl_danhmuc_body').on('click', '.btn-sua', function () {
             var maDM = $(this).data('id');
             var tenDM = $(this).data('name');
-            prepareEditForm(maDM, tenDM);
+            SuaForm(maDM, tenDM); // SỬA: Thay prepareEditForm bằng SuaForm
         });
 
         $('#tbl_danhmuc_body').on('click', '.btn-xoa', function () {
             var maDM = $(this).data('id');
             if (confirm("Bạn có chắc chắn muốn xóa danh mục này không?")) {
-                 var formData = new FormData();
-                 formData.append("maDM", maDM);
-                 $.ajax({
+                var formData = new FormData();
+                formData.append("maDM", maDM);
+                $.ajax({
                     type: "POST",
-                    url: url_domain + '/DanhMuc/XoaDM',
+                    url: '/DanhMuc/XoaDM',
                     data: formData,
                     processData: false,
                     contentType: false,
@@ -206,7 +212,7 @@
                     success: function (response) {
                         alert(response);
                         if (response.toLowerCase().includes("thành công")) {
-                            loadCategories();
+                            TaiDanhMuc(); // SỬA: Gọi lại hàm tải danh sách
                         }
                     },
                     error: function (err) {

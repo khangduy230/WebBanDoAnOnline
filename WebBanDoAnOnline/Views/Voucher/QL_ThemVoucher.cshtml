@@ -86,13 +86,13 @@
 
         $.ajax({
             type: "POST",
-            url: window.location.origin + '/Voucher/InsertVoucher',
+            url: window.location.origin + '/Voucher/ThemMoiVoucher',
             data: formData,
             processData: false, contentType: false,
             success: function (res) {
                 alert(res);
                 if (res.includes("thành công")) {
-                    window.location.href = '/Voucher/LayVoucher';
+                    window.location.href = '/Voucher/QL_DanhSachVoucher';
                 }
             },
             error: function() { alert("Lỗi kết nối server."); }

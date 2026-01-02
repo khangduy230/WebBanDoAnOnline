@@ -1,6 +1,6 @@
-﻿@{
+﻿﻿@{
     ViewBag.Title = "Sửa Voucher";
-    Layout = "~/Views/Shared/_QL_Layout.cshtml";
+
 }
 
 <main class="container-fluid py-4">
@@ -10,7 +10,7 @@
         </div>
         <div class="card-body">
             <form id="form-voucher-edit">
-                <input type="hidden" name="txt_MaVoucher_hide" value="ViewBag.MaVoucher" />
+                <input type="hidden" name="txt_MaVoucher_hide" value="@ViewBag.MaVoucher" />
 
                 <div class="row">
                     <div class="col-md-6">
@@ -74,7 +74,7 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-    var vId = 'ViewBag.MaVoucher';
+    var vId = '@ViewBag.MaVoucher';
 
     function TaiDuLieu() {
         var fd = new FormData(); fd.append('id', vId);
@@ -82,9 +82,9 @@
             type: "POST",
             url: window.location.origin + '/Voucher/LayTTVoucher',
             data: fd, processData: false, contentType: false,
-            success: function(res) {
+            success: function (res) {
                 var v = JSON.parse(res);
-                if(!v.MaVoucher) { alert("Không tìm thấy"); return; }
+                if (!v.MaVoucher) { alert("Không tìm thấy"); return; }
 
                 $("#txt_TenVoucher").val(v.TenVoucher);
                 $("#txt_MaCode").val(v.MaCode);
@@ -99,22 +99,22 @@
         });
     }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         TaiDuLieu();
 
-        $("#btn_save").click(function() {
+        $("#btn_save").click(function () {
             // Validate
-            if($("#txt_GiaTri").val() < 0) { alert("Giá trị không được âm"); return; }
+            if ($("#txt_GiaTri").val() < 0) { alert("Giá trị không được âm"); return; }
 
             var formData = new FormData($('#form-voucher-edit')[0]);
             $.ajax({
                 type: "POST",
                 url: window.location.origin + '/Voucher/CapNhatVoucher',
                 data: formData, processData: false, contentType: false,
-                success: function(res) {
+                success: function (res) {
                     alert(res);
-                    if(res.includes("thành công")) {
-                        window.location.href = '/Voucher/LayVoucher';
+                    if (res.includes("thành công")) {
+                        window.location.href = '/Voucher/QL_DanhSachVoucher';
                     }
                 }
             });

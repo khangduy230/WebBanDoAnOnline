@@ -31,13 +31,34 @@ namespace WebBanDoAnOnline.Controllers
         // GET: /DonHang/QL_DanhSachDonHang
         public ActionResult QL_DanhSachDonHang()
         {
-            
-            return View(); 
+
+            return View();
         }
         // 2. GET: Trang chi tiết đơn hàng
-        public ActionResult ChiTietDonHang(string id)
+        public ActionResult ChiTietDonHang(string id, string code)
         {
-            ViewBag.OrderId = id;
+            int maDH = 0;
+
+            // Trường hợp 1: URL là ?id=5 (thường từ trang Nhân viên)
+            if (!string.IsNullOrEmpty(id))
+            {
+                int.TryParse(id, out maDH);
+            }
+
+            // Trường hợp 2: URL là ?code=DH00005 (từ trang Quản lý)
+            // Code này sẽ ghi đè nếu có tham số code truyền vào
+            if (!string.IsNullOrEmpty(code))
+            {
+                string numberPart = code.ToUpper().Replace("DH", "");
+                int.TryParse(numberPart, out maDH);
+            }
+
+            // Truyền ID chuẩn (số nguyên) xuống View
+            ViewBag.MaDH = maDH;
+
+            // Giữ lại viewbag cũ để phòng hờ logic cũ của bạn
+            ViewBag.OrderId = maDH > 0 ? maDH.ToString() : "";
+
             return View();
         }
 
@@ -170,7 +191,7 @@ namespace WebBanDoAnOnline.Controllers
             try
             {
                 string id_str = Request["id"];
-                string action = Request["action"]; 
+                string action = Request["action"];
                 string note = Request["note"];
 
                 int id = int.Parse(id_str);
@@ -270,6 +291,140 @@ namespace WebBanDoAnOnline.Controllers
             };
 
             return JsonConvert.SerializeObject(result);
+        }
+
+        // Helper: Map trạng thái tiếng Việt trong DB sang Class CSS trong View
+        public string LayDanhSachDonHang()
+        {
+            try
+            {
+                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+
+                // 1. Lấy tham số từ Client gửi lên
+                string keyword = Request["keyword"];      // Tìm kiếm
+                string status = Request["status"];        // Trạng thái
+                string dateFromStr = Request["dateFrom"]; // Ngày bắt đầu
+                string dateToStr = Request["dateTo"];     // Ngày kết thúc
+                int page = 1;
+                int.TryParse(Request["page"], out page);
+                int pageSize = 10; // Số dòng mỗi trang
+
+                // 2. Query cơ bản (Join bảng để lấy thông tin hiển thị)
+                var query = from d in db.DonHangs
+                            join t in db.TaiKhoans on d.MaTK equals t.MaTK
+                            // Left join địa chỉ để lấy tên người nhận thực tế (nếu có)
+                            join a in db.DiaChis on d.MaDiaChi equals a.MaDiaChi into da
+                            from addr in da.DefaultIfEmpty()
+                            where d.isDelete == 0 || d.isDelete == null
+                            select new
+                            {
+                                d.MaDH,
+                                d.Create_at,
+                                d.TongTien,
+                                d.TrangThai,
+                                // Ưu tiên lấy tên/sđt từ địa chỉ giao hàng, nếu không có thì lấy từ tài khoản
+                                TenKhach = addr != null ? addr.TenNguoiNhan : t.HoTen,
+                                SDT = addr != null ? addr.SDTNhan : t.SoDienThoai
+                            };
+
+                // 3. Xử lý Lọc (Filter)
+
+                // 3.1. Lọc theo trạng thái
+                if (!string.IsNullOrEmpty(status) && status != "all")
+                {
+                    // Map value từ <select> của View sang dữ liệu trong DB
+                    if (status == "pending") query = query.Where(x => x.TrangThai == "Chờ xác nhận" );
+                    else if (status == "confirmed") query = query.Where(x => x.TrangThai == "Đã xác nhận");
+                    else if (status == "shipping") query = query.Where(x => x.TrangThai == "Đang giao");
+                    else if (status == "completed") query = query.Where(x => x.TrangThai == "Đã nhận hàng" );
+                    else if (status == "cancelled") query = query.Where(x => x.TrangThai == "Đã hủy");
+                }
+
+                // 3.2. Lọc theo ngày (Date Range)
+                if (!string.IsNullOrEmpty(dateFromStr))
+                {
+                    DateTime dtFrom;
+                    if (DateTime.TryParse(dateFromStr, out dtFrom))
+                        query = query.Where(x => x.Create_at >= dtFrom);
+                }
+                if (!string.IsNullOrEmpty(dateToStr))
+                {
+                    DateTime dtTo;
+                    if (DateTime.TryParse(dateToStr, out dtTo))
+                    {
+                        // Cộng thêm 1 ngày để lấy trọn vẹn ngày kết thúc (vì DB lưu cả giờ phút)
+                        dtTo = dtTo.AddDays(1);
+                        query = query.Where(x => x.Create_at < dtTo);
+                    }
+                }
+
+                // 3.3. Lọc theo từ khóa (Mã đơn, Tên, SĐT)
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    string kw = keyword.ToLower().Trim();
+                    // Thử parse xem có phải tìm theo mã số đơn hàng không
+                    int searchId = 0;
+                    bool isNumber = int.TryParse(kw.Replace("dh", ""), out searchId);
+
+                    if (isNumber && kw.StartsWith("dh")) // Tìm chính xác mã đơn (VD: DH123)
+                    {
+                        query = query.Where(x => x.MaDH == searchId);
+                    }
+                    else
+                    {
+                        // Tìm theo Tên hoặc SĐT
+                        query = query.Where(x => x.TenKhach.ToLower().Contains(kw) || x.SDT.Contains(kw));
+                    }
+                }
+
+                // 4. Phân trang (Pagination)
+                int totalItems = query.Count();
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+                if (page < 1) page = 1;
+                if (page > totalPages && totalPages > 0) page = totalPages;
+
+                var items = query.OrderByDescending(x => x.Create_at)
+                                 .Skip((page - 1) * pageSize)
+                                 .Take(pageSize)
+                                 .ToList();
+
+                // 5. Chuẩn bị dữ liệu trả về khớp với Javascript
+                var resultList = items.Select(x => new
+                {
+                    id = x.MaDH,
+                    code = "DH" + x.MaDH.ToString("D5"), // Format thành DH00001
+                    customerName = x.TenKhach,
+                    phone = x.SDT,
+                    createdAt = x.Create_at.HasValue ? x.Create_at.Value.ToString("dd/MM/yyyy HH:mm") : "",
+                    total = x.TongTien,
+                    // Map trạng thái DB sang trạng thái CSS của View
+                    status = MapStatusToCss(x.TrangThai),
+                    statusText = x.TrangThai // Text hiển thị
+                });
+
+                return JsonConvert.SerializeObject(new
+                {
+                    TotalPages = totalPages,
+                    CurrentPage = page,
+                    List = resultList
+                });
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { Error = ex.Message });
+            }
+        }
+
+        private string MapStatusToCss(string dbStatus)
+        {
+            if (string.IsNullOrEmpty(dbStatus)) return "pending";
+            string s = dbStatus.ToLower();
+            if (s.Contains("chờ")) return "pending";
+            if (s.Contains("xác nhận")) return "confirmed";
+            if (s.Contains("giao")) return "shipping";
+            if (s.Contains("nhận") || s.Contains("hoàn thành")) return "completed";
+            if (s.Contains("hủy")) return "cancelled";
+            return "pending";
         }
     }
 }

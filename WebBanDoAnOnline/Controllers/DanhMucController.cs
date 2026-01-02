@@ -37,7 +37,7 @@ namespace WebBanDoAnOnline.Controllers
         
 
        
-        public string QL_ThemDM()
+        public string ThemDM()
         {
             string tenDM = Request["tenDM"];
             if (string.IsNullOrWhiteSpace(tenDM))

@@ -156,8 +156,7 @@ namespace WebBanDoAnOnline.Controllers
                 MoTa = sp.MoTa,
                 TenDM = tenDM,
                 DiemTrungBinh = Math.Round(diemTB, 1), // Làm tròn 1 số lẻ (VD: 4.666 -> 4.7)
-                SoLuotDanhGia = soLuotDanhGia,
-                ThoiGianGiao = sp.ThoiGianGiao
+                SoLuotDanhGia = soLuotDanhGia
             };
 
             return JsonConvert.SerializeObject(result);

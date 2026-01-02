@@ -3,48 +3,65 @@
     Layout = "~/Views/Shared/_QL_Layout.cshtml";
 }
 
-<main class="voucher-Trang container-fluid py-4">
-    <!-- Header -->
+<main class="voucher-page container-fluid py-4">
+    <!-- Header & Search -->
     <div class="d-flex align-items-center justify-content-between mb-4">
-        <div><h3 class="mb-0">Quản lý Voucher</h3><hr /></div>
-        <div class="d-flex align-items-center">
-            <input id="txt_search_voucher" class="form-control me-2" style="width:220px;" placeholder="Tìm theo tên hoặc mã" />
-            <a href="@Url.Action("QL_ThemVoucher", "Voucher")" class="btn btn-warning text-white">Thêm voucher</a>
+        <div>
+            <h3 class="mb-0 fw-bold text-primary">Quản lý Voucher</h3>
+            <p class="text-muted small mb-0">Quản lý mã giảm giá và chương trình khuyến mãi</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                <input id="txt_search_voucher" class="form-control border-start-0 ps-0" style="width:250px;" placeholder="Tìm theo tên hoặc mã code..." />
+            </div>
+            <a href="@Url.Action("QL_ThemVoucher", "Voucher")" class="btn btn-warning text-white fw-bold text-nowrap shadow-sm d-flex align-items-center gap-2 px-3">
+                <i class="fas fa-plus"></i>
+                <span>Thêm Voucher</span>
+            </a>
         </div>
     </div>
 
-    <!-- Lưới voucher -->
+    <hr class="mb-4" />
+
+    <!-- Lưới hiển thị Voucher -->
     <div id="voucher_grid" class="row g-3">
-        <!-- JS nạp dữ liệu -->
+        <!-- Dữ liệu sẽ được nạp vào đây bằng JS -->
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
     </div>
 
     <!-- Phân trang -->
-    <div id="pagination" class="d-flex justify-content-center mt-4"></div>
+    <div id="pagination" class="d-flex justify-content-center mt-5"></div>
 </main>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     var url_domain = window.location.origin;
-    var TrangHienTai = 1;
 
-    // Hàm format tiền tệ
+    // --- 1. Hàm định dạng tiền tệ ---
     function DinhDangTienTe(n) {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
     }
 
-    // Hàm format ngày
+    // --- 2. Hàm định dạng ngày (yyyy-MM-dd -> dd/MM/yyyy) ---
     function DinhDangNgay(str) {
         if (!str) return "";
-        var parts = str.split('-');
+        var parts = str.split('-'); // Server trả về yyyy-MM-dd
+        if (parts.length < 3) return str;
         return parts[2] + '/' + parts[1] + '/' + parts[0];
     }
 
+    // --- 3. Hàm tải danh sách Voucher (AJAX) ---
     function TaiVoucher(TimKiem, Trang = 1) {
-        TrangHienTai = Trang;
-        var term = TimKiem || $("#txt_search_voucher").val();
+        // Nếu TimKiem là null/undefined (khi bấm phân trang), lấy từ ô input
+        var term = (TimKiem === undefined || TimKiem === null) ? $("#txt_search_voucher").val() : TimKiem;
 
         var formData = new FormData();
-        formData.append('TimKiem', term);
+        formData.append('TimKiem', term || "");
         formData.append('Trang', Trang);
 
         $.ajax({
@@ -53,85 +70,192 @@
             data: formData,
             processData: false, contentType: false, cache: false,
             success: function (res) {
-                var data = JSON.parse(res);
+                var data = JSON.parse(res); // Parse JSON từ Controller
                 var vouchers = data.Vouchers;
                 var grid = $("#voucher_grid");
                 grid.empty();
 
+                // Xử lý khi không có dữ liệu
                 if (vouchers.length === 0) {
-                    grid.html('<div class="col-12 text-center text-muted">Không có voucher nào.</div>');
+                    grid.html(`
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-ticket-alt fa-3x text-muted mb-3" style="opacity: 0.5"></i>
+                            <p class="text-muted">Không tìm thấy voucher nào phù hợp.</p>
+                        </div>
+                    `);
+                    $("#pagination").html('');
                     return;
                 }
 
+                // Render từng voucher
                 vouchers.forEach(function (v) {
-                    // Hiển thị giảm giá
+                    // Logic hiển thị loại giảm
                     let giamText = (v.LoaiGiam === 'Phần trăm')
-                        ? `Giảm <span class="text-danger fw-bold">${v.GiaTri}%</span>`
-                        : `Giảm <span class="text-danger fw-bold">${DinhDangTienTe(v.GiaTri)}</span>`;
+                        ? `Giảm <span class="text-danger fw-bold fs-5">${v.GiaTri}%</span>`
+                        : `Giảm <span class="text-danger fw-bold fs-5">${DinhDangTienTe(v.GiaTri)}</span>`;
 
+                    // Logic hiển thị điều kiện
                     let dkText = v.DieuKienToiThieu > 0
-                        ? `Đơn tối thiểu: ${DinhDangTienTe(v.DieuKienToiThieu)}`
-                        : "Không yêu cầu tối thiểu";
+                        ? `Đơn tối thiểu: <b>${DinhDangTienTe(v.DieuKienToiThieu)}</b>`
+                        : "Không yêu cầu giá trị tối thiểu";
 
+                    // Logic hiển thị số lượt
                     let luot = (v.SoLuotConLai == null) ? "∞" : v.SoLuotConLai;
+                    let badgeColor = (v.SoLuotConLai != null && v.SoLuotConLai == 0) ? "bg-secondary" : "bg-warning text-dark";
 
                     var html = `
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 shadow-sm">
+                    <div class="col-md-6 col-lg-4 col-xl-4">
+                        <div class="card h-100 shadow-sm border-0" style="transition: transform 0.2s;">
                             <div class="card-body position-relative">
-                                <h5 class="card-title text-primary fw-bold">${v.TenVoucher}</h5>
-                                <div class="mb-2">${giamText}</div>
-                                <div class="small text-muted mb-2">${dkText}</div>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title text-primary fw-bold text-truncate" title="${v.TenVoucher}">${v.TenVoucher}</h5>
 
-                                <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mb-3">
-                                    <span class="fw-bold text-dark">CODE: ${v.MaCode}</span>
-                                    <span class="badge bg-warning text-dark">Còn: ${luot}</span>
                                 </div>
 
+                                <div class="mb-3">${giamText}</div>
+
+                                <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mb-2 border">
+                                    <span class="fw-bold text-dark font-monospace" style="letter-spacing:1px; color:#333">${v.MaCode}</span>
+                                    <span class="badge ${badgeColor}">Còn: ${luot}</span>
+                                </div>
+
+                                <div class="small text-muted mb-1"><i class="fas fa-info-circle me-1"></i> ${dkText}</div>
                                 <div class="small text-secondary">
-                                    <i class="far fa-calendar-alt"></i> ${DinhDangNgay(v.NgayBatDau)} - ${DinhDangNgay(v.NgayKetThuc)}
+                                    <i class="far fa-calendar-alt me-1"></i> ${DinhDangNgay(v.NgayBatDau)} - ${DinhDangNgay(v.NgayKetThuc)}
                                 </div>
                             </div>
-                            <div class="card-footer bg-white d-flex justify-content-end gap-2">
-                                <a href="/Voucher/SuaVoucher/${v.MaVoucher}" class="btn btn-sm btn-outline-primary">Sửa</a>
-                                <button class="btn btn-sm btn-outline-danger" onclick="XoaVoucher(${v.MaVoucher})">Xóa</button>
+                            <div class="card-footer bg-white border-top-0 d-flex justify-content-end gap-2 pb-3 pt-0">
+                                <a href="/Voucher/QL_SuaVoucher/${v.MaVoucher}" class="btn btn-sm btn-outline-primary px-3">
+                                    <i class="fas fa-edit"></i> Sửa
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger px-3" onclick="XoaVoucher(${v.MaVoucher})">
+                                    <i class="fas fa-trash-alt"></i> Xóa
+                                </button>
                             </div>
                         </div>
                     </div>`;
                     grid.append(html);
                 });
 
-                HienThiPhanTrang(data.TongTrang, data.TrangHienTai);
+                // Gọi hàm phân trang nâng cao
+                TaoPhanTrang(data.TongTrang, data.currentTrang);
             },
-            error: function () { alert("Lỗi tải dữ liệu."); }
-        });
-    }
-
-    function XoaVoucher(id) {
-        if (!confirm("Bạn muốn xóa voucher này?")) return;
-        var fd = new FormData(); fd.append('id', id);
-        $.ajax({
-            type: "POST", url: url_domain + '/Voucher/XoaVoucher',
-            data: fd, processData: false, contentType: false,
-            success: function (res) {
-                alert(res);
-                TaiVoucher();
+            error: function () {
+                $("#voucher_grid").html('<div class="col-12 text-center text-danger">Lỗi kết nối server. Vui lòng thử lại.</div>');
             }
         });
     }
 
-    function HienThiPhanTrang(TongTrang, HienTai) {
-        if (TongTrang <= 1) { $("#pagination").html(''); return; }
-        var html = '<nav><ul class="pagination">';
-        // ... (Logic phân trang giống các bài trước) ...
-        html += '</ul></nav>';
+    // --- 4. Hàm Phân Trang Nâng Cao (Theo yêu cầu của bạn) ---
+    function TaoPhanTrang(totalPages, currentPage) {
+        totalPages = parseInt(totalPages);
+        currentPage = parseInt(currentPage);
+
+        // Nếu chỉ có 1 trang hoặc lỗi thì không hiện phân trang
+        if (isNaN(totalPages) || totalPages <= 1) {
+            $("#pagination").html('');
+            return;
+        }
+
+        // Lấy từ khóa tìm kiếm hiện tại để giữ trạng thái khi chuyển trang
+        var kword = $("#txt_search_voucher").val() || "";
+        var kwordSafe = kword.replace(/'/g, "\\'"); // Xử lý dấu nháy đơn để tránh lỗi JS
+
+        // Helper render từng nút
+        function renderItem(page, isActive, isDisabled, text) {
+            var activeClass = isActive ? "active" : "";
+            var disabledClass = isDisabled ? "disabled" : "";
+
+            // Nếu nút disabled hoặc đang active thì không click được, ngược lại gọi TaiVoucher
+            var clickEvent = (isDisabled || isActive)
+                ? ""
+                : `onclick="TaiVoucher('${kwordSafe}', ${page})"`;
+
+            var display = text || page;
+
+            return `
+                <li class="page-item ${activeClass} ${disabledClass}">
+                    <a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a>
+                </li>`;
+        }
+
+        // Helper render dấu ...
+        function renderDots() {
+            return `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`;
+        }
+
+        var html = `<nav><ul class="pagination justify-content-center">`;
+
+        // Nút Previous (Trang trước)
+        html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
+
+        // Logic hiển thị số trang
+        if (totalPages <= 7) {
+            // Nếu ít trang, hiện hết
+            for (let i = 1; i <= totalPages; i++) {
+                html += renderItem(i, i === currentPage, false, i);
+            }
+        } else {
+            // Nếu nhiều trang, hiện dạng rút gọn (1 ... 4 5 6 ... 10)
+            html += renderItem(1, 1 === currentPage, false, 1); // Luôn hiện trang 1
+
+            var startPage = Math.max(2, currentPage - 1);
+            var endPage = Math.min(totalPages - 1, currentPage + 1);
+
+            if (startPage > 2) html += renderDots();
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += renderItem(i, i === currentPage, false, i);
+            }
+
+            if (endPage < totalPages - 1) html += renderDots();
+
+            html += renderItem(totalPages, totalPages === currentPage, false, totalPages); // Luôn hiện trang cuối
+        }
+
+        // Nút Next (Trang sau)
+        html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
+
+        html += `</ul></nav>`;
         $("#pagination").html(html);
     }
 
+    // --- 5. Hàm Xóa Voucher ---
+    function XoaVoucher(id) {
+        if (!confirm("Bạn có chắc chắn muốn xóa voucher này không?")) return;
+
+        var fd = new FormData();
+        fd.append('id', id);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/Voucher/XoaVoucher',
+            data: fd, processData: false, contentType: false,
+            success: function (res) {
+                // Hiển thị thông báo từ server (bao gồm cả thông báo không xóa được nếu đã dùng)
+                alert(res);
+                // Load lại trang hiện tại (hoặc về trang 1)
+                TaiVoucher(undefined, 1);
+            },
+            error: function () {
+                alert("Đã có lỗi xảy ra khi xóa.");
+            }
+        });
+    }
+
+    // --- 6. Sự kiện khi load trang ---
     $(document).ready(function () {
+        // Load lần đầu
         TaiVoucher('');
+
+        // Sự kiện gõ tìm kiếm (debounce 0.5s để tránh spam request)
+        var timeout = null;
         $("#txt_search_voucher").keyup(function () {
-            setTimeout(() => TaiVoucher($(this).val(), 1), 500);
+            clearTimeout(timeout);
+            var val = $(this).val();
+            timeout = setTimeout(function () {
+                TaiVoucher(val, 1); // Tìm kiếm luôn reset về trang 1
+            }, 500);
         });
     });
 </script>

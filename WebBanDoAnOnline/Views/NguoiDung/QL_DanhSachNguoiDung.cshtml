@@ -1,6 +1,6 @@
 ﻿@{
     ViewBag.Title = "Quản lý Người dùng";
-    
+
 }
 
 <main class="user-Trang container-fluid py-4">
@@ -36,18 +36,18 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     var url_domain = window.location.origin;
-    var dongTrang = 1;
 
-
+    // --- 1. HÀM TẠO BADGE TRẠNG THÁI ---
     function TaoTrangThai(status) {
         if (!status) return '';
         if (status === 'Hoạt động') return '<span class="badge bg-success">Hoạt động</span>';
         return '<span class="badge bg-danger">Bị khóa</span>';
     }
 
+    // --- 2. HÀM TẢI NGƯỜI DÙNG ---
     function TaiNguoiDung(TimKiem, Trang = 1) {
-        dongTrang = Trang;
-        var term = TimKiem || $("#txt_search_user").val();
+        var term = (TimKiem === null || TimKiem === undefined) ? $("#txt_search_user").val() : TimKiem;
+
         var formData = new FormData();
         formData.append('TimKiem', term);
         formData.append('Trang', Trang);
@@ -57,46 +57,34 @@
             url: url_domain + '/NguoiDung/Lay_DSNguoiDung',
             data: formData, processData: false, contentType: false, cache: false,
             success: function (res) {
-                var data = JSON.parse(res);
+                var data = (typeof res === 'string') ? JSON.parse(res) : res;
                 var users = data.NguoiDungs;
                 var container = $("#user_table_body");
                 container.empty();
 
-                if (users.length === 0) {
-                    container.html('<tr><td colspan="5" class="text-center py-4">Không tìm thấy người dùng nào.</td></tr>');
+                if (!users || users.length === 0) {
+                    container.html('<tr><td colspan="5" class="text-center py-5 text-muted">Không tìm thấy người dùng nào.</td></tr>');
                     $("#pagination").html("");
                     return;
                 }
 
                 for (var i = 0; i < users.length; i++) {
                     var u = users[i];
-
-                    // --- LOGIC NÚT BẤM ---
                     var actionBtn = "";
+
                     if (u.TrangThai === "Hoạt động") {
-                        // Nếu đang hoạt động -> Hiện nút Khóa (Màu đỏ)
-                        actionBtn = `<button class="btn btn-sm btn-outline-danger" onclick="TaoKhoa(${u.MaTK}, 'lock')" title="Khóa tài khoản">
-                                        <i class="fas fa-lock"></i> Khóa
-                                     </button>`;
+                        actionBtn = `<button class="btn btn-sm btn-outline-danger" onclick="TaoKhoa(${u.MaTK}, 'lock')" title="Khóa"><i class="fas fa-lock"></i> Khóa</button>`;
                     } else {
-                        // Nếu đang bị khóa -> Hiện nút Mở khóa (Màu xanh)
-                        actionBtn = `<button class="btn btn-sm btn-outline-success" onclick="TaoKhoa(${u.MaTK}, 'unlock')" title="Mở khóa">
-                                        <i class="fas fa-lock-open"></i> Mở
-                                     </button>`;
+                        actionBtn = `<button class="btn btn-sm btn-outline-success" onclick="TaoKhoa(${u.MaTK}, 'unlock')" title="Mở"><i class="fas fa-lock-open"></i> Mở</button>`;
                     }
 
+                    var rowClass = (u.TrangThai !== 'Hoạt động') ? 'table-secondary opacity-75' : '';
+
                     var html = `
-                    <tr class="${u.TrangThai === 'Bị khóa' ? 'table-secondary' : ''}"> <!-- Làm mờ dòng nếu bị khóa -->
+                    <tr class="${rowClass}">
                         <td>
-                            <div class="d-flex align-items-center">
-                                @*<div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2" style="width:40px;height:40px;font-weight:bold">
-                                    ${getInitials(u.HoTen)}
-                                </div>*@
-                                <div>
-                                    <div class="fw-bold">${u.HoTen}</div>
-                                    <div class="small text-muted">${u.Email || ''}</div>
-                                </div>
-                            </div>
+                            <div class="fw-bold">${u.HoTen}</div>
+                            <div class="small text-muted">${u.Email || ''}</div>
                         </td>
                         <td>
                             <div class="fw-bold text-primary">${u.TenTK}</div>
@@ -106,63 +94,95 @@
                         <td>${TaoTrangThai(u.TrangThai)}</td>
                         <td class="text-center">
                             <a href="/NguoiDung/QL_SuaNguoiDung/${u.MaTK}" class="btn btn-sm btn-outline-warning me-1">Sửa</a>
-
                             ${actionBtn}
                         </td>
                     </tr>`;
                     container.append(html);
                 }
-                HienThiPhanTrang(data.TongTrang, data.dongTrang);
+
+                // ★ QUAN TRỌNG: Đã sửa dongTrang thành currentTrang
+                HienThiPhanTrang(data.TongTrang, data.currentTrang);
             },
-            error: function () { alert("Lỗi tải dữ liệu"); }
+            error: function () {
+                $("#user_table_body").html('<tr><td colspan="5" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+            }
         });
     }
 
-    // --- HÀM MỚI: KHÓA / MỞ KHÓA ---
+    // --- 3. HÀM KHÓA / MỞ KHÓA ---
     function TaoKhoa(id, actionType) {
-        var msg = (actionType === 'lock')
-            ? "Bạn có chắc chắn muốn KHÓA tài khoản này không?\nNgười dùng sẽ không thể đăng nhập."
-            : "Bạn có chắc chắn muốn MỞ KHÓA tài khoản này không?";
-
+        var msg = (actionType === 'lock') ? "Bạn muốn KHÓA tài khoản này?" : "Bạn muốn MỞ KHÓA tài khoản này?";
         if (!confirm(msg)) return;
+        var fd = new FormData(); fd.append('id', id);
 
-        var formData = new FormData();
-        formData.append('id', id);
-
+        // Bạn kiểm tra lại URL này trong Controller xem là DatTrangThai hay TaoKhoa nhé
         $.ajax({
-            type: "POST",
-            url: url_domain + '/NguoiDung/TaoKhoa',
-            data: formData, processData: false, contentType: false,
+            type: "POST", url: url_domain + '/NguoiDung/DatTrangThai',
+            data: fd, processData: false, contentType: false,
             success: function (res) {
                 alert(res);
-                TaiNguoiDung($("#txt_search_user").val(), dongTrang); // Load lại để cập nhật giao diện
-            },
-            error: function () { alert("Lỗi kết nối server."); }
+                var currentPage = $("#pagination .page-item.active .page-link").text();
+                TaiNguoiDung(null, currentPage || 1);
+            }
         });
     }
 
-    
-    function HienThiPhanTrang(TongTrang, dong) {
-        if (TongTrang <= 1) { $("#pagination").html(''); return; }
-        var html = '<nav><ul class="pagination">';
-        var prevDisable = (dong == 1) ? "disabled" : "";
-        html += `<li class="Trang-item ${prevDisable}"><a class="Trang-link" href="#" onclick="TaiNguoiDung(null, ${dong - 1})">&laquo;</a></li>`;
-        for (var i = 1; i <= TongTrang; i++) {
-            var active = (i == dong) ? "active" : "";
-            html += `<li class="Trang-item ${active}"><a class="Trang-link" href="#" onclick="TaiNguoiDung(null, ${i})">${i}</a></li>`;
+    // --- 4. HÀM PHÂN TRANG (ĐÃ SỬA CLASS CSS) ---
+    function HienThiPhanTrang(totalPages, currentPage) {
+        totalPages = parseInt(totalPages);
+        currentPage = parseInt(currentPage);
+
+        if (isNaN(totalPages) || totalPages <= 1) { $("#pagination").html(''); return; }
+
+        var kword = $("#txt_search_user").val() || "";
+        var kwordSafe = kword.replace(/'/g, "\\'");
+
+        function renderItem(page, isActive, isDisabled, text) {
+            var activeClass = isActive ? "active" : "";
+            var disabledClass = isDisabled ? "disabled" : "";
+            var clickEvent = (isDisabled || isActive) ? "" : `onclick="TaiNguoiDung('${kwordSafe}', ${page})"`;
+            var display = text || page;
+
+            // ★ ĐÃ SỬA: Dùng class page-item và page-link của Bootstrap
+            return `<li class="page-item ${activeClass} ${disabledClass}">
+                        <a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a>
+                    </li>`;
         }
-        var nextDisable = (dong == TongTrang) ? "disabled" : "";
-        html += `<li class="Trang-item ${nextDisable}"><a class="Trang-link" href="#" onclick="TaiNguoiDung(null, ${dong + 1})">&raquo;</a></li>`;
-        html += '</ul></nav>';
+
+        function renderDots() {
+            return `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+
+        var html = `<nav><ul class="pagination justify-content-center">`;
+
+        html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) html += renderItem(i, i === currentPage, false, i);
+        } else {
+            html += renderItem(1, 1 === currentPage, false, 1);
+            var start = Math.max(2, currentPage - 1);
+            var end = Math.min(totalPages - 1, currentPage + 1);
+
+            if (start > 2) html += renderDots();
+            for (let i = start; i <= end; i++) html += renderItem(i, i === currentPage, false, i);
+            if (end < totalPages - 1) html += renderDots();
+
+            html += renderItem(totalPages, totalPages === currentPage, false, totalPages);
+        }
+
+        html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
+        html += `</ul></nav>`;
         $("#pagination").html(html);
     }
 
+    // --- 5. KHỞI TẠO ---
     $(document).ready(function () {
         TaiNguoiDung("");
-        var timeout;
+        var t;
         $("#txt_search_user").keyup(function () {
-            clearTimeout(timeout);
-            timeout = setTimeout(function () { TaiNguoiDung($("#txt_search_user").val(), 1); }, 500);
+            clearTimeout(t);
+            t = setTimeout(function () { TaiNguoiDung($("#txt_search_user").val(), 1); }, 500);
         });
     });
 </script>

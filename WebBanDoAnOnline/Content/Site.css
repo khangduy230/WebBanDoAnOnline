@@ -5,7 +5,7 @@
     --body-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Cấu trúc trang cơ bản */
+/* Cấu trúc page cơ bản */
 html, body {
     height: 100%;
 }
@@ -17,7 +17,7 @@ body {
     background-color: #f8f9fa;
 }
 
-.Trang-content {
+.page-content {
     flex: 1 0 auto;
 }
 
@@ -332,7 +332,7 @@ body {
         color: #fff;
     }
 
-/* Trang thực đơn: danh mục + lưới món */
+/* page thực đơn: danh mục + lưới món */
 .menu-categories {
     display: flex;
     gap: 20px;
@@ -694,7 +694,7 @@ body {
         opacity: 0.8;
     }
 
-/* Trang đăng nhập/đăng ký (auth) */
+/* page đăng nhập/đăng ký (auth) */
 .auth-layout {
     display: flex;
     min-height: 100vh;
@@ -1063,8 +1063,8 @@ body {
 }
 
 
-/* --- Checkout Trang --- */
-.checkout-Trang .address-card {
+/* --- Checkout page --- */
+.checkout-page .address-card {
     border: 1px solid #e9ecef;
     border-radius: 12px;
     padding: 12px 14px;
@@ -1075,23 +1075,23 @@ body {
     transition: box-shadow .2s ease, border-color .2s ease;
 }
 
-    .checkout-Trang .address-card.active,
-    .checkout-Trang .address-card:hover {
+    .checkout-page .address-card.active,
+    .checkout-page .address-card:hover {
         border-color: var(--primary-color);
         box-shadow: 0 6px 18px rgba(0,0,0,.06);
     }
 
-.checkout-Trang .addr-title {
+.checkout-page .addr-title {
     color: var(--text-color);
 }
 
-.checkout-Trang .pay-method .btn.active {
+.checkout-page .pay-method .btn.active {
     background-color: var(--primary-color);
     color: #fff;
     border-color: var(--primary-color);
 }
 
-.checkout-Trang .checkout-line .btn {
+.checkout-page .checkout-line .btn {
     width: 34px;
     padding: 4px 0;
 }
@@ -1170,7 +1170,7 @@ body {
     overflow-y: auto; /* Thanh cuộn dọc */
 }
 
-/* --- 3. CSS cho Từng dòng thông báo (Dùng chung cho cả trang full) --- */
+/* --- 3. CSS cho Từng dòng thông báo (Dùng chung cho cả page full) --- */
 .item-thongbao {
     padding: 10px;
     border-bottom: 1px solid #eee;

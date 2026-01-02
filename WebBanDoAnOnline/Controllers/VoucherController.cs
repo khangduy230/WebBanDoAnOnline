@@ -69,9 +69,9 @@ namespace WebBanDoAnOnline.Controllers
             });
         }
 
-        
+
         // API 2: LẤY CHI TIẾT 1 VOUCHER
-        
+
         public string LayTTVoucher()
         {
             string id_str = Request["id"];
@@ -83,7 +83,7 @@ namespace WebBanDoAnOnline.Controllers
 
             if (v != null)
             {
-                
+
                 string loaiGiamView = (v.LoaiGiam == "Phần trăm") ? "PhanTram" : "SoTien";
 
                 var result = new
@@ -104,9 +104,9 @@ namespace WebBanDoAnOnline.Controllers
             return "{}";
         }
 
-       
+
         // API 3: THÊM MỚI VOUCHER
-        
+
         public string ThemMoiVoucher()
         {
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
@@ -179,9 +179,10 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-       
+
         // API 4: CẬP NHẬT VOUCHER
-       
+
+        // API 4: CẬP NHẬT VOUCHER
         public string CapNhatVoucher()
         {
             string id_str = Request["txt_MaVoucher_hide"];
@@ -195,6 +196,8 @@ namespace WebBanDoAnOnline.Controllers
             {
                 try
                 {
+                    // BƯỚC 1: LẤY DỮ LIỆU VÀ KHAI BÁO BIẾN TRƯỚC (QUAN TRỌNG)
+                    // Phải khai báo ở đây để dùng được ở bên dưới
                     string loaiGiamRaw = Request["slc_LoaiGiam"];
                     decimal giaTri = decimal.Parse(Request["txt_GiaTri"]);
 
@@ -202,14 +205,15 @@ namespace WebBanDoAnOnline.Controllers
                     if (!string.IsNullOrEmpty(Request["txt_DieuKienToiThieu"]))
                         dieuKien = decimal.Parse(Request["txt_DieuKienToiThieu"]);
 
+                    // --- KHAI BÁO soLuotMoi Ở ĐÂY ---
                     int? soLuotMoi = null;
                     if (!string.IsNullOrEmpty(Request["txt_SoLuotDungToiDa"]))
                         soLuotMoi = int.Parse(Request["txt_SoLuotDungToiDa"]);
+                    // --------------------------------
 
-                    
+                    // BƯỚC 2: VALIDATE DỮ LIỆU
                     if (giaTri < 0) return "Giá trị giảm không được nhỏ hơn 0";
 
-                    
                     if (loaiGiamRaw == "PhanTram" && giaTri > 100)
                     {
                         return "Giảm theo phần trăm không được vượt quá 100%!";
@@ -218,7 +222,9 @@ namespace WebBanDoAnOnline.Controllers
                     if (dieuKien.HasValue && dieuKien < 0) return "Điều kiện tối thiểu không được nhỏ hơn 0";
                     if (soLuotMoi.HasValue && soLuotMoi < 0) return "Số lượt dùng không được nhỏ hơn 0";
 
-                   
+                    // BƯỚC 3: CẬP NHẬT VÀO DATABASE
+                    // Lúc này biến soLuotMoi đã có giá trị, không bị lỗi nữa
+
                     vc.TenVoucher = Request["txt_TenVoucher"];
                     vc.MaCode = Request["txt_MaCode"];
                     vc.LoaiGiam = (loaiGiamRaw == "PhanTram") ? "Phần trăm" : "Tiền";
@@ -231,14 +237,21 @@ namespace WebBanDoAnOnline.Controllers
                     vc.MoTaThem = Request["txt_MoTaThem"];
                     vc.LastEdit_at = DateTime.Now;
 
-                    
+                    // Xử lý cập nhật số lượt và tính lại lượt còn lại
                     vc.SoLuotDungToiDa = soLuotMoi;
+
                     if (soLuotMoi.HasValue)
                     {
-                        vc.SoLuotConLai = soLuotMoi.Value - (vc.SoLuotDaSuDung ?? 0);
+                        // Tính toán lại: Lượt còn lại = Tổng mới - Đã dùng
+                        int daDung = vc.SoLuotDaSuDung ?? 0;
+                        int conLai = soLuotMoi.Value - daDung;
+
+                        // Nếu chỉnh tổng lượt thấp hơn số đã dùng thì về 0 (tránh số âm)
+                        vc.SoLuotConLai = conLai < 0 ? 0 : conLai;
                     }
                     else
                     {
+                        // Nếu xóa giới hạn (để trống ô nhập) -> Set NULL
                         vc.SoLuotConLai = null;
                     }
 
@@ -253,23 +266,39 @@ namespace WebBanDoAnOnline.Controllers
             return "Không tìm thấy voucher";
         }
 
-      
+
         // API 5: XÓA VOUCHER
-        
+
+        // API 5: XÓA VOUCHER
         public string XoaVoucher()
         {
+            // Lấy ID từ request
             string id_str = Request["id"];
+            if (string.IsNullOrEmpty(id_str)) return "Lỗi: ID không hợp lệ";
+
             int id = int.Parse(id_str);
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+
+            // Tìm voucher
             var vc = db.Vouchers.FirstOrDefault(v => v.MaVoucher == id);
 
             if (vc != null)
             {
+                // --- BỔ SUNG LOGIC KIỂM TRA ĐÃ SỬ DỤNG ---
+                // Kiểm tra xem số lượt đã sử dụng có lớn hơn 0 hay không
+                if (vc.SoLuotDaSuDung != null && vc.SoLuotDaSuDung > 0)
+                {
+                    return "Không thể xóa: Voucher này đã được sử dụng " + vc.SoLuotDaSuDung + " lần!";
+                }
+                // -----------------------------------------
+
+                // Nếu chưa dùng thì mới cho xóa (Xóa mềm)
                 vc.isDelete = 1;
                 vc.Delete_at = DateTime.Now;
                 db.SubmitChanges();
                 return "Xóa thành công!";
             }
+
             return "Không tìm thấy voucher.";
         }
     }
