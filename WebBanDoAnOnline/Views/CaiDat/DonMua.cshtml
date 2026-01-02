@@ -392,12 +392,9 @@
                       </div>`;
                                         } else {
                                             // Nếu chưa đánh giá -> Hiện nút
-                                            btnDanhGia = `<button class="btn btn-sm btn-outline-warning ms-auto btn-open-review mt-2"
-                        data-dh="${order.MaDH}"
-                        data-sp="${sp.MaSP}"
-                        data-name="${sp.TenSP}">
-                        <i class="far fa-star"></i> Viết đánh giá
-                      </button>`;
+                                            btnDanhGia = `<a href="/DanhGia/KH_DanhGiaSanPham?maDH=${order.MaDH}&maSP=${sp.MaSP}" class="btn btn-sm btn-outline-warning ms-auto mt-2">
+    <i class="far fa-star"></i> Viết đánh giá
+</a>`;
                                         }
                                     }
 

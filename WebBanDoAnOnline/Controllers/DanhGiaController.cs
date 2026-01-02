@@ -10,6 +10,34 @@ namespace WebBanDoAnOnline.Controllers
     {
         private BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
+
+        // GET: Khách hàng viết đánh giá
+        public ActionResult KH_DanhGiaSanPham(int maDH, int maSP)
+        {
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null)
+            {
+                return RedirectToAction("DangNhap", "TaiKhoan");
+            }
+
+            // Lấy thông tin sản phẩm trong đơn hàng để hiển thị
+            var chiTiet = db.ChiTietDonHangs.FirstOrDefault(ct => ct.MaDH == maDH && ct.MaSP == maSP);
+            if (chiTiet == null)
+            {
+                return RedirectToAction("DonMua", "CaiDat");
+            }
+
+            ViewBag.MaDH = maDH;
+            ViewBag.MaSP = maSP;
+            ViewBag.TenSP = chiTiet.TenSP;
+
+            // Lấy ảnh từ bảng SanPham
+            var sp = db.SanPhams.FirstOrDefault(s => s.MaSP == maSP);
+            ViewBag.AnhSP = (sp != null && !string.IsNullOrEmpty(sp.Anh)) ? sp.Anh : "/Content/img/no-image.jpg";
+
+            return View();
+        }
+
         // GET: View Quản lý (Dành cho Quản lý & Nhân viên)
         public ActionResult QL_QuanLyDanhGia()
         {

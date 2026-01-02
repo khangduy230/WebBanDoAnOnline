@@ -1,0 +1,99 @@
+﻿
+@{
+    ViewBag.Title = "Viết đánh giá";
+    Layout = "~/Views/Shared/_KH_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h4 class="fw-bold text-center">Đánh giá sản phẩm</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
+                        <img src="@ViewBag.AnhSP.Replace("~", "")" alt="@ViewBag.TenSP" class="rounded" style="width: 80px; height: 80px; object-fit: cover; margin-right: 15px;">
+                        <div>
+                            <h5 class="mb-1 fw-bold">@ViewBag.TenSP</h5>
+                            <small class="text-muted">Đơn hàng #@ViewBag.MaDH</small>
+                        </div>
+                    </div>
+
+                    <form id="formDanhGia">
+                        <input type="hidden" id="dg_MaDH" value="@ViewBag.MaDH" />
+                        <input type="hidden" id="dg_MaSP" value="@ViewBag.MaSP" />
+
+                        <div class="text-center mb-4">
+                            <label class="form-label d-block fw-bold mb-2">Bạn cảm thấy món ăn thế nào?</label>
+                            <div class="rating-stars" style="font-size: 40px; cursor: pointer; color: #ddd;">
+                                <i class="fas fa-star" onclick="ChonSao(1)"></i>
+                                <i class="fas fa-star" onclick="ChonSao(2)"></i>
+                                <i class="fas fa-star" onclick="ChonSao(3)"></i>
+                                <i class="fas fa-star" onclick="ChonSao(4)"></i>
+                                <i class="fas fa-star" onclick="ChonSao(5)"></i>
+                            </div>
+                            <input type="hidden" id="dg_SoSao" value="5" />
+                            <div class="mt-2 fw-bold text-warning" id="dg_Label">Tuyệt vời</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Chia sẻ cảm nhận của bạn</label>
+                            <textarea class="form-control" id="dg_NoiDung" rows="5" placeholder="Món ăn có ngon không? Giao hàng có nhanh không?"></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-warning text-white fw-bold py-2" onclick="GuiDanhGia()">Gửi đánh giá</button>
+                            <a href="/CaiDat/DonMua" class="btn btn-light text-muted">Quay lại</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>$(document).ready(function() {
+        ChonSao(5);
+    });
+
+    function ChonSao(val) {
+        $('#dg_SoSao').val(val);
+        $('.rating-stars i').each(function (index) {
+            if (index < val) $(this).css('color', '#ffc107');
+            else $(this).css('color', '#ddd');
+        });
+        var labels = ["Tệ", "Không hài lòng", "Bình thường", "Hài lòng", "Tuyệt vời"];
+        $('#dg_Label').text(labels[val - 1]);
+    }
+
+    function GuiDanhGia() {
+        var btn = $("button[onclick='GuiDanhGia()']");
+        btn.prop("disabled", true).text("Đang gửi...");
+
+        var formData = new FormData();
+        formData.append('MaDH', $('#dg_MaDH').val());
+        formData.append('MaSP', $('#dg_MaSP').val());
+        formData.append('SoSao', $('#dg_SoSao').val());
+        formData.append('BinhLuan', $('#dg_NoiDung').val());
+
+        $.ajax({
+            type: "POST",
+            url: '/CaiDat/GuiDanhGia', // Sử dụng lại API cũ
+            data: formData, contentType: false, processData: false,
+            success: function (res) {
+                var r = JSON.parse(res);
+                if (r.success) {
+                    alert(r.message);
+                    window.location.href = '/CaiDat/DonMua'; // Quay lại trang đơn mua
+                } else {
+                    alert(r.message);
+                    btn.prop("disabled", false).text("Gửi đánh giá");
+                }
+            },
+            error: function () {
+                alert("Lỗi kết nối server!");
+                btn.prop("disabled", false).text("Gửi đánh giá");
+            }
+        });
+    }</script>
