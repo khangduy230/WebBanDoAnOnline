@@ -1,0 +1,108 @@
+﻿@{
+    ViewBag.Title = "Đánh giá sản phẩm";
+    Layout = "~/Views/Shared/_KH_Layout.cshtml";
+
+    // Lấy object từ ViewBag (đã được tạo ở Controller)
+    var kh = ViewBag.KHDG;
+
+    // Gán ra biến để dùng cho dễ, tránh lỗi dynamic
+    int maDH = kh.MaDH;
+    int maSP = kh.MaSP;
+    string tenSP = kh.TenSP;
+    string anhSP = kh.AnhSP;
+    int soLuong = kh.SoLuong;
+    decimal thanhTien = kh.ThanhTien;
+    string trangThai = kh.TrangThai;
+}
+
+<div class="container my-3">
+    <h4 class="mb-3">Đánh giá sản phẩm</h4>
+
+    <!-- Thông tin sản phẩm -->
+    <div class="p-3 border rounded-3 mb-3 bg-white">
+        <div class="d-flex justify-content-between">
+            <div class="d-flex">
+                <img src="@anhSP" alt="@tenSP"
+                     style="width:56px;height:56px;border-radius:12px;object-fit:cover;margin-right:12px;"
+                     onerror="this.src='/Content/img/no-image.jpg'" />
+                <div>
+                    <div class="fw-bold">@tenSP</div>
+                    <div class="text-muted">Số lượng: @soLuong x</div>
+                </div>
+            </div>
+            <div class="text-end">
+                <div>
+                    Thành tiền:
+                    <span class="fw-bold" style="color:#F58634">
+                        @string.Format("{0:#,0}đ", thanhTien)
+                    </span>
+                </div>
+                <div class="text-muted">Trạng thái: @trangThai</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form đánh giá -->
+    <form method="post" action="@Url.Action("LuuDanhGiaTrang", "DanhGia")">
+        @Html.AntiForgeryToken()
+
+        <!-- Các input ẩn để gửi về Controller -->
+        <input type="hidden" name="MaDH" value="@maDH" />
+        <input type="hidden" name="MaSP" value="@maSP" />
+        <input type="hidden" id="SoSao" name="SoSao" value="4" />
+
+        <div class="mb-2">
+            <label class="fw-bold me-2">Chất lượng sản phẩm:</label>
+            <span id="rating-stars" class="align-middle"></span>
+            <span id="rating-label" class="ms-2" style="color:#F58634;"></span>
+        </div>
+
+        <div class="mb-3">
+            <textarea class="form-control" name="BinhLuan" rows="5"
+                      placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a href="@Url.Action("DonMua", "CaiDat")" class="btn btn-outline-secondary">Quay lại</a>
+            <button type="submit" class="btn btn-warning text-white fw-bold"
+                    style="background:#F58634;border-color:#F58634;">
+                Hoàn thành
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>(function () {
+            var starContainer = document.getElementById('rating-stars');
+            var label = document.getElementById('rating-label');
+            var input = document.getElementById('SoSao');
+            var labels = { 1: "Tệ", 2: "Không hài lòng", 3: "Bình thường", 4: "Hài lòng", 5: "Tuyệt vời" };
+
+            function renderStars(current) {
+                starContainer.innerHTML = '';
+                for (var i = 1; i <= 5; i++) {
+                    var star = document.createElement('i');
+                    // Logic hiển thị sao vàng/sao rỗng
+                    star.className = 'fa' + (i <= current ? ' fa-star' : ' fa-star-o');
+                    star.style.color = '#ffc107';
+                    star.style.cursor = 'pointer';
+                    star.style.fontSize = '20px';
+                    star.style.marginRight = '4px';
+                    star.setAttribute('data-val', i);
+
+                    // Sự kiện click chọn sao
+                    star.addEventListener('click', function () {
+                        var v = parseInt(this.getAttribute('data-val'));
+                        input.value = v;
+                        renderStars(v);
+                    });
+                    starContainer.appendChild(star);
+                }
+                label.textContent = labels[current] || '';
+            }
+
+            // Mặc định 4 sao
+            renderStars(parseInt(input.value || '4'));
+        })();</script>
+}

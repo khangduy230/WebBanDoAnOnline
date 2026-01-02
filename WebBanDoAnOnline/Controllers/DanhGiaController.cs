@@ -10,6 +10,124 @@ namespace WebBanDoAnOnline.Controllers
     {
         private BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
+        [HttpGet]
+        public ActionResult KH_DanhGiaSanPham(int? maDH, int? maSP)
+        {
+            // 1. Kiểm tra tham số URL
+            if (maDH == null || maSP == null)
+            {
+                TempData["Err"] = "Đường dẫn không hợp lệ (thiếu mã đơn hàng hoặc sản phẩm).";
+                return RedirectToAction("DonMua", "CaiDat");
+            }
+
+            // 2. Kiểm tra đăng nhập
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null || user.VaiTro != "Khách hàng")
+            {
+                return RedirectToAction("DangNhap", "TaiKhoan");
+            }
+
+            // 3. Lấy dữ liệu từ DB
+            var ct = db.ChiTietDonHangs.FirstOrDefault(x => x.MaDH == maDH && x.MaSP == maSP);
+            var dh = db.DonHangs.FirstOrDefault(d => d.MaDH == maDH && d.MaTK == user.MaTK);
+
+            // 4. Kiểm tra tồn tại
+            if (dh == null || ct == null)
+            {
+                TempData["Err"] = "Không tìm thấy thông tin sản phẩm trong đơn hàng của bạn.";
+                return RedirectToAction("DonMua", "CaiDat");
+            }
+
+            // 5. Kiểm tra trạng thái (chỉ cho đánh giá khi đã nhận hàng)
+            if (dh.TrangThai != "Đã nhận hàng")
+            {
+                TempData["Err"] = "Đơn hàng chưa hoàn thành, bạn chưa thể đánh giá.";
+                return RedirectToAction("DonMua", "CaiDat");
+            }
+
+            // 6. Đổ dữ liệu ra ViewBag (Dùng object rõ ràng, không dynamic để tránh lỗi View)
+            string tenSP = ct.TenSP;
+            if (string.IsNullOrEmpty(tenSP) && ct.SanPham != null) tenSP = ct.SanPham.TenSP;
+
+            string anhSP = "";
+            if (ct.SanPham != null) anhSP = ct.SanPham.Anh;
+
+            ViewBag.KHDG = new
+            {
+                MaDH = dh.MaDH,
+                MaSP = ct.MaSP,
+                TenSP = tenSP ?? "Sản phẩm",
+                AnhSP = anhSP ?? "",
+                SoLuong = ct.SoLuong ?? 1,
+                ThanhTien = (ct.DonGia ?? 0) * (ct.SoLuong ?? 1),
+                TrangThai = dh.TrangThai ?? ""
+            };
+
+            return View();
+        }
+
+        // POST: Xử lý lưu đánh giá
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult LuuDanhGiaTrang(int MaDH, int MaSP, int SoSao, string BinhLuan)
+        {
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null) return RedirectToAction("DangNhap", "TaiKhoan");
+
+            try
+            {
+                // Kiểm tra lại đơn hàng
+                var dh = db.DonHangs.FirstOrDefault(d => d.MaDH == MaDH && d.MaTK == user.MaTK);
+                if (dh == null || dh.TrangThai != "Đã nhận hàng")
+                {
+                    TempData["Err"] = "Đơn hàng không hợp lệ.";
+                    return RedirectToAction("DonMua", "CaiDat");
+                }
+
+                // Kiểm tra đã đánh giá chưa
+                var daDanhGia = db.DanhGias.Any(x => x.MaDH == MaDH && x.MaSP == MaSP && (x.isDelete == 0 || x.isDelete == null));
+                if (daDanhGia)
+                {
+                    TempData["Err"] = "Bạn đã đánh giá sản phẩm này rồi.";
+                    return RedirectToAction("DonMua", "CaiDat");
+                }
+
+                // Lưu đánh giá
+                var dg = new DanhGia();
+                dg.MaTK = user.MaTK;
+                dg.MaDH = MaDH;
+                dg.MaSP = MaSP;
+                dg.SoSao = (byte)SoSao;
+                dg.BinhLuan = BinhLuan ?? "";
+                dg.Create_at = DateTime.Now;
+                dg.isDelete = 0;
+
+                db.DanhGias.InsertOnSubmit(dg);
+                db.SubmitChanges();
+
+                // Cập nhật điểm trung bình cho sản phẩm
+                var sp = db.SanPhams.FirstOrDefault(s => s.MaSP == MaSP);
+                if (sp != null)
+                {
+                    var listDG = db.DanhGias.Where(x => x.MaSP == MaSP && (x.isDelete == 0 || x.isDelete == null)).ToList();
+                    if (listDG.Count > 0)
+                    {
+                        sp.SoLuotDanhGia = listDG.Count;
+                        sp.DiemDanhGia = listDG.Average(x => (double)x.SoSao);
+                        db.SubmitChanges();
+                    }
+                }
+
+                TempData["Ok"] = "Cảm ơn bạn đã đánh giá!";
+                return RedirectToAction("DonMua", "CaiDat");
+            }
+            catch (Exception ex)
+            {
+                TempData["Err"] = "Lỗi: " + ex.Message;
+                return RedirectToAction("DonMua", "CaiDat");
+            }
+        }
+
         // GET: View Quản lý (Dành cho Quản lý & Nhân viên)
         public ActionResult NV_QuanLyDanhGia()
         {
@@ -164,3 +282,5 @@ namespace WebBanDoAnOnline.Controllers
         }
     }
 }
+
+
