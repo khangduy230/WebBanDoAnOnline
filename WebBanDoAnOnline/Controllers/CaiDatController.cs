@@ -30,7 +30,7 @@ namespace WebBanDoAnOnline.Controllers
         }
 
         // POST: CaiDat/GetProfile (CaiDat/LayHoSo)
-        
+
         public string LayHoSo()
         {
             try
@@ -41,15 +41,11 @@ namespace WebBanDoAnOnline.Controllers
                 }
 
                 var sessionUser = Session["TaiKhoan"] as TaiKhoan;
-                if (sessionUser == null)
-                {
-                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Không tìm thấy người dùng" });
-                }
-
                 var user = db.TaiKhoans.FirstOrDefault(u => u.MaTK == sessionUser.MaTK);
+
                 if (user == null)
                 {
-                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Không tìm thấy tài khoản trong hệ thống" });
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Không tìm thấy tài khoản" });
                 }
 
                 var data = new
@@ -57,7 +53,10 @@ namespace WebBanDoAnOnline.Controllers
                     HoTen = user.HoTen,
                     Email = user.Email,
                     SoDienThoai = user.SoDienThoai,
-                    Avatar = user.AnhDaiDien ?? "/img/default-avatar.png"
+                    Avatar = user.AnhDaiDien ?? "/img/default-avatar.png",
+                    // --- Trả về thêm 2 trường này ---
+                    CauHoi = user.CauHoiBaoMat,
+                    TraLoi = user.CauTraLoiBaoMat
                 };
 
                 return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = true, data = data });
@@ -68,7 +67,7 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        // POST: CaiDat/SaveProfile (CaiDat/LuuHoSo)
+        // POST: CaiDat/LuuHoSo
         [HttpPost]
         public string LuuHoSo()
         {
@@ -80,37 +79,37 @@ namespace WebBanDoAnOnline.Controllers
                 }
 
                 var sessionUser = Session["TaiKhoan"] as TaiKhoan;
-                if (sessionUser == null)
-                {
-                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Không tìm thấy người dùng" });
-                }
-
                 var user = db.TaiKhoans.FirstOrDefault(u => u.MaTK == sessionUser.MaTK);
+
                 if (user == null)
                 {
-                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Không tìm thấy tài khoản trong hệ thống" });
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = false, message = "Không tìm thấy tài khoản" });
                 }
 
+                // Cập nhật thông tin cơ bản
                 user.HoTen = Request.Form["HoTen"];
                 user.Email = Request.Form["Email"];
                 user.SoDienThoai = Request.Form["SoDienThoai"];
 
+                // --- Cập nhật Câu hỏi & Trả lời ---
+                user.CauHoiBaoMat = Request.Form["CauHoi"];
+                user.CauTraLoiBaoMat = Request.Form["TraLoi"];
+                // ----------------------------------
+
+                // Xử lý Upload Avatar (Code cũ giữ nguyên)
                 if (Request.Files.Count > 0)
                 {
                     var file = Request.Files[0];
                     if (file != null && file.ContentLength > 0)
                     {
-                        string fileName = Path.GetFileNameWithoutExtension(file.FileName);    // Tên file không có đuôi
-                        string extension = Path.GetExtension(file.FileName);                  // Đuôi file (.jpg, .png, ...)
-                        fileName = fileName + "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + extension;  // Thêm timestamp để tránh trùng tên
+                        string fileName = Path.GetFileNameWithoutExtension(file.FileName);
+                        string extension = Path.GetExtension(file.FileName);
+                        fileName = fileName + "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + extension;
 
-                        string uploadPath = Server.MapPath("~/img/");  // Thư mục lưu ảnh đại diện
-                        if (!Directory.Exists(uploadPath))
-                        {
-                            Directory.CreateDirectory(uploadPath);
-                        }
+                        string uploadPath = Server.MapPath("~/img/");
+                        if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
 
-                        string filePath = Path.Combine(uploadPath, fileName);  // Đường dẫn đầy đủ
+                        string filePath = Path.Combine(uploadPath, fileName);
                         file.SaveAs(filePath);
 
                         user.AnhDaiDien = "/img/" + fileName;
@@ -118,7 +117,10 @@ namespace WebBanDoAnOnline.Controllers
                 }
 
                 db.SubmitChanges();
+
+                // Cập nhật lại Session để dữ liệu mới nhất được dùng ngay
                 Session["TaiKhoan"] = user;
+                Session["HoTen"] = user.HoTen;
 
                 return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = true, message = "Cập nhật thành công" });
             }

@@ -108,6 +108,21 @@
         <input type="tel" id="phone" class="form-control-custom" placeholder="0123456789" required>
     </div>
 
+    <div class="form-group">
+        <label for="question">Câu hỏi bảo mật</label>
+        <select id="question" class="form-control-custom" required>
+            <option value="">-- Chọn câu hỏi --</option>
+            <option value="Bạn thích ăn món gì nhất">Bạn thích ăn món gì nhất?</option>
+            <option value="Bạn thích điều gì nhất ở nhà hàng của chúng tôi">Bạn thích điều gì nhất ở nhà hàng của chúng tôi?</option>
+            <option value="Tên thú cưng đầu tiên của bạn là gì">Tên thú cưng đầu tiên của bạn là gì?</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="answer">Câu trả lời</label>
+        <input type="text" id="answer" class="form-control-custom" placeholder="Nhập câu trả lời bảo mật" required>
+    </div>
+
     <button type="submit" class="btn-save">Lưu thay đổi</button>
 </form>
 
@@ -157,6 +172,8 @@
                         $('#fullName').val(res.data.HoTen || '');
                         $('#email').val(res.data.Email || '');
                         $('#phone').val(res.data.SoDienThoai || '');
+                        $('#question').val(res.data.CauHoi || '');
+                        $('#answer').val(res.data.TraLoi || '');
 
                         // Xử lý đường dẫn ảnh
                         if (res.data.Avatar) {
@@ -188,6 +205,8 @@
             formData.append('HoTen', $('#fullName').val());
             formData.append('Email', $('#email').val());
             formData.append('SoDienThoai', $('#phone').val());
+            formData.append('CauHoi', $('#question').val());
+            formData.append('TraLoi', $('#answer').val());
 
             if (selectedAvatar) {
                 formData.append('Avatar', selectedAvatar);

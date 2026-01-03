@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Quản lý đánh giá";
     Layout = "~/Views/Shared/_QL_Layout.cshtml";
 }
@@ -25,35 +24,37 @@
         align-items: center;
         gap: 10px;
         margin: 20px 0;
+        flex-wrap: wrap; /* Cho phép xuống dòng trên màn nhỏ */
     }
 
     /* Search Box */
     .search-box {
         position: relative;
         flex-grow: 1;
+        min-width: 250px;
     }
 
-    .search-box input {
-        width: 100%;
-        padding: 10px 40px 10px 15px;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: border-color 0.2s;
-    }
+        .search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
 
-    .search-box input:focus {
-        outline: none;
-        border-color: #0d6efd;
-    }
+            .search-box input:focus {
+                outline: none;
+                border-color: #0d6efd;
+            }
 
-    .search-box i {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #999;
-    }
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
 
     /* Action Buttons */
     .action-btn {
@@ -67,15 +68,36 @@
         white-space: nowrap;
     }
 
-    .btn-hide { background-color: #ffc107; color: #333; }
-    .btn-hide:hover { background-color: #e0a800; }
+    .btn-hide {
+        background-color: #ffc107;
+        color: #333;
+    }
 
-    .btn-delete { background-color: #dc3545; color: white; }
-    .btn-delete:hover { background-color: #c82333; }
+        .btn-hide:hover {
+            background-color: #e0a800;
+        }
 
-    .btn-view-hidden { background-color: #6c757d; color: white; }
-    .btn-view-hidden:hover { background-color: #5a6268; }
-    .btn-view-hidden.active { background-color: #0d6efd; }
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+    }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+    .btn-view-hidden {
+        background-color: #6c757d;
+        color: white;
+    }
+
+        .btn-view-hidden:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-view-hidden.active {
+            background-color: #0d6efd;
+        }
 
     /* Table Styles */
     .danhgia-table {
@@ -84,76 +106,134 @@
         font-size: 14px;
     }
 
-    .danhgia-table th, .danhgia-table td {
-        padding: 15px;
-        text-align: left;
-        border-bottom: 1px solid #f0f0f0;
-        vertical-align: middle;
-    }
+        .danhgia-table th, .danhgia-table td {
+            padding: 12px 15px; /* Giảm padding một chút cho gọn */
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
 
-    .danhgia-table th {
+        .danhgia-table th {
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .danhgia-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+    /* Text Styles (Thay thế cho ảnh) */
+    .customer-name {
         font-weight: 600;
-        color: #888;
-        text-transform: uppercase;
-        font-size: 12px;
+        color: #333;
     }
 
-    .danhgia-table tr:last-child td {
-        border-bottom: none;
+    .product-name {
+        color: #0d6efd; /* Màu xanh cho tên sản phẩm */
+        font-weight: 500;
     }
 
-    .danhgia-table tr:hover {
-        background-color: #f9f9f9;
+    .rating .stars {
+        color: #ffc107;
+        font-size: 13px;
     }
 
-    /* Table Content */
-    .customer-info, .product-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+    .rating .rating-text {
+        font-size: 11px;
+        color: #777;
+        margin-top: 2px;
     }
 
-    .avatar, .product-img {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 1px solid #eee;
+    .comment-cell {
+        max-width: 350px;
     }
 
-    .rating .stars { color: #ffc107; }
-    .rating .rating-text { font-size: 12px; color: #777; }
-
-    .comment-cell { max-width: 300px; }
     .comment-text {
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
+        font-size: 13.5px;
     }
 
     .actions-cell a {
         color: #0d6efd;
         text-decoration: none;
         font-weight: 500;
-        margin-right: 10px;
+        margin-right: 12px;
         cursor: pointer;
+        font-size: 13px;
     }
-    .actions-cell a:hover { text-decoration: underline; }
-    .actions-cell a.delete-link { color: #dc3545; }
+
+        .actions-cell a:hover {
+            text-decoration: underline;
+        }
+
+        .actions-cell a.delete-link {
+            color: #dc3545;
+        }
+
+    /* Pagination */
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        list-style: none;
+        padding: 0;
+    }
+
+    .page-item {
+        margin: 0 4px;
+    }
+
+    .page-link {
+        display: block;
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        color: #333;
+        text-decoration: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .page-item.active .page-link {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+
+    .page-item.disabled .page-link {
+        background-color: #f8f9fa;
+        color: #aaa;
+        cursor: default;
+    }
+
+    .page-link:hover:not(.active) {
+        background-color: #f0f0f0;
+    }
 
     /* Modal Styles */
     .modal-overlay {
         display: none;
         position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         background-color: rgba(0, 0, 0, 0.6);
         z-index: 1050;
         justify-content: center;
         align-items: center;
     }
-    .modal-overlay.show { display: flex; }
+
+        .modal-overlay.show {
+            display: flex;
+        }
 
     .modal-content-box {
         background: white;
@@ -162,11 +242,16 @@
         width: 500px;
         max-width: 90%;
         box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        position: relative;
     }
 
-    .modal-header h3 { font-weight: 700; margin-bottom: 20px; }
-    .original-review { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    .original-review {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #0d6efd;
+    }
+
     .modal-content-box textarea {
         width: 100%;
         min-height: 120px;
@@ -175,10 +260,31 @@
         border-radius: 8px;
         resize: vertical;
     }
-    .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
-    .modal-btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; }
-    .btn-close-modal { background: #6c757d; color: white; }
-    .btn-submit-reply { background: #0d6efd; color: white; }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: flex-end;
+    }
+
+    .modal-btn {
+        padding: 8px 20px;
+        border-radius: 6px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-close-modal {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-submit-reply {
+        background: #0d6efd;
+        color: white;
+    }
 </style>
 
 <div class="danhgia-container">
@@ -188,140 +294,132 @@
 
     <div class="danhgia-actions">
         <div class="search-box">
-            <input type="text" id="input-tim-kiem" placeholder="Tìm theo khách hàng, sản phẩm, bình luận...">
+            <input type="text" id="input-tim-kiem" placeholder="Tìm kiếm...">
             <i class="fas fa-search"></i>
         </div>
-        <button id="btn-an-chon" class="action-btn btn-hide">Ẩn đánh giá</button>
-        <button id="btn-xoa-chon" class="action-btn btn-delete">Xoá đánh giá</button>
-        <button id="btn-xem-an" class="action-btn btn-view-hidden">Xem đánh giá đã ẩn</button>
+        <button id="btn-an-chon" class="action-btn btn-hide">Ẩn chọn</button>
+        <button id="btn-xoa-chon" class="action-btn btn-delete">Xoá chọn</button>
+        <button id="btn-xem-an" class="action-btn btn-view-hidden">Xem đã ẩn</button>
     </div>
 
-    <table class="danhgia-table">
-        <thead>
-            <tr>
-                <th><input type="checkbox" id="check-all"></th>
-                <th>Khách hàng</th>
-                <th>Sản phẩm</th>
-                <th>Đánh giá</th>
-                <th class="comment-cell">Bình luận</th>
-                <th>Thời gian</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody id="tbody-danh-gia">
-            <!-- Dữ liệu sẽ được render bằng JS -->
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="danhgia-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;"><input type="checkbox" id="check-all"></th>
+                    <th style="width: 150px;">Khách hàng</th>
+                    <th style="width: 180px;">Sản phẩm</th>
+                    <th style="width: 120px;">Đánh giá</th>
+                    <th>Bình luận</th>
+                    <th style="width: 140px;">Thời gian</th>
+                    <th style="width: 160px;">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-danh-gia"></tbody>
+        </table>
+    </div>
+
     <div id="loading-spinner" class="text-center p-5" style="display:none;">
         <div class="spinner-border text-primary" role="status"></div>
     </div>
+
+    <!-- VÙNG PHÂN TRANG -->
+    <div id="pagination" class="mt-4"></div>
 </div>
 
 <!-- Modal Trả lời Đánh giá -->
 <div id="modal-tra-loi" class="modal-overlay">
     <div class="modal-content-box">
-        <div class="modal-header">
-            <h3>Trả lời đánh giá</h3>
-        </div>
-        <div id="original-review-content" class="original-review">
-            <!-- Nội dung đánh giá gốc -->
-        </div>
-        <textarea id="textarea-phan-hoi" placeholder="Viết lời của bạn tại đây"></textarea>
+        <h4 class="fw-bold mb-3">Trả lời đánh giá</h4>
+        <div id="original-review-content" class="original-review"></div>
+        <textarea id="textarea-phan-hoi" placeholder="Nhập nội dung phản hồi của cửa hàng..."></textarea>
         <div class="modal-actions">
-            <button class="modal-btn btn-close-modal" onclick="dongModal()">Quay lại</button>
-            <button class="modal-btn btn-submit-reply" onclick="guiTraLoi()">Trả lời</button>
+            <button class="modal-btn btn-close-modal" onclick="dongModal()">Đóng</button>
+            <button class="modal-btn btn-submit-reply" onclick="guiTraLoi()">Gửi trả lời</button>
         </div>
         <input type="hidden" id="hidden-ma-dg" />
     </div>
 </div>
 
 @section scripts {
-    <script>let dangXemDaAn = false;
-    let urlDomain = window.location.origin;
+    <script>
+        let dangXemDaAn = false;
+        let urlDomain = window.location.origin;
+        let currentPage = 1;
 
-    document.addEventListener('DOMContentLoaded', function () {
-        taiDanhSachDanhGia();
+        document.addEventListener('DOMContentLoaded', function () {
+            taiDanhSachDanhGia(1);
 
-        document.getElementById('input-tim-kiem').addEventListener('keyup', function (e) {
-            if (e.key === 'Enter') {
-                taiDanhSachDanhGia();
-            }
+            document.getElementById('input-tim-kiem').addEventListener('keyup', function (e) {
+                if (e.key === 'Enter') taiDanhSachDanhGia(1);
+            });
+
+            document.getElementById('btn-xem-an').addEventListener('click', function () {
+                dangXemDaAn = !dangXemDaAn;
+                this.classList.toggle('active', dangXemDaAn);
+                this.textContent = dangXemDaAn ? 'Xem chưa ẩn' : 'Xem đã ẩn';
+                taiDanhSachDanhGia(1);
+            });
+
+            document.getElementById('check-all').addEventListener('change', function () {
+                document.querySelectorAll('.check-item').forEach(chk => chk.checked = this.checked);
+            });
+
+            document.getElementById('btn-an-chon').addEventListener('click', () => xuLyHangLoat('an'));
+            document.getElementById('btn-xoa-chon').addEventListener('click', () => xuLyHangLoat('xoa'));
         });
 
-        document.getElementById('btn-xem-an').addEventListener('click', function () {
-            dangXemDaAn = !dangXemDaAn;
-            this.classList.toggle('active', dangXemDaAn);
-            this.textContent = dangXemDaAn ? 'Xem đánh giá chưa ẩn' : 'Xem đánh giá đã ẩn';
-            taiDanhSachDanhGia();
-        });
+        function taiDanhSachDanhGia(page) {
+            currentPage = page || 1;
+            const tuKhoa = document.getElementById('input-tim-kiem').value;
+            const tbody = document.getElementById('tbody-danh-gia');
+            const spinner = document.getElementById('loading-spinner');
+            const paginationDiv = document.getElementById('pagination');
 
-        document.getElementById('check-all').addEventListener('change', function () {
-            document.querySelectorAll('.check-item').forEach(chk => chk.checked = this.checked);
-        });
+            spinner.style.display = 'block';
+            tbody.innerHTML = '';
+            paginationDiv.innerHTML = '';
 
-        document.getElementById('btn-an-chon').addEventListener('click', () => xuLyHangLoat('an'));
-        document.getElementById('btn-xoa-chon').addEventListener('click', () => xuLyHangLoat('xoa'));
-    });
+            const formData = new FormData();
+            formData.append('tuKhoa', tuKhoa);
+            formData.append('trangThaiAn', dangXemDaAn ? 'da_an' : 'chua_an');
+            formData.append('page', currentPage);
 
-    function taiDanhSachDanhGia() {
-        const tuKhoa = document.getElementById('input-tim-kiem').value;
-        const tbody = document.getElementById('tbody-danh-gia');
-        const spinner = document.getElementById('loading-spinner');
-
-        spinner.style.display = 'block';
-        tbody.innerHTML = '';
-
-        const formData = new FormData();
-        formData.append('tuKhoa', tuKhoa);
-        formData.append('trangThaiAn', dangXemDaAn ? 'da_an' : 'chua_an');
-
-        fetch(urlDomain + '/DanhGia/LayDanhSachDanhGia', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(res => {
-            spinner.style.display = 'none';
-            if (res.success) {
-                renderDanhSach(res.data);
-            } else {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi: ${res.message}</td></tr>`;
-            }
-        })
-        .catch(() => {
-            spinner.style.display = 'none';
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi kết nối server.</td></tr>`;
-        });
-    }
-
-    function renderDanhSach(data) {
-        const tbody = document.getElementById('tbody-danh-gia');
-        if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted">Không có đánh giá nào.</td></tr>';
-            return;
+            fetch(urlDomain + '/DanhGia/LayDanhSachDanhGia', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(res => {
+                    spinner.style.display = 'none';
+                    if (res.success) {
+                        renderDanhSach(res.data);
+                        taoPhanTrang(res.totalPages, res.currentPage);
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi: ${res.message}</td></tr>`;
+                    }
+                })
+                .catch(() => {
+                    spinner.style.display = 'none';
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi kết nối server.</td></tr>`;
+                });
         }
 
-        let html = '';
-        data.forEach(dg => {
-            const avatar = dg.Avatar ? dg.Avatar.replace('~', '') : '/img/default-avatar.png';
-            const anhSP = dg.AnhSanPham ? dg.AnhSanPham.replace('~', '') : '/img/no-image.jpg';
-            const hanhDongAn = dg.DaAn ? `<a onclick="anHienDanhGia(${dg.MaDG})">Hủy ẩn</a>` : `<a onclick="anHienDanhGia(${dg.MaDG})">Ẩn</a>`;
+        function renderDanhSach(data) {
+            const tbody = document.getElementById('tbody-danh-gia');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-5 text-muted">Không có dữ liệu.</td></tr>';
+                return;
+            }
+            let html = '';
+            data.forEach(dg => {
+                // Đã loại bỏ thẻ <img>, chỉ giữ lại text
+                const hanhDongAn = dg.DaAn ? `<a onclick="anHienDanhGia(${dg.MaDG})">Hủy ẩn</a>` : `<a onclick="anHienDanhGia(${dg.MaDG})">Ẩn</a>`;
 
-            html += `
-                <tr>
+                html += `<tr>
                     <td><input type="checkbox" class="check-item" data-id="${dg.MaDG}"></td>
-                    <td>
-                        <div class="customer-info">
-                            <img src="${avatar}" class="avatar" alt="Avatar">
-                            <span>${dg.TenKhachHang}</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="product-info">
-                            <img src="${anhSP}" class="product-img" alt="Sản phẩm">
-                            <span>${dg.TenSanPham}</span>
-                        </div>
-                    </td>
+                    <td><div class="customer-name">${dg.TenKhachHang}</div></td>
+                    <td><div class="product-name">${dg.TenSanPham}</div></td>
                     <td>
                         <div class="rating">
                             <div class="stars">${taoSoSao(dg.SoSao)}</div>
@@ -329,128 +427,111 @@
                         </div>
                     </td>
                     <td class="comment-cell">
-                        <p class="comment-text" title="${dg.BinhLuan}">${dg.BinhLuan || 'Không có bình luận'}</p>
-                        ${dg.PhanHoi ? `<p class="fst-italic text-muted small mt-1" title="Phản hồi: ${dg.PhanHoi}"><strong>QL:</strong> ${dg.PhanHoi}</p>` : ''}
+                        <div class="comment-text" title="${dg.BinhLuan}">${dg.BinhLuan || '<span class="text-muted fst-italic">Không có bình luận</span>'}</div>
+                        ${dg.PhanHoi ? `<div class="mt-1 small text-primary bg-light p-1 rounded"><strong>Trả lời:</strong> ${dg.PhanHoi}</div>` : ''}
                     </td>
-                    <td>${dg.ThoiGian}</td>
+                    <td class="small text-muted">${dg.ThoiGian}</td>
                     <td class="actions-cell">
-                        <a onclick="moModalTraLoi(${dg.MaDG}, '${dg.TenKhachHang}', '${dg.BinhLuan}', ${dg.SoSao})">Trả lời</a>
+                        <a onclick="moModalTraLoi(${dg.MaDG}, '${dg.TenKhachHang}', '${dg.BinhLuan || ''}', ${dg.SoSao})"><i class="fas fa-reply"></i> Trả lời</a>
                         ${hanhDongAn}
-                        <a class="delete-link" onclick="xoaDanhGia(${dg.MaDG})">Xoá</a>
+                        <a class="delete-link" onclick="xoaDanhGia(${dg.MaDG})"><i class="fas fa-trash"></i> Xoá</a>
                     </td>
-                </tr>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function taoPhanTrang(totalPages, currentPage) {
+            totalPages = parseInt(totalPages);
+            currentPage = parseInt(currentPage);
+            if (isNaN(totalPages) || totalPages <= 1) {
+                $("#pagination").html(''); return;
+            }
+
+            function renderItem(page, isActive, isDisabled, text) {
+                var activeClass = isActive ? "active" : "";
+                var disabledClass = isDisabled ? "disabled" : "";
+                var clickEvent = (isDisabled || isActive) ? "" : `onclick="taiDanhSachDanhGia(${page})"`;
+                var display = text || page;
+                return `<li class="page-item ${activeClass} ${disabledClass}"><a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a></li>`;
+            }
+            function renderDots() { return `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`; }
+
+            var html = `<ul class="pagination pagination-sm justify-content-center">`;
+            html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
+
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) html += renderItem(i, i === currentPage, false, i);
+            } else {
+                html += renderItem(1, 1 === currentPage, false, 1);
+                var startPage = Math.max(2, currentPage - 1);
+                var endPage = Math.min(totalPages - 1, currentPage + 1);
+                if (startPage > 2) html += renderDots();
+                for (let i = startPage; i <= endPage; i++) html += renderItem(i, i === currentPage, false, i);
+                if (endPage < totalPages - 1) html += renderDots();
+                html += renderItem(totalPages, totalPages === currentPage, false, totalPages);
+            }
+            html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
+            html += `</ul>`;
+
+            $("#pagination").html(html);
+        }
+
+        function anHienDanhGia(maDG) {
+            const hanhDong = dangXemDaAn ? 'hiện' : 'ẩn';
+            if (!confirm(`Bạn có chắc muốn ${hanhDong} đánh giá này?`)) return;
+            var fd = new FormData(); fd.append('maDG', maDG);
+            fetch(urlDomain + '/DanhGia/ToggleAnDanhGia', { method: 'POST', body: fd })
+                .then(res => res.json())
+                .then(data => { alert(data.message); if (data.success) taiDanhSachDanhGia(currentPage); });
+        }
+
+        function xoaDanhGia(maDG) {
+            if (!confirm('Bạn có chắc chắn muốn XÓA VĨNH VIỄN?')) return;
+            var fd = new FormData(); fd.append('maDG', maDG);
+            fetch(urlDomain + '/DanhGia/XoaDanhGia', { method: 'POST', body: fd })
+                .then(res => res.json())
+                .then(data => { alert(data.message); if (data.success) taiDanhSachDanhGia(currentPage); });
+        }
+
+        function xuLyHangLoat(hanhDong) {
+            const ids = Array.from(document.querySelectorAll('.check-item:checked')).map(chk => chk.dataset.id);
+            if (ids.length === 0) { alert('Vui lòng chọn ít nhất một dòng.'); return; }
+            const tenHanhDong = hanhDong === 'an' ? (dangXemDaAn ? 'hiện' : 'ẩn') : 'xóa';
+            if (!confirm(`Bạn có chắc muốn ${tenHanhDong} ${ids.length} dòng đã chọn?`)) return;
+
+            const promises = ids.map(id => {
+                const fd = new FormData(); fd.append('maDG', id);
+                const url = hanhDong === 'an' ? '/DanhGia/ToggleAnDanhGia' : '/DanhGia/XoaDanhGia';
+                return fetch(urlDomain + url, { method: 'POST', body: fd }).then(res => res.json());
+            });
+            Promise.all(promises).then(() => { alert(`Đã hoàn tất.`); taiDanhSachDanhGia(currentPage); });
+        }
+
+        function moModalTraLoi(maDG, tenKH, BinhLuan, soSao) {
+            document.getElementById('hidden-ma-dg').value = maDG;
+            // Modal cũng không hiện ảnh nữa, chỉ hiện text
+            document.getElementById('original-review-content').innerHTML = `
+                <div class="mb-2"><span class="fw-bold">${tenKH}</span> <span class="text-warning ms-2">${taoSoSao(soSao)}</span></div>
+                <div class="text-muted fst-italic">"${BinhLuan || 'Không có bình luận'}"</div>
             `;
-        });
-        tbody.innerHTML = html;
-    }
-
-    function taoSoSao(soSao) {
-        let saoHtml = '';
-        for (let i = 1; i <= 5; i++) {
-            saoHtml += `<i class="fa-${i <= soSao ? 'solid' : 'regular'} fa-star"></i>`;
+            document.getElementById('modal-tra-loi').classList.add('show');
         }
-        return saoHtml;
-    }
+        function dongModal() { document.getElementById('modal-tra-loi').classList.remove('show'); }
 
-    function nhanXetSao(soSao) {
-        if (soSao >= 4) return 'Hài lòng';
-        if (soSao === 3) return 'Bình thường';
-        return 'Không hài lòng';
-    }
-
-    function anHienDanhGia(maDG) {
-        const hanhDong = dangXemDaAn ? 'hiện' : 'ẩn';
-        if (!confirm(`Bạn có chắc muốn ${hanhDong} đánh giá này?`)) return;
-
-        const formData = new FormData();
-        formData.append('maDG', maDG);
-
-        fetch(urlDomain + '/DanhGia/ToggleAnDanhGia', { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                if (data.success) taiDanhSachDanhGia();
-            });
-    }
-
-    function xoaDanhGia(maDG) {
-        if (!confirm('Bạn có chắc chắn muốn XÓA VĨNH VIỄN đánh giá này? Hành động này không thể hoàn tác.')) return;
-
-        const formData = new FormData();
-        formData.append('maDG', maDG);
-
-        fetch(urlDomain + '/DanhGia/XoaDanhGia', { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                if (data.success) taiDanhSachDanhGia();
-            });
-    }
-
-    function xuLyHangLoat(hanhDong) {
-        const ids = Array.from(document.querySelectorAll('.check-item:checked')).map(chk => chk.dataset.id);
-        if (ids.length === 0) {
-            alert('Vui lòng chọn ít nhất một đánh giá.');
-            return;
+        function guiTraLoi() {
+            var ma = document.getElementById('hidden-ma-dg').value;
+            var nd = document.getElementById('textarea-phan-hoi').value;
+            if (!nd.trim()) { alert("Nhập nội dung!"); return; }
+            var fd = new FormData(); fd.append('maDG', ma); fd.append('noiDung', nd);
+            fetch(urlDomain + '/DanhGia/TraLoiDanhGia', { method: 'POST', body: fd })
+                .then(res => res.json())
+                .then(data => { alert(data.message); if (data.success) { dongModal(); taiDanhSachDanhGia(currentPage); } });
         }
 
-        const tenHanhDong = hanhDong === 'an' ? (dangXemDaAn ? 'hiện' : 'ẩn') : 'xóa';
-        if (!confirm(`Bạn có chắc muốn ${tenHanhDong} ${ids.length} đánh giá đã chọn?`)) return;
-
-        const promises = ids.map(id => {
-            const formData = new FormData();
-            formData.append('maDG', id);
-            const url = hanhDong === 'an' ? '/DanhGia/ToggleAnDanhGia' : '/DanhGia/XoaDanhGia';
-            return fetch(urlDomain + url, { method: 'POST', body: formData }).then(res => res.json());
-        });
-
-        Promise.all(promises).then(() => {
-            alert(`Đã ${tenHanhDong} các đánh giá đã chọn.`);
-            taiDanhSachDanhGia();
-        });
-    }
-
-    function moModalTraLoi(maDG, tenKH, BinhLuan, soSao) {
-        document.getElementById('hidden-ma-dg').value = maDG;
-        const reviewContent = document.getElementById('original-review-content');
-        reviewContent.innerHTML = `
-            <div class="customer-info">
-                <img src="/img/default-avatar.png" class="avatar" alt="Avatar">
-                <strong>${tenKH}</strong>
-            </div>
-            <p class="my-2">${BinhLuan}</p>
-            <div class="rating">
-                <div class="stars">${taoSoSao(soSao)}</div>
-            </div>
-        `;
-        document.getElementById('modal-tra-loi').classList.add('show');
-    }
-
-    function dongModal() {
-        document.getElementById('modal-tra-loi').classList.remove('show');
-    }
-
-    function guiTraLoi() {
-        const maDG = document.getElementById('hidden-ma-dg').value;
-        const BinhLuan = document.getElementById('textarea-phan-hoi').value;
-
-        if (!BinhLuan.trim()) {
-            alert('Vui lòng nhập nội dung phản hồi.');
-            return;
+        function taoSoSao(soSao) {
+            let h = ''; for (let i = 1; i <= 5; i++) h += `<i class="fa-${i <= soSao ? 'solid' : 'regular'} fa-star"></i>`; return h;
         }
-
-        const formData = new FormData();
-        formData.append('maDG', maDG);
-        formData.append('BinhLuan', BinhLuan);
-
-        fetch(urlDomain + '/DanhGia/TraLoiDanhGia', { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                if (data.success) {
-                    dongModal();
-                    taiDanhSachDanhGia();
-                }
-            });
-    }</script>
+        function nhanXetSao(s) { return s >= 4 ? 'Hài lòng' : s == 3 ? 'Bình thường' : 'Không hài lòng'; }
+    </script>
 }

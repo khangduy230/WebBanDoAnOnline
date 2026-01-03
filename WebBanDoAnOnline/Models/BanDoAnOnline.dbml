@@ -183,6 +183,8 @@
       <Column Name="Email" Type="System.String" DbType="NVarChar(200) NOT NULL" CanBeNull="false" />
       <Column Name="TenTK" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
       <Column Name="MatKhau" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Column Name="CauHoiBaoMat" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="CauTraLoiBaoMat" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
       <Column Name="VaiTro" Type="System.String" DbType="NVarChar(20) NOT NULL" CanBeNull="false" />
       <Column Name="TrangThai" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
       <Column Name="AnhDaiDien" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />

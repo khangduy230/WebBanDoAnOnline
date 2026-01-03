@@ -345,6 +345,8 @@
     <Content Include="Views\DonHang\QL_DanhSachDonHang.cshtml" />
     <Content Include="Views\NguoiDung\QL_ChiTietNguoiDung.cshtml" />
     <Content Include="Views\DanhGia\KH_DanhGiaSanPham.cshtml" />
+    <Content Include="Views\TaiKhoan\DatLaiMatKhau.cshtml" />
+    <Content Include="Views\TaiKhoan\QMK_TaiKhoanVaCauHoi.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     ViewBag.Title = "Đăng nhập";
     Layout = "~/Views/Shared/_XacThucLayout.cshtml"; // Bật lại Layout
 }
@@ -168,7 +168,8 @@
         </div>
 
         <div class="forgot-link-wrapper">
-            <a href="#" class="forgot-password-link">Quên mật khẩu?</a>
+            <!-- SỬA DÒNG NÀY: Thay href="#" bằng Url.Action -->
+            <a href="@Url.Action("QMK_TaiKhoanVaCauHoi", "TaiKhoan")" class="forgot-password-link">Quên mật khẩu?</a>
         </div>
 
         <button type="button" id="btn_login" class="btn-action btn-login">Đăng nhập</button>
@@ -203,6 +204,10 @@
                 success: function (rs) {
                     // --- ĐOẠN NÀY ĐÃ SỬA ---
                     if (rs.success) {
+                        if (rs.isMissingInfo) {
+                            // Nếu thiếu thông tin, hiện thông báo trước khi chuyển trang
+                            alert("Bạn chưa thiết lập câu hỏi bảo mật để khôi phục tài khoản.\nVui lòng cập nhật ngay để tránh mất tài khoản!");
+                        }
                         // Nếu success = true -> Chuyển hướng
                         window.location.href = rs.url;
                     } else {

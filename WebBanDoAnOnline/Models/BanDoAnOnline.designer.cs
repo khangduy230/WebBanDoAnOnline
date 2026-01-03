@@ -67,19 +67,19 @@ namespace WebBanDoAnOnline.Models
 		{
 			OnCreated();
 		}
-
+		
+		public BanDoAnOnlineDataContext(System.Data.IDbConnection connection) : 
+				base(connection, mappingSource)
+		{
+			OnCreated();
+		}
         public BanDoAnOnlineDataContext() :
         base(global::System.Configuration.ConfigurationManager.ConnectionStrings["BanDoAnOnlineConnectionString"].ConnectionString, mappingSource)
         {
             OnCreated();
         }
-        public BanDoAnOnlineDataContext(System.Data.IDbConnection connection) : 
-				base(connection, mappingSource)
-		{
-			OnCreated();
-		}
-		
-		public BanDoAnOnlineDataContext(string connection, System.Data.Linq.Mapping.MappingSource mappingSource) : 
+
+        public BanDoAnOnlineDataContext(string connection, System.Data.Linq.Mapping.MappingSource mappingSource) : 
 				base(connection, mappingSource)
 		{
 			OnCreated();
@@ -4166,6 +4166,10 @@ namespace WebBanDoAnOnline.Models
 		
 		private string _MatKhau;
 		
+		private string _CauHoiBaoMat;
+		
+		private string _CauTraLoiBaoMat;
+		
 		private string _VaiTro;
 		
 		private string _TrangThai;
@@ -4212,6 +4216,10 @@ namespace WebBanDoAnOnline.Models
     partial void OnTenTKChanged();
     partial void OnMatKhauChanging(string value);
     partial void OnMatKhauChanged();
+    partial void OnCauHoiBaoMatChanging(string value);
+    partial void OnCauHoiBaoMatChanged();
+    partial void OnCauTraLoiBaoMatChanging(string value);
+    partial void OnCauTraLoiBaoMatChanged();
     partial void OnVaiTroChanging(string value);
     partial void OnVaiTroChanged();
     partial void OnTrangThaiChanging(string value);
@@ -4360,6 +4368,46 @@ namespace WebBanDoAnOnline.Models
 					this._MatKhau = value;
 					this.SendPropertyChanged("MatKhau");
 					this.OnMatKhauChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CauHoiBaoMat", DbType="NVarChar(255)")]
+		public string CauHoiBaoMat
+		{
+			get
+			{
+				return this._CauHoiBaoMat;
+			}
+			set
+			{
+				if ((this._CauHoiBaoMat != value))
+				{
+					this.OnCauHoiBaoMatChanging(value);
+					this.SendPropertyChanging();
+					this._CauHoiBaoMat = value;
+					this.SendPropertyChanged("CauHoiBaoMat");
+					this.OnCauHoiBaoMatChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CauTraLoiBaoMat", DbType="NVarChar(255)")]
+		public string CauTraLoiBaoMat
+		{
+			get
+			{
+				return this._CauTraLoiBaoMat;
+			}
+			set
+			{
+				if ((this._CauTraLoiBaoMat != value))
+				{
+					this.OnCauTraLoiBaoMatChanging(value);
+					this.SendPropertyChanging();
+					this._CauTraLoiBaoMat = value;
+					this.SendPropertyChanged("CauTraLoiBaoMat");
+					this.OnCauTraLoiBaoMatChanged();
 				}
 			}
 		}

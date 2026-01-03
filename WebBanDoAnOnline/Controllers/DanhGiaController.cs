@@ -45,7 +45,17 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-
+        public ActionResult QL_QuanLyDanhGia()
+        {
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null || !new[] { "Quản lý", "Nhân viên" }.Contains(user.VaiTro))
+            {
+                return RedirectToAction("DangNhap", "TaiKhoan");
+            }
+            // Truyền vai trò xuống View để ẩn/hiện nút Xóa
+            ViewBag.VaiTro = user.VaiTro;
+            return View();
+        }
         // GET: View Quản lý (Dành cho Quản lý & Nhân viên)
         public ActionResult NV_QuanLyDanhGia()
         {
@@ -138,66 +148,107 @@ namespace WebBanDoAnOnline.Controllers
         }
 
         // API 2: Ẩn/Hiện đánh giá
-        [HttpPost]
-        public string ToggleAnDanhGia()
+        public JsonResult ToggleAnDanhGia()
         {
             try
             {
-                int maDG = int.Parse(Request["maDG"]);
+                int maDG;
+                if (!int.TryParse(Request["maDG"], out maDG))
+                    return Json(new { success = false, message = "Mã đánh giá không hợp lệ" });
+
                 var dg = db.DanhGias.FirstOrDefault(d => d.MaDG == maDG);
                 if (dg != null)
                 {
-                    // Đảo trạng thái 0 <-> 1
+                    // Đảo trạng thái: 1 (ẩn) <-> 0 (hiện)
                     dg.isDelete = (dg.isDelete == 1) ? (byte)0 : (byte)1;
                     db.SubmitChanges();
-                    return "OK";
+
+                    // Cập nhật lại điểm đánh giá SP sau khi ẩn/hiện
+                    CapNhatDiemDanhGiaSP(dg.MaSP);
+
+                    string trangThaiMoi = (dg.isDelete == 1) ? "Đã ẩn" : "Đã hiện";
+                    return Json(new { success = true, message = trangThaiMoi + " đánh giá thành công" });
                 }
-                return "Không tìm thấy đánh giá";
+                return Json(new { success = false, message = "Không tìm thấy đánh giá" });
             }
-            catch (Exception ex) { return "Lỗi: " + ex.Message; }
+            catch (Exception ex) { return Json(new { success = false, message = "Lỗi: " + ex.Message }); }
         }
 
         // API 3: Xóa vĩnh viễn (Chỉ Quản lý)
         [HttpPost]
-        public string XoaDanhGia()
+        public JsonResult XoaDanhGia()
         {
             var user = Session["TaiKhoan"] as TaiKhoan;
-            if (user == null || user.VaiTro != "Quản lý") return "Bạn không có quyền xóa!";
+            if (user == null || user.VaiTro != "Quản lý")
+                return Json(new { success = false, message = "Bạn không có quyền xóa!" });
 
             try
             {
-                int maDG = int.Parse(Request["maDG"]);
+                int maDG;
+                if (!int.TryParse(Request["maDG"], out maDG))
+                    return Json(new { success = false, message = "Mã đánh giá không hợp lệ" });
+
                 var dg = db.DanhGias.FirstOrDefault(d => d.MaDG == maDG);
                 if (dg != null)
                 {
+                    int maSP = dg.MaSP.GetValueOrDefault();
                     db.DanhGias.DeleteOnSubmit(dg);
                     db.SubmitChanges();
-                    return "OK";
+
+                    // Cập nhật lại điểm đánh giá SP sau khi xóa
+                    CapNhatDiemDanhGiaSP(maSP);
+
+                    return Json(new { success = true, message = "Đã xóa đánh giá vĩnh viễn" });
                 }
-                return "Không tìm thấy đánh giá";
+                return Json(new { success = false, message = "Không tìm thấy đánh giá" });
             }
-            catch (Exception ex) { return "Lỗi: " + ex.Message; }
+            catch (Exception ex) { return Json(new { success = false, message = "Lỗi: " + ex.Message }); }
         }
 
         // API 4: Trả lời đánh giá
         [HttpPost]
-        public string TraLoiDanhGia()
+        public JsonResult TraLoiDanhGia()
         {
             try
             {
-                int maDG = int.Parse(Request["maDG"]);
+                int maDG;
+                if (!int.TryParse(Request["maDG"], out maDG))
+                    return Json(new { success = false, message = "Mã đánh giá không hợp lệ" });
+
                 string noiDung = Request["noiDung"];
 
                 var dg = db.DanhGias.FirstOrDefault(d => d.MaDG == maDG);
                 if (dg != null)
                 {
-                    dg.PhanHoi = noiDung; // Cập nhật cột phản hồi
+                    dg.PhanHoi = noiDung;
                     db.SubmitChanges();
-                    return "OK";
+                    return Json(new { success = true, message = "Đã gửi phản hồi thành công" });
                 }
-                return "Không tìm thấy đánh giá";
+                return Json(new { success = false, message = "Không tìm thấy đánh giá" });
             }
-            catch (Exception ex) { return "Lỗi: " + ex.Message; }
+            catch (Exception ex) { return Json(new { success = false, message = "Lỗi: " + ex.Message }); }
+        }
+
+        // Helper: Cập nhật điểm TB sản phẩm (Dùng chung cho các hàm trên)
+        private void CapNhatDiemDanhGiaSP(int? maSP)
+        {
+            if (maSP == null) return;
+            var sp = db.SanPhams.FirstOrDefault(s => s.MaSP == maSP);
+            if (sp != null)
+            {
+                var listDG = db.DanhGias.Where(x => x.MaSP == maSP && (x.isDelete == 0 || x.isDelete == null)).ToList();
+                if (listDG.Any())
+                {
+                    sp.SoLuotDanhGia = listDG.Count;
+                    sp.DiemDanhGia = listDG.Average(x => (double)x.SoSao);
+                }
+                else
+                {
+                    sp.SoLuotDanhGia = 0;
+                    sp.DiemDanhGia = 0;
+                }
+                db.SubmitChanges();
+            }
         }
 
         public ActionResult LuuDanhGiaTrang(int MaDH, int MaSP, int SoSao, string BinhLuan)

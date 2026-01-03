@@ -1,0 +1,127 @@
+﻿﻿@{
+    ViewBag.Title = "Quên mật khẩu - Xác thực";
+    Layout = "~/Views/Shared/_XacThucLayout.cshtml";
+}
+
+<style>
+    /* Tái sử dụng CSS của trang đăng nhập */
+    .login-card {
+        background: #ffffff;
+        width: 100%;
+        max-width: 450px;
+        padding: 40px 35px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .auth-title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .custom-input, .custom-select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e1e5eb;
+        border-radius: 8px;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.3s;
+    }
+
+        .custom-input:focus, .custom-select:focus {
+            border-color: #fd7e14;
+            box-shadow: 0 0 0 3px rgba(253, 126, 20, 0.15);
+        }
+
+    .btn-action {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        margin-bottom: 15px;
+        transition: background 0.3s;
+        background-color: #fd7e14;
+        color: white;
+    }
+
+        .btn-action:hover {
+            background-color: #e96b02;
+        }
+
+    .alert-custom {
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        margin-bottom: 20px;
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        display: none;
+    }
+
+    .back-link {
+        text-align: center;
+        display: block;
+        color: #666;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+        .back-link:hover {
+            color: #fd7e14;
+        }
+</style>
+
+<div class="login-card">
+    <h2 class="auth-title">Khôi phục mật khẩu</h2>
+
+    <!-- Form gửi đến Action xử lý kiểm tra câu hỏi -->
+    <form id="qmk_frm" method="post" action="@Url.Action("XuLyXacThucCauHoi", "TaiKhoan")">
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert-custom" style="display:block;">@ViewBag.Error</div>
+        }
+
+        <div class="form-group">
+            <label class="form-label">Tên tài khoản cần khôi phục</label>
+            <input type="text" name="TenTK" class="custom-input" placeholder="Nhập tên tài khoản của bạn" required />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Câu hỏi bảo mật</label>
+            <select name="CauHoiBaoMat" class="custom-select" required>
+                <option value="">-- Chọn câu hỏi --</option>
+                <option value="Bạn thích ăn món gì nhất">Bạn thích ăn món gì nhất?</option>
+                <option value="Bạn thích điều gì nhất ở nhà hàng của chúng tôi">Bạn thích điều gì nhất ở nhà hàng của chúng tôi?</option>
+                <option value="Tên thú cưng đầu tiên của bạn là gì">Tên thú cưng đầu tiên của bạn là gì?</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Câu trả lời của bạn</label>
+            <input type="text" name="CauTraLoiBaoMat" class="custom-input" placeholder="Nhập câu trả lời chính xác" required />
+        </div>
+
+        <button type="submit" class="btn-action">Tiếp tục</button>
+        <a href="@Url.Action("DangNhap", "TaiKhoan")" class="back-link">Quay lại đăng nhập</a>
+    </form>
+</div>
