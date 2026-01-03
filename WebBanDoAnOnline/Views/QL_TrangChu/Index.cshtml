@@ -3,26 +3,9 @@
 }
 
 <main class="dashboard container-fluid py-4">
+    <!-- Phần thống kê (Cards) -->
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card stat-card h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase fw-bold">Ngân sách (Tháng)</div>
-                    <div class="h3 text-primary fw-bold mt-2" id="lbl_NganSach">0</div>
-                    <div class="small text-muted"><i class="fas fa-wallet me-1"></i> Kế hoạch chi tiêu</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stat-card h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase fw-bold">Chi tiêu thực tế</div>
-                    <div class="h3 text-danger fw-bold mt-2" id="lbl_ChiTieu">0</div>
-                    <div class="small text-success" id="lbl_TrangThaiNganSach">An toàn</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <div class="card stat-card h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="text-muted small text-uppercase fw-bold">Doanh thu bán hàng</div>
@@ -31,7 +14,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <div class="card stat-card h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="text-muted small text-uppercase fw-bold">Đơn hàng mới</div>
@@ -42,28 +25,64 @@
         </div>
     </div>
 
-    <div class="row g-3">
+    <!-- HÀNG 1: BIỂU ĐỒ & KHUYẾN MÃI -->
+    <div class="row g-3 mb-3">
         <div class="col-lg-8">
-            <!-- THAY mở thẻ card của biểu đồ bằng đoạn dưới -->
-            <div class="card dashboard-panel mb-3 border-0 shadow-sm" style="height:auto">
+            <!-- PHẦN BIỂU ĐỒ TÀI CHÍNH -->
+            <div class="card dashboard-panel h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0 fw-bold text-secondary">Tổng quan tài chính</h5>
+                        <div>
+                            <h5 class="mb-0 fw-bold text-secondary">Hiệu quả kinh doanh</h5>
+                            <small class="text-muted">Doanh thu & Số lượng đơn hàng theo ngày</small>
+                        </div>
                         <span class="badge bg-light text-dark border">Tháng này</span>
                     </div>
-                    <!-- HẠ chiều cao canvas + giảm margin-bottom -->
-                    <div class="mb-2" style="height:220px">
-                        <canvas id="chart_DoanhThuThang"></canvas>
+
+                    <!-- Container cho biểu đồ -->
+                    <div class="chart-container" style="position: relative; height:300px; width:100%">
+                        <canvas id="chart_TaiChinhHonHop"></canvas>
                     </div>
-                    <div class="small text-muted d-flex gap-3">
+
+                    <div class="small text-muted d-flex gap-3 mt-3 justify-content-center">
                         <span><i class="fas fa-receipt me-1 text-secondary"></i> Tổng đơn: <b id="lbl_TongDonThang">0</b></span>
                         <span><i class="fas fa-check-circle me-1 text-success"></i> Đã giao: <b id="lbl_DonDaGiao">0</b></span>
                         <span><i class="fas fa-times-circle me-1 text-danger"></i> Đã hủy: <b id="lbl_DonDaHuy">0</b></span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="card dashboard-panel border-0 shadow-sm">
+        <div class="col-lg-4">
+            <!-- PHẦN VOUCHER -->
+            <div class="card dashboard-panel h-100 border-0 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                    <div class="voucher-header" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                        <img src="/img/voucher.png" alt="Voucher" class="voucher-img"
+                             style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #eee;"
+                             onerror="this.src='/img/no-image.jpg'">
+                        <div>
+                            <div class="fw-bold">Khuyến mãi</div>
+                            <small class="text-muted">Chương trình đang chạy</small>
+                        </div>
+                    </div>
+
+                    <div id="voucher-content" class="voucher-content flex-grow-1">
+                        <div class="voucher-title fw-bold text-danger" id="lbl_VoucherTitle">Đang tải...</div>
+                        <div class="voucher-desc small text-muted" id="lbl_VoucherInfo">Vui lòng chờ dữ liệu.</div>
+                    </div>
+                    <div class="text-center mt-3 border-top pt-2">
+                        <a href="@Url.Action("QL_DanhSachVoucher", "Voucher")" class="small text-decoration-none fw-bold">Xem tất cả voucher</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+    <!-- HÀNG 2: BẢNG MÓN ĂN & NHÂN SỰ -->
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <!-- Bảng món ăn yêu thích -->
+            <div class="card dashboard-panel border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h5 class="mb-3 fw-bold text-secondary">Món ăn được yêu thích</h5>
                     <div class="table-responsive">
@@ -83,28 +102,9 @@
             </div>
         </div>
 
+        <!-- Cột bên phải (Nhân sự) -->
         <div class="col-lg-4">
-            <!-- VOUCHER CARD (Sửa) -->
-            <div class="card dashboard-panel mb-3 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="voucher-header" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                        <img src="/img/voucher.png" alt="Voucher" class="voucher-img"
-                             style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #eee;"
-                             onerror="this.src='/img/no-image.jpg'">
-                        <div>
-                            <div class="fw-bold">Khuyến mãi</div>
-                            <small class="text-muted">Chương trình đang chạy</small>
-                        </div>
-                    </div>
-                    <div id="voucher-content" class="voucher-content">
-                        <div class="voucher-title fw-bold text-danger" id="lbl_VoucherTitle">Đang tải...</div>
-                        <div class="voucher-desc small text-muted" id="lbl_VoucherInfo">Vui lòng chờ dữ liệu.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Nhân sự mới giữ nguyên -->
-            <div class="card dashboard-panel border-0 shadow-sm">
+            <div class="card dashboard-panel border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="fw-bold mb-3">Nhân sự mới</h6>
                     <ul class="list-unstyled user-list mb-0" id="list_Staff"></ul>
@@ -118,7 +118,9 @@
 </main>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<!-- Sử dụng Chart.js phiên bản mới hơn để hỗ trợ tốt Mixed Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
     var url_domain = window.location.origin;
 
@@ -144,24 +146,17 @@
                 var data = JSON.parse(response);
                 if (data.Error) { console.log(data.Error); return; }
 
-
-                // Stats
-                $("#lbl_NganSach").text(DinhDangTienTe(data.Stats.NganSach));
-                $("#lbl_ChiTieu").text(DinhDangTienTe(data.Stats.ChiTieu));
+                // 1. Cập nhật các thẻ thống kê (Stats)
                 $("#lbl_DoanhThu").text(DinhDangTienTe(data.Stats.DoanhThu));
                 $("#lbl_DonMoi").text(data.Stats.DonMoi);
+
                 if (data.Stats && data.Stats.DonThang) {
                     $("#lbl_TongDonThang").text(data.Stats.DonThang.Tong);
                     $("#lbl_DonDaGiao").text(data.Stats.DonThang.DaGiao);
                     $("#lbl_DonDaHuy").text(data.Stats.DonThang.DaHuy);
                 }
-                if (data.Stats.ChiTieu > data.Stats.NganSach) {
-                    $("#lbl_TrangThaiNganSach").html('<i class="fas fa-exclamation-triangle"></i> Vượt ngân sách!').removeClass("text-success").addClass("text-danger");
-                } else {
-                    $("#lbl_TrangThaiNganSach").html('<i class="fas fa-check-circle"></i> An toàn').removeClass("text-danger").addClass("text-success");
-                }
 
-                // Menu
+                // 2. Cập nhật bảng món ăn (Menu)
                 var menuHtml = "";
                 if (!data.Menu || data.Menu.length === 0) {
                     menuHtml = '<tr><td colspan="4" class="text-center small text-muted">Chưa có món ăn nào.</td></tr>';
@@ -179,7 +174,7 @@
                 }
                 $("#tbl_MenuBody").html(menuHtml);
 
-                // Staff
+                // 3. Cập nhật danh sách nhân sự (Staff)
                 var staffHtml = "";
                 if (!data.Staff || data.Staff.length === 0) {
                     staffHtml = '<li class="text-center small text-muted">Chưa có nhân sự.</li>';
@@ -201,7 +196,7 @@
                 }
                 $("#list_Staff").html(staffHtml);
 
-                // Voucher
+                // 4. Cập nhật Voucher
                 if (data.Voucher && data.Voucher.TenVoucher) {
                     $("#lbl_VoucherTitle").text(data.Voucher.TenVoucher);
                     $("#lbl_VoucherInfo").text(data.Voucher.MoTaThem || "Không có mô tả");
@@ -210,81 +205,97 @@
                     $("#lbl_VoucherInfo").text("Hiện không có ưu đãi.");
                 }
 
-                // Chart.js - 3 dataset: DoanhThuTheoNgay, DoanhThuLuyKe, MucTieuNganSach (+ Cashflow below)
-                // Chart.js - cấu hình tối ưu để không thừa khoảng trắng dưới
+                // 5. VẼ BIỂU ĐỒ (Chart.js)
                 if (data.Chart && data.Chart.Labels) {
-                    var ctx = document.getElementById('chart_DoanhThuThang').getContext('2d');
+                    var ctx = document.getElementById('chart_TaiChinhHonHop').getContext('2d');
 
-                    // đảm bảo chiều cao container (khớp với phần HTML ở trên)
-                    document.getElementById('chart_DoanhThuThang').parentElement.style.height = '220px';
-
-                    var gradientRevenue = ctx.createLinearGradient(0, 0, 0, 200);
-                    gradientRevenue.addColorStop(0, 'rgba(25, 135, 84, 0.35)');
-                    gradientRevenue.addColorStop(1, 'rgba(25, 135, 84, 0.05)');
+                    // Tạo gradient màu cho cột doanh thu
+                    var gradientBar = ctx.createLinearGradient(0, 0, 0, 300);
+                    gradientBar.addColorStop(0, 'rgba(245, 134, 52, 0.8)'); // Màu cam đậm (Primary)
+                    gradientBar.addColorStop(1, 'rgba(245, 134, 52, 0.3)'); // Màu cam nhạt
 
                     new Chart(ctx, {
-                        type: 'line',
+                        type: 'bar', // Loại mặc định là Bar
                         data: {
-                            labels: data.Chart.Labels,
+                            labels: data.Chart.Labels, // Ngày trong tháng
                             datasets: [
                                 {
-                                    label: 'Doanh thu theo ngày',
+                                    label: 'Doanh thu (VNĐ)',
                                     data: data.Chart.DoanhThuTheoNgay || [],
-                                    tension: 0.3,
-                                    borderColor: '#198754',
-                                    backgroundColor: gradientRevenue,
-                                    fill: true,
-                                    pointRadius: 2,
-                                    pointHoverRadius: 4
+                                    backgroundColor: gradientBar,
+                                    borderColor: '#F58634',
+                                    borderWidth: 1,
+                                    borderRadius: 4,
+                                    order: 2, // Vẽ sau (nằm dưới)
+                                    yAxisID: 'y' // Trục Y bên trái
                                 },
                                 {
-                                    label: 'Doanh thu lũy kế',
-                                    data: data.Chart.DoanhThuLuyKe || [],
-                                    tension: 0.2,
-                                    borderColor: '#0d6efd',
-                                    backgroundColor: 'rgba(13,110,253,0.08)',
-                                    fill: false,
-                                    pointRadius: 0
-                                },
-                                {
-                                    label: 'Ngân sách mục tiêu',
-                                    data: data.Chart.MucTieuNganSach || [],
-                                    tension: 0,
-                                    borderColor: '#6c757d',
-                                    borderDash: [6, 4],
-                                    fill: false,
-                                    pointRadius: 0
+                                    type: 'line', // Loại dataset này là Line
+                                    label: 'Số đơn hàng',
+                                    data: data.Chart.SoDonHangTheoNgay || [], // Cần đảm bảo Backend trả về field này, nếu chưa có thì dùng tạm mảng giả lập hoặc mảng 0
+                                    borderColor: '#0d6efd', // Màu xanh dương
+                                    backgroundColor: '#0d6efd',
+                                    borderWidth: 2,
+                                    tension: 0.4, // Đường cong mềm mại
+                                    pointRadius: 3,
+                                    pointHoverRadius: 5,
+                                    order: 1, // Vẽ trước (nằm trên)
+                                    yAxisID: 'y1' // Trục Y bên phải
                                 }
                             ]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            // GIẢM khoảng trắng dư, đưa legend lên trên
-                            layout: { padding: { top: 8, right: 8, bottom: 0, left: 8 } },
+                            interaction: {
+                                mode: 'index',
+                                intersect: false,
+                            },
                             plugins: {
-                                legend: { position: 'top', labels: { boxWidth: 14, padding: 8 } },
-                                title: { display: true, text: data.Chart.Title, padding: { bottom: 6 } },
+                                legend: {
+                                    position: 'top',
+                                    labels: { usePointStyle: true, boxWidth: 8 }
+                                },
                                 tooltip: {
                                     callbacks: {
-                                        label: function (ctx) { return ' ' + DinhDangTienTe(ctx.parsed.y || 0); }
+                                        label: function (context) {
+                                            var label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.dataset.yAxisID === 'y') {
+                                                label += DinhDangTienTe(context.parsed.y);
+                                            } else {
+                                                label += context.parsed.y + " đơn";
+                                            }
+                                            return label;
+                                        }
                                     }
                                 }
                             },
                             scales: {
                                 x: {
-                                    grid: { display: false },
-                                    ticks: { maxRotation: 0, autoSkip: true, padding: 4 } // giảm đệm nhãn trục X
+                                    grid: { display: false }
                                 },
                                 y: {
-                                    grid: { color: '#eee' },
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: { display: true, text: 'Doanh thu' },
                                     ticks: {
-                                        callback: function (value) { return DinhDangTienTe(value); },
-                                        padding: 4 // giảm đệm nhãn trục Y
+                                        callback: function (value) { return value >= 1000000 ? (value / 1000000).toFixed(1) + 'M' : value / 1000 + 'k'; }
                                     }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    title: { display: true, text: 'Số đơn' },
+                                    grid: { drawOnChartArea: false }, // Ẩn lưới ngang của trục phải để đỡ rối
+                                    min: 0,
+                                    ticks: { stepSize: 1 }
                                 }
-                            },
-                            elements: { line: { borderWidth: 2 } }
+                            }
                         }
                     });
                 }
@@ -293,5 +304,4 @@
                 console.log("Lỗi tải Dashboard: " + err);
             }
         });
-    });
-</script>
+    });</script>

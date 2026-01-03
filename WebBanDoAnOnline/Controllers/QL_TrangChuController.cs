@@ -48,18 +48,11 @@ namespace WebBanDoAnOnline.Controllers
                 DateTime now = DateTime.Now;
                 // Lấy ngày đầu tháng để tính toán dữ liệu tháng này
                 DateTime startOfMonth = new DateTime(now.Year, now.Month, 1);
+                DateTime startOfNextMonth = startOfMonth.AddMonths(1);
 
                 // --- 1. THỐNG KÊ SỐ LIỆU CƠ BẢN ---
 
-                // Ngân sách (Từ bảng NganSach)
-                decimal nganSach = db.NganSaches
-                    .Where(n => n.Thang == now.Month && n.Nam == now.Year)
-                    .Sum(n => (decimal?)n.SoTienDuKien) ?? 0;
 
-                // Chi tiêu thực tế (Từ bảng ThuChi, loại = 'Chi')
-                decimal chiTieu = db.ThuChis
-                    .Where(t => t.LoaiGiaoDich == "Chi" && t.NgayGiaoDich >= startOfMonth && (t.isDelete == 0 || t.isDelete == null))
-                    .Sum(t => (decimal?)t.SoTien) ?? 0;
 
                 // Doanh thu bán hàng (Từ bảng DonHang, trừ đơn hủy)
                 decimal doanhThu = db.DonHangs
@@ -102,13 +95,56 @@ namespace WebBanDoAnOnline.Controllers
                     .Select(v => new { v.TenVoucher, v.MoTaThem })
                     .FirstOrDefault();
 
+                // --- 5. DỮ LIỆU BIỂU ĐỒ (Doanh thu & Số đơn theo ngày trong tháng) ---
+                var daysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
+                var labels = new List<string>();
+                var revenueData = new List<decimal>();
+                var orderCountData = new List<int>();
+
+                // Lấy danh sách đơn hàng trong tháng (để xử lý trong bộ nhớ cho nhanh)
+                var ordersInMonth = db.DonHangs
+                    .Where(d => d.Create_at >= startOfMonth && d.Create_at < startOfNextMonth
+                                && d.TrangThai != "Đã hủy"
+                                && (d.isDelete == 0 || d.isDelete == null))
+                    .Select(d => new { d.Create_at, d.TongTien })
+                    .ToList();
+
+                // Duyệt qua từng ngày trong tháng để tổng hợp dữ liệu
+                for (int i = 1; i <= daysInMonth; i++)
+                {
+                    labels.Add(i.ToString()); // Nhãn ngày (1, 2, 3...)
+
+                    // Lọc các đơn hàng của ngày thứ i
+                    var ordersOfDay = ordersInMonth.Where(d => d.Create_at.Value.Day == i).ToList();
+
+                    revenueData.Add(ordersOfDay.Sum(d => (decimal?)d.TongTien) ?? 0);
+                    orderCountData.Add(ordersOfDay.Count);
+                }
+
+                // Thống kê phụ cho biểu đồ (Tổng đơn, Đã giao, Đã hủy)
+                var totalOrdersMonth = db.DonHangs.Count(d => d.Create_at >= startOfMonth && d.Create_at < startOfNextMonth && (d.isDelete == 0 || d.isDelete == null));
+                var deliveredOrders = db.DonHangs.Count(d => d.Create_at >= startOfMonth && d.Create_at < startOfNextMonth && d.TrangThai == "Đã giao" && (d.isDelete == 0 || d.isDelete == null));
+                var cancelledOrders = db.DonHangs.Count(d => d.Create_at >= startOfMonth && d.Create_at < startOfNextMonth && d.TrangThai == "Đã hủy" && (d.isDelete == 0 || d.isDelete == null));
+
+
                 // Đóng gói JSON trả về
                 var data = new
                 {
-                    Stats = new { NganSach = nganSach, ChiTieu = chiTieu, DoanhThu = doanhThu, DonMoi = donMoi },
+                    Stats = new
+                    {
+                        DoanhThu = doanhThu,
+                        DonMoi = donMoi,
+                        DonThang = new { Tong = totalOrdersMonth, DaGiao = deliveredOrders, DaHuy = cancelledOrders }
+                    },
                     Menu = topMenu,
                     Staff = staff,
-                    Voucher = voucher
+                    Voucher = voucher,
+                    Chart = new
+                    {
+                        Labels = labels,
+                        DoanhThuTheoNgay = revenueData,
+                        SoDonHangTheoNgay = orderCountData
+                    }
                 };
 
                 return JsonConvert.SerializeObject(data);

@@ -1,5 +1,4 @@
-﻿
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -69,12 +68,7 @@ namespace WebBanDoAnOnline.Controllers
                 int donDaHuy = donHangs.Count(d => d.TrangThai == "Đã hủy");
                 int donDaGiao = donHangs.Count(d => d.TrangThai == "Đã giao" || d.TrangThai == "Đã nhận hàng");
 
-                // Thu/Chi
-                var thuChis = db.ThuChis.Where(t =>
-                    t.NgayGiaoDich >= tuNgay && t.NgayGiaoDich <= denNgay &&
-                    (t.isDelete == 0 || t.isDelete == null));
-                decimal tongThu = thuChis.Where(t => t.LoaiGiaoDich == "Thu").Sum(t => (decimal?)t.SoTien) ?? 0;
-                decimal tongChi = thuChis.Where(t => t.LoaiGiaoDich == "Chi").Sum(t => (decimal?)t.SoTien) ?? 0;
+                
 
                 // Top sản phẩm (dựa trên ChiTietDonHang + DonHang, bỏ đơn hủy)
                 var topSanPham = db.ChiTietDonHangs
@@ -137,9 +131,8 @@ namespace WebBanDoAnOnline.Controllers
                         TongDon = tongDon,
                         DaGiao = donDaGiao,
                         DaHuy = donDaHuy,
-                        DoanhThu = doanhThu,
-                        Thu = tongThu,
-                        Chi = tongChi
+                        DoanhThu = doanhThu
+                        
                     },
                     TopSanPham = topSanPham,
                     DoanhThuTheoDanhMuc = doanhThuTheoDanhMuc,

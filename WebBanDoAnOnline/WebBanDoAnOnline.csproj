@@ -172,7 +172,6 @@
     <Compile Include="Controllers\SanPhamController.cs" />
     <Compile Include="Controllers\TaiKhoanController.cs" />
     <Compile Include="Controllers\ThanhToanController.cs" />
-    <Compile Include="Controllers\ThongBaoController.cs" />
     <Compile Include="Controllers\QL_TrangChuController.cs" />
     <Compile Include="Controllers\VoucherController.cs" />
     <Compile Include="Global.asax.cs">
@@ -314,7 +313,6 @@
     <Content Include="Views\Shared\_XacThucLayout.cshtml" />
     <Content Include="Views\TaiKhoan\DangNhap.cshtml" />
     <Content Include="Views\TaiKhoan\DangKy.cshtml" />
-    <Content Include="Views\ThongBao\KH_ThongBao.cshtml" />
     <Content Include="Views\GioHang\KH_GioHang.cshtml" />
     <Content Include="Views\ThanhToan\KH_ThanhToan.cshtml" />
     <Content Include="Views\SanPham\QL_DanhSachSanPham.cshtml" />

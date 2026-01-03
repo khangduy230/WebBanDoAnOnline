@@ -786,24 +786,7 @@ namespace WebBanDoAnOnline.Controllers
                     }
                 }
 
-                // 4.  XỬ LÝ THÔNG BÁO - KIỂM TRA isDelete TỒN TẠI
-                var thongBaos = db.ThongBaos.Where(tb => tb.MaTK == maTK).ToList();
-                foreach (var tb in thongBaos)
-                {
-                    // Kiểm tra nếu có thuộc tính isDelete
-                    var isDeleteProp = tb.GetType().GetProperty("isDelete");
-                    if (isDeleteProp != null)
-                    {
-                        isDeleteProp.SetValue(tb, (byte)1);
-                    }
-                    
-                    // Kiểm tra nếu có thuộc tính Update_at
-                    var updateAtProp = tb.GetType().GetProperty("Update_at");
-                    if (updateAtProp != null)
-                    {
-                        updateAtProp.SetValue(tb, now);
-                    }
-                }
+
 
                 // 5. Soft delete đơn hàng và dữ liệu liên quan
                 var donHangs = db.DonHangs.Where(dh => dh.MaTK == maTK && (dh.isDelete == null || dh.isDelete == 0)).ToList();
