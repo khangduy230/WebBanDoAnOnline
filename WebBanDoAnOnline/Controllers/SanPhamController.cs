@@ -38,7 +38,7 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-        public ActionResult KH_ChiTietSanPham()
+        public ActionResult ChiTietSanPham()
         {
             
             return View();
@@ -56,14 +56,15 @@ namespace WebBanDoAnOnline.Controllers
 
             int currentPage = 1;
             if (!string.IsNullOrEmpty(page_str)) int.TryParse(page_str, out currentPage);
-            int pageSize = 8;
+            int pageSize = 8; // Số sản phẩm mỗi trang
 
-            
             var query = db.SanPhams.Where(sp => (sp.isDelete == null || sp.isDelete == 0));
-            if (Session["TaiKhoan"] == "Khách hàng" || Session["TaiKhoan"] == null )
+
+            // Kiểm tra quyền hạn xem hàng
+            if (Session["TaiKhoan"] == null || (Session["TaiKhoan"] as TaiKhoan).VaiTro == "Khách hàng")
             {
                 query = query.Where(sp => sp.TrangThai == "Còn hàng");
-            }  
+            }
 
             // 3. Lọc theo Danh mục
             if (!string.IsNullOrEmpty(maDM_str))
@@ -79,7 +80,7 @@ namespace WebBanDoAnOnline.Controllers
                 query = query.Where(sp => sp.TenSP.ToLower().Contains(lower));
             }
 
-            // 5. Phân page
+            // 5. Phân trang
             var orderedQuery = query.OrderByDescending(sp => sp.MaSP);
             int totalItems = orderedQuery.Count();
             int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
@@ -88,17 +89,35 @@ namespace WebBanDoAnOnline.Controllers
             if (currentPage < 1) currentPage = 1;
             if (currentPage > totalPages) currentPage = totalPages;
 
-            var items = orderedQuery.Skip((currentPage - 1) * pageSize)
+            // --- SỬA ĐOẠN NÀY ---
+            // Thay vì select trực tiếp, ta lấy danh sách sản phẩm ra trước (ToList)
+            // Sau đó mới tính điểm đánh giá cho từng sản phẩm trong danh sách đó.
+
+            var rawItems = orderedQuery.Skip((currentPage - 1) * pageSize)
                                     .Take(pageSize)
-                                    .Select(sp => new {
-                                        sp.MaSP,
-                                        sp.TenSP,
-                                        sp.Gia,
-                                        sp.Anh,
-                                        sp.TrangThai, 
-                                        sp.DiemDanhGia 
-                                    })
                                     .ToList();
+
+            var items = rawItems.Select(sp => {
+                // Truy vấn bảng Đánh Giá để tính điểm realtime
+                var listDG = db.DanhGias.Where(d => d.MaSP == sp.MaSP && (d.isDelete == 0 || d.isDelete == null));
+
+                double diemTB = 0;
+                if (listDG.Any())
+                {
+                    diemTB = listDG.Average(d => (double)d.SoSao);
+                }
+
+                return new
+                {
+                    sp.MaSP,
+                    sp.TenSP,
+                    sp.Gia,
+                    sp.Anh,
+                    sp.TrangThai,
+                    DiemDanhGia = Math.Round(diemTB, 1) // Làm tròn 1 chữ số thập phân (VD: 4.5)
+                };
+            }).ToList();
+            // --------------------
 
             var result = new
             {
@@ -292,9 +311,9 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        
+
         // API 5: Xóa 
-       
+
         public string XoaSanPham()
         {
             try
@@ -304,14 +323,24 @@ namespace WebBanDoAnOnline.Controllers
                 int id = int.Parse(id_str);
 
                 BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+
+                // --- THÊM ĐOẠN KIỂM TRA NÀY ---
+                // Kiểm tra xem sản phẩm có nằm trong bất kỳ chi tiết đơn hàng nào không (kể cả đơn cũ)
+                bool daCoDonHang = db.ChiTietDonHangs.Any(ct => ct.MaSP == id);
+
+                if (daCoDonHang)
+                {
+                    return "Sản phẩm này đã có lịch sử đặt hàng, không thể xóa! \nBạn hãy chuyển trạng thái sang 'Hết hàng' hoặc 'Tạm ngưng'.";
+                }
+                // -----------------------------
+
                 var sp = db.SanPhams.FirstOrDefault(p => p.MaSP == id);
 
                 if (sp != null)
                 {
-                    
+                    // Thực hiện Soft Delete
                     sp.isDelete = 1;
                     sp.Delete_at = DateTime.Now;
-                    
 
                     db.SubmitChanges();
                     return "Xóa sản phẩm thành công!";
@@ -320,12 +349,10 @@ namespace WebBanDoAnOnline.Controllers
             }
             catch (Exception ex)
             {
-                
                 return "Xóa thất bại. Chi tiết: " + ex.Message;
             }
         }
-        // API: Cập nhật trạng thái nhanh (NhanVien)
-        
+
         public string CapNhatTrangThai()
         {
             try

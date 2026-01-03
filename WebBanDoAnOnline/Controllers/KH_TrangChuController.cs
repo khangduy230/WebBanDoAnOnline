@@ -9,101 +9,87 @@ namespace WebBanDoAnOnline.Controllers
 {
     public class KH_TrangChuController : Controller
     {
-
         // 1. Trang chủ
         public ActionResult Index()
         {
-            
             var user = Session["TaiKhoan"] as TaiKhoan;
-
             if (user != null)
             {
-                
-                if (user.VaiTro == "Nhân viên")
-                {
-                    return RedirectToAction("NV_DanhSachDonHang", "DonHang");
-                }
-
-                
-                if (user.VaiTro == "Quản lý")
-                {
-                    return RedirectToAction("Index", "QL_TrangChu"); 
-                }
+                if (user.VaiTro == "Nhân viên") return RedirectToAction("NV_DanhSachDonHang", "DonHang");
+                if (user.VaiTro == "Quản lý") return RedirectToAction("Index", "QL_TrangChu");
             }
-
-           
             return View();
         }
 
-        // 2. API lấy dữ liệu sản phẩm cho trang chủ
-        
-        public string LaySanPhamTrangChu()  
+        // 2. API lấy dữ liệu sản phẩm (ĐÃ SỬA: Tính điểm sao)
+        [HttpPost] // Thêm HttpPost cho chuẩn bảo mật
+        public string LaySanPhamTrangChu()
         {
             try
             {
                 BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
-                // Lấy 8 sản phẩm mới nhất, chưa xóa, còn hàng
-                // Sắp xếp 
+                // Bước 1: Lấy danh sách sản phẩm thô ra trước
                 var list = db.SanPhams
                              .Where(x => (x.isDelete == null || x.isDelete == 0) && x.TrangThai == "Còn hàng")
                              .OrderByDescending(x => x.Create_at)
                              .Take(8)
-                             .ToList();
+                             .ToList(); // Quan trọng: .ToList() để ngắt kết nối DB, xử lý tính toán ở RAM
 
-                
-                var data = list.Select(x => new
+                // Bước 2: Duyệt qua từng sản phẩm để tính điểm trung bình
+                var data = list.Select(x =>
                 {
-                    MaSP = x.MaSP,
-                    TenSP = x.TenSP,
-                    Anh = x.Anh, 
-                    GiaGoc = x.Gia ?? 0,
-                    GiaKM = x.GiaKhuyenMai ?? 0,
+                    // Truy vấn bảng DanhGia để lấy các đánh giá của sản phẩm này
+                    var listDG = db.DanhGias.Where(d => d.MaSP == x.MaSP && (d.isDelete == 0 || d.isDelete == null));
 
-                    
-                    LuotXem = x.SoLuotDanhGia ?? 0,
+                    double diemTB = 0;
+                    if (listDG.Any())
+                    {
+                        // Tính trung bình cộng cột SoSao
+                        diemTB = listDG.Average(d => (double)d.SoSao);
+                    }
 
-                    
-                    DangGiamGia = (x.GiaKhuyenMai > 0 && x.GiaKhuyenMai < x.Gia)
+                    return new
+                    {
+                        MaSP = x.MaSP,
+                        TenSP = x.TenSP,
+                        Anh = x.Anh,
+                        GiaGoc = x.Gia ?? 0,
+                        // Trả về thuộc tính SoSao cho View sử dụng
+                        SoSao = Math.Round(diemTB, 1)
+                    };
                 });
 
                 return JsonConvert.SerializeObject(data);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return "[]";
+                // Nên log lỗi ra để debug nếu cần
+                return JsonConvert.SerializeObject(new { error = ex.Message });
             }
         }
 
-        // 3.  lấy thông tin Header 
-       
-        public string LayThongTinHeader() 
+        // 3. Lấy thông tin Header (Giữ nguyên)
+        public string LayThongTinHeader()
         {
-            // Kiểm tra session
             if (Session["TaiKhoan"] == null)
             {
-                return JsonConvert.SerializeObject(new { isLogin = false, cartCount = 0, notifCount = 0 });
+                return JsonConvert.SerializeObject(new { isLogin = false, cartCount = 0 });
             }
 
             BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
             var user = Session["TaiKhoan"] as TaiKhoan;
 
-            // Tính tổng số lượng trong giỏ hàng (chưa xóa)
             var cartCount = db.GioHangs
                               .Where(g => g.MaTK == user.MaTK && (g.isDelete == null || g.isDelete == 0))
                               .Sum(g => g.SoLuong) ?? 0;
-
-            // Tính thông báo chưa đọc
-            var notifCount = db.ThongBaos
-                               .Count(t => t.MaTK == user.MaTK && t.IsRead == false);
 
             return JsonConvert.SerializeObject(new
             {
                 isLogin = true,
                 fullName = user.HoTen,
                 avatar = !string.IsNullOrEmpty(user.AnhDaiDien) ? user.AnhDaiDien : "/img/default-avatar.png",
-                cartCount = cartCount,
-                notifCount = notifCount
+                cartCount = cartCount
             });
         }
     }

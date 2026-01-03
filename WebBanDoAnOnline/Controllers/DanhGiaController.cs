@@ -10,22 +10,47 @@ namespace WebBanDoAnOnline.Controllers
     {
         private BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
-        // GET: View Quản lý (Dành cho Quản lý & Nhân viên)
-        public ActionResult QL_QuanLyDanhGia()
+        [HttpGet]
+        public ActionResult KH_DanhGiaSanPham(int? maDH, int? maSP)
         {
-            var user = Session["TaiKhoan"] as TaiKhoan;
-            if (user == null || !new[] { "Quản lý"}.Contains(user.VaiTro))
+            // 1. Kiểm tra tham số URL
+            if (maDH == null || maSP == null)
             {
-                return RedirectToAction("DangNhap", "TaiKhoan");
+                return RedirectToAction("DonMua", "CaiDat");
             }
-            // Truyền vai trò xuống View để ẩn/hiện nút Xóa
-            ViewBag.VaiTro = user.VaiTro;
+
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null) return RedirectToAction("DangNhap", "TaiKhoan");
+
+            var dh = db.DonHangs.FirstOrDefault(d => d.MaDH == maDH && d.MaTK == user.MaTK);
+            var ct = db.ChiTietDonHangs.FirstOrDefault(x => x.MaDH == maDH && x.MaSP == maSP);
+
+            if (dh == null || ct == null) return RedirectToAction("DonMua", "CaiDat");
+
+            // Chỉ cho phép đánh giá khi đơn đã nhận hàng
+            if (dh.TrangThai != "Đã nhận hàng") return RedirectToAction("DonMua", "CaiDat");
+
+            // Lấy thông tin hiển thị
+            ViewBag.KHDG = new
+            {
+                MaDH = dh.MaDH,
+                MaSP = ct.MaSP,
+                TenSP = ct.TenSP ?? (ct.SanPham != null ? ct.SanPham.TenSP : "Sản phẩm"),
+                AnhSP = ct.SanPham != null ? ct.SanPham.Anh : "",
+                SoLuong = ct.SoLuong ?? 1,
+                ThanhTien = ct.DonGia * (ct.SoLuong ?? 1),
+                TrangThai = dh.TrangThai
+            };
+
             return View();
         }
+
+
+        // GET: View Quản lý (Dành cho Quản lý & Nhân viên)
         public ActionResult NV_QuanLyDanhGia()
         {
             var user = Session["TaiKhoan"] as TaiKhoan;
-            if (user == null || !new[] {  "Nhân viên" }.Contains(user.VaiTro))
+            if (user == null || !new[] { "Quản lý", "Nhân viên" }.Contains(user.VaiTro))
             {
                 return RedirectToAction("DangNhap", "TaiKhoan");
             }
@@ -90,7 +115,8 @@ namespace WebBanDoAnOnline.Controllers
                         DaAn = (d.isDelete == 1)
                     })
                     .ToList() // Chuyển về bộ nhớ để format ngày tháng bên dưới
-                    .Select(d => new {
+                    .Select(d => new
+                    {
                         d.MaDG,
                         d.TenKhachHang,
                         d.Avatar,
@@ -172,6 +198,100 @@ namespace WebBanDoAnOnline.Controllers
                 return "Không tìm thấy đánh giá";
             }
             catch (Exception ex) { return "Lỗi: " + ex.Message; }
+        }
+
+        public ActionResult LuuDanhGiaTrang(int MaDH, int MaSP, int SoSao, string BinhLuan)
+        {
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null) return RedirectToAction("DangNhap", "TaiKhoan");
+
+            try
+            {
+                // 1. Check đơn hàng
+                var dh = db.DonHangs.FirstOrDefault(d => d.MaDH == MaDH && d.MaTK == user.MaTK);
+                if (dh == null || dh.TrangThai != "Đã nhận hàng")
+                {
+                    TempData["Err"] = "Đơn hàng chưa hoàn thành.";
+                    return RedirectToAction("DonMua", "CaiDat");
+                }
+
+                // 2. Check đã đánh giá chưa
+                var check = db.DanhGias.Any(x => x.MaDH == MaDH && x.MaSP == MaSP && (x.isDelete == 0 || x.isDelete == null));
+                if (check)
+                {
+                    TempData["Err"] = "Bạn đã đánh giá sản phẩm này rồi.";
+                    return RedirectToAction("DonMua", "CaiDat");
+                }
+
+                // 3. Lưu đánh giá
+                DanhGia dg = new DanhGia
+                {
+                    MaTK = user.MaTK,
+                    MaDH = MaDH,
+                    MaSP = MaSP,
+                    SoSao = SoSao,
+                    BinhLuan = BinhLuan ?? "",
+                    Create_at = DateTime.Now,
+                    isDelete = 0
+                };
+
+                db.DanhGias.InsertOnSubmit(dg);
+                db.SubmitChanges();
+
+                // 4. Tính lại điểm trung bình cho sản phẩm
+                var sp = db.SanPhams.FirstOrDefault(s => s.MaSP == MaSP);
+                if (sp != null)
+                {
+                    var listDG = db.DanhGias.Where(x => x.MaSP == MaSP && (x.isDelete == 0 || x.isDelete == null)).ToList();
+                    if (listDG.Any())
+                    {
+                        sp.SoLuotDanhGia = listDG.Count;
+                        sp.DiemDanhGia = listDG.Average(x => (double)x.SoSao);
+                        db.SubmitChanges();
+                    }
+                }
+
+                TempData["Msg"] = "Đánh giá thành công!";
+                return RedirectToAction("DonMua", "CaiDat");
+            }
+            catch
+            {
+                TempData["Err"] = "Có lỗi xảy ra, vui lòng thử lại.";
+                return RedirectToAction("DonMua", "CaiDat");
+            }
+
+        }
+        public JsonResult layThongTinDanhGia(int maDH, int maSP)
+        {
+            try
+            {
+                var user = Session["TaiKhoan"] as TaiKhoan;
+                if (user == null)
+                    return Json(new { success = false, message = "Chưa đăng nhập" }, JsonRequestBehavior.AllowGet);
+
+                var dh = db.DonHangs.FirstOrDefault(d => d.MaDH == maDH && d.MaTK == user.MaTK);
+                var ct = db.ChiTietDonHangs.FirstOrDefault(x => x.MaDH == maDH && x.MaSP == maSP);
+
+                if (dh == null || ct == null)
+                    return Json(new { success = false, message = "Không tìm thấy sản phẩm" }, JsonRequestBehavior.AllowGet);
+
+                var data = new
+                {
+                    MaDH = dh.MaDH,
+                    MaSP = ct.MaSP,
+                    TenSP = ct.TenSP ?? (ct.SanPham != null ? ct.SanPham.TenSP : "Sản phẩm"),
+                    AnhSP = ct.SanPham != null ? ct.SanPham.Anh : "",
+                    SoLuong = ct.SoLuong ?? 1,
+                    ThanhTien = ct.DonGia * (ct.SoLuong ?? 1),
+                    TrangThai = dh.TrangThai
+                };
+
+                return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
         }
     }
 }

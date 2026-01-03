@@ -40,20 +40,8 @@ namespace WebBanDoAnOnline.Controllers
                 foreach (var item in query)
                 {
                     
-                    decimal giaGoc = item.p.Gia ?? 0;
-                    decimal giaKM = item.p.GiaKhuyenMai ?? 0;
-                    decimal giaBan = giaGoc;
-                    bool dangGiamGia = false;
+                    decimal giaBan = item.p.Gia ?? 0;
 
-                    if (giaKM > 0 && giaKM < giaGoc)
-                    {
-                        if ((!item.p.NgayBatDauKM.HasValue || item.p.NgayBatDauKM <= now) &&
-                            (!item.p.NgayKetThucKM.HasValue || item.p.NgayKetThucKM >= now))
-                        {
-                            giaBan = giaKM;
-                            dangGiamGia = true;
-                        }
-                    }
 
                     listResult.Add(new
                     {
@@ -61,8 +49,6 @@ namespace WebBanDoAnOnline.Controllers
                         TenSP = item.p.TenSP,
                         Anh = item.p.Anh,
                         GiaHienTai = giaBan,
-                        GiaGoc = giaGoc,
-                        DangGiamGia = dangGiamGia,
                         SoLuong = item.g.SoLuong ?? 1,
                         GhiChu = item.g.GhiChu ?? "",
                         ThanhTien = giaBan * (item.g.SoLuong ?? 1)

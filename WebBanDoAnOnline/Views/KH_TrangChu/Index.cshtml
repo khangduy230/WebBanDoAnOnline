@@ -1,23 +1,26 @@
 ﻿@{
     ViewBag.Title = "Trang chủ";
-   
+    Layout = "~/Views/Shared/_KH_Layout.cshtml"; // Đảm bảo có layout này
 }
 
 <!-- 1. HERO SECTION -->
 <section class="hero-section py-5 bg-light">
-    <div class="row align-items-center">
-        <div class="col-lg-6 px-5">
-            <h1 class="hero-heading fw-bold display-4 mb-3">
-                Dinh dưỡng tận nơi <br />
-                <span class="text-warning">Thảnh thơi sống khỏe.</span>
-            </h1>
-            <p class="hero-subheading lead text-muted">
-                Hệ thống đặt món ăn trực tuyến FuTho Food. Hương vị đậm đà, giao hàng nhanh chóng.
-            </p>
-            <a href="#featured-food" class="btn btn-warning btn-lg rounded-pill fw-bold text-white px-4">Đặt món ngay</a>
-        </div>
-        <div class="col-lg-6 mt-4 mt-lg-0 text-center">
-            <img src="~/img/banner.png" alt="Banner" class="img-fluid rounded shadow-lg" style="max-height: 400px;" />
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="hero-heading fw-bold display-4 mb-3">
+                    Dinh dưỡng tận nơi <br />
+                    <span class="text-warning">Thảnh thơi sống khỏe.</span>
+                </h1>
+                <p class="hero-subheading lead text-muted">
+                    Hệ thống đặt món ăn trực tuyến FuTho Food. Hương vị đậm đà, giao hàng nhanh chóng.
+                </p>
+                <a href="#featured-food" class="btn btn-warning btn-lg rounded-pill fw-bold text-white px-4">Đặt món ngay</a>
+            </div>
+            <div class="col-lg-6 mt-4 mt-lg-0 text-center">
+                <img src="~/img/banner.png" alt="Banner" class="img-fluid rounded shadow-lg" style="max-height: 400px;"
+                     onerror="this.style.display='none'" /> <!-- Ẩn nếu ko có ảnh banner -->
+            </div>
         </div>
     </div>
 </section>
@@ -42,70 +45,56 @@
 <script>
     // Hàm định dạng tiền tệ
     function DinhDangTienTe(n) {
-        return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + "đ";
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
     }
 
-    var url_domain = '@Url.Content("~")';
-    if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
+    // Lấy đúng domain gốc
+    var url_domain = window.location.origin;
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $.ajax({
             type: "POST",
             url: url_domain + '/KH_TrangChu/LaySanPhamTrangChu',
             contentType: false, processData: false, cache: false,
             success: function (response) {
-                var dssp = JSON.parse(response);
+                // Parse dữ liệu
+                var dssp = (typeof response === 'string') ? JSON.parse(response) : response;
                 var div_show = $("#ds_sanpham");
                 var html_str = "";
 
-                if (dssp.length === 0) {
+                if (!dssp || dssp.length === 0) {
                     div_show.html('<div class="col-12 text-center text-muted">Chưa có sản phẩm nào.</div>');
                     return;
                 }
 
-                for (var i = 0; i < dssp.length; i++) {
-                    var sp = dssp[i];
-
-                    // Xử lý ảnh: Bỏ dấu ~ nếu có
+                dssp.forEach(function (sp) {
+                    // Xử lý đường dẫn ảnh
                     var imgUrl = sp.Anh ? sp.Anh.replace('~', '') : '/img/no-image.jpg';
 
-                    // Xử lý giá
-                    var giaHienThi = "";
-                    var badge = "";
-
-                    if (sp.DangGiamGia) {
-                        var percent = Math.round((1 - sp.GiaKM / sp.GiaGoc) * 100);
-                        badge = `<span class="position-absolute top-0 start-0 bg-danger text-white badge m-2 shadow">-${percent}%</span>`;
-                        giaHienThi = `<span class="fw-bold text-danger fs-5">${DinhDangTienTe(sp.GiaKM)}</span>
-                                      <small class="text-decoration-line-through text-muted ms-1" style="font-size:0.9em">${DinhDangTienTe(sp.GiaGoc)}</small>`;
-                    } else {
-                        giaHienThi = `<span class="fw-bold text-dark fs-5">${DinhDangTienTe(sp.GiaGoc)}</span>`;
-                    }
-
-                    // --- SỬA LỖI Ở ĐÂY ---
-                    // Cũ (Sai): /SanPham/KH_ChiTietSanPham/${sp.MaSP}
-                    // Mới (Đúng): /SanPham/KH_ChiTietSanPham?maSP=${sp.MaSP}
+                    // Xử lý hiển thị sao 
+                    var starDisplay = sp.SoSao > 0
+                        ? `<i class="fas fa-star text-warning"></i> ${sp.SoSao}`
+                        : `<span class="fas fa-star text-warning"></span> 0`;
 
                     html_str += `
                     <div class="col-lg-3 col-md-4 col-6">
                         <div class="card h-100 border-0 shadow-sm product-card">
                             <div class="position-relative overflow-hidden rounded-top">
-                                <a href="/SanPham/KH_ChiTietSanPham?maSP=${sp.MaSP}">
+                                <a href="/SanPham/ChiTietSanPham?maSP=${sp.MaSP}">
                                     <img src="${imgUrl}" class="card-img-top" style="height: 200px; object-fit: cover;"
-                                         onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                                         onerror="this.src='/Content/img/no-image.jpg'">
                                 </a>
-                                ${badge}
                             </div>
                             <div class="card-body d-flex flex-column p-3">
                                 <h5 class="card-title text-truncate mb-1">
-                                    <a href="/SanPham/KH_ChiTietSanPham?maSP=${sp.MaSP}" class="text-decoration-none text-dark fw-bold" title="${sp.TenSP}">${sp.TenSP}</a>
+                                    <a href="/SanPham/ChiTietSanPham?maSP=${sp.MaSP}" class="text-decoration-none text-dark fw-bold" title="${sp.TenSP}">${sp.TenSP}</a>
                                 </h5>
 
                                 <div class="mt-auto pt-2">
-                                    <div class="mb-2">${giaHienThi}</div>
-                                    <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
-                                        <span><i class="fas fa-clock text-warning"></i> ~15p</span>
-                                        <span><i class="fas fa-star text-warning"></i> ${sp.LuotXem || 0}</span>
+                                    <div class="mb-2 fw-bold text-dark fs-5">${DinhDangTienTe(sp.GiaGoc)}</div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>${starDisplay}</span>
                                     </div>
 
                                     <button class="btn btn-warning w-100 fw-bold shadow-sm btn-hover-effect" onclick="ThemVaoGio(${sp.MaSP})">
@@ -115,7 +104,8 @@
                             </div>
                         </div>
                     </div>`;
-                }
+                });
+
                 div_show.html(html_str);
             },
             error: function (err) {
@@ -124,16 +114,33 @@
             }
         });
     });
+
+    // Hàm thêm vào giỏ (Giả định bạn đã có Controller GioHang)
+    function ThemVaoGio(id) {
+        var formData = new FormData();
+        formData.append('productId', id);
+        formData.append('quantity', 1);
+        $.ajax({
+            type: "POST", url: url_domain + '/GioHang/ThemVaoGio', data: formData, contentType: false, processData: false,
+            success: function (res) {
+                if (res.indexOf("đăng nhập") !== -1) {
+                    if (confirm("Cần đăng nhập để mua hàng. Đến trang đăng nhập?")) window.location.href = "/TaiKhoan/DangNhap";
+                } else { alert(res); }
+            },
+            error: function () { alert("Lỗi hệ thống."); }
+        });
+    }
 </script>
 
 <style>
     .product-card {
         transition: transform 0.3s, box-shadow 0.3s;
+        border-radius: 12px;
     }
 
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
         }
 
     .btn-hover-effect:hover {

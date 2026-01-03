@@ -257,18 +257,19 @@
                             <div class="stock-option" onclick="CapNhatTrangThai(${p.MaSP}, 'Hết hàng')">🔴 Hết hàng</div>
                             <div class="stock-option" onclick="CapNhatTrangThai(${p.MaSP}, 'Tạm ngưng')">⚪ Tạm ngưng</div>
                         </div>
-
-                        <div style="position:relative;">
-                            <img src="${img}" class="card-img-top" style="height:160px; object-fit:cover" onerror="this.src='/img/no-image.jpg'">
-                            <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark opacity-75">#${p.MaSP}</span>
-                        </div>
-
-                        <div class="card-body p-3 text-center d-flex flex-column">
-                            <h6 class="fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
-                            <div class="text-danger fw-bold">${DinhDangTienTe(p.Gia)}</div>
-                            <div class="mb-3 mt-1 small text-warning fw-bold">
-                                <i class="fas fa-star"></i> ${diemSao}
+                        <a href="/SanPham/ChiTietSanPham?maSP=${p.MaSP}" class="text-decoration-none text-dark">
+                            <div style="position:relative;">
+                                <img src="${img}" class="card-img-top" style="height:160px; object-fit:cover" onerror="this.src='/img/no-image.jpg'">
+                                <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark opacity-75">#${p.MaSP}</span>
                             </div>
+
+                            <div class="card-body p-3 text-center d-flex flex-column">
+                                <h6 class="fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
+                                <div class="text-danger fw-bold">${DinhDangTienTe(p.Gia)}</div>
+                                <div class="mb-3 mt-1 small text-warning fw-bold">
+                                    <i class="fas fa-star"></i> ${diemSao}
+                                </div>
+                        </a>
 
                             <div class="mt-auto row g-2">
                                 <div class="col-6">

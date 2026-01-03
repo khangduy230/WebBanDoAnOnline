@@ -123,26 +123,7 @@
 
                     <!-- Panel User -->
                     <div id="panel-user" class="auth-panel">
-                        <!-- Thông báo -->
-                        <div class="dropdown">
-                            <a class="icon-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="TaiThongBao()">
-                                <i class="fa-regular fa-bell"></i>
-                                <span id="notif-badge" class="badge bg-danger badge-count" style="display:none;">0</span>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end" style="width: 340px;">
-                                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-light">
-                                    <h6 class="m-0 fw-bold">Thông báo</h6>
-                                    <a href="#" onclick="DanhDauTatCaDaDoc(event)" class="small text-decoration-none">Đọc tất cả</a>
-                                </div>
-                                <div id="list-thong-bao" style="max-height: 350px; overflow-y: auto;">
-                                    <div class="text-center py-3 text-muted"><span class="spinner-border spinner-border-sm"></span></div>
-                                </div>
-                                <div class="text-center p-2 border-top">
-                                    <a href="/ThongBao/Index" class="small fw-bold text-decoration-none">Xem tất cả</a>
-                                </div>
-                            </div>
-                        </div>
-
+                        
                         <!-- Giỏ hàng -->
                         <a href="/GioHang/KH_GioHang" class="icon-btn">
                             <i class="fa-solid fa-bag-shopping"></i>
@@ -253,30 +234,9 @@
             $('.dropdown-menu').click(function (e) { e.stopPropagation(); });
         });
 
-        // 3. Thông báo
-        function TaiThongBao() {
-            $.post(url_domain + "/ThongBao/LayThongBao", function (response) {
-                var res = (typeof response === 'string') ? JSON.parse(response) : response;
-                var htmlStr = "";
-                if (res.success && res.data.length > 0) {
-                    for (var i = 0; i < res.data.length; i++) {
-                        var item = res.data[i];
-                        var bg = item.DaDoc ? "bg-white" : "bg-warning-subtle";
-                        htmlStr += `<a href="/ThongBao/KH_ThongBao?openId=${item.Id}" class="dropdown-item p-2 border-bottom ${bg}">
-                                            <div class="d-flex"><div class="me-3 mt-1 text-warning"><i class="fas fa-bell"></i></div>
-                                            <div><div class="fw-bold small">${item.TieuDe}</div><div class="small text-muted">${item.BinhLuanCon || ''}</div></div></div></a>`;
-                    }
-                } else { htmlStr = '<div class="text-center py-3 small text-muted">Không có thông báo.</div>'; }
-                $("#list-thong-bao").html(htmlStr);
-            });
-        }
+       
 
-        function DanhDauTatCaDaDoc(e) {
-            if (e) e.preventDefault();
-            $.post(url_domain + "/ThongBao/DanhDauTatCaDaDoc", function () {
-                TaiThongBao(); $("#notif-badge").hide();
-            });
-        }
+        
 
         // 4. Cập nhật Badge Giỏ hàng (Global function)
         function CapNhatBadgeGioHang() {

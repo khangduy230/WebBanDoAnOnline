@@ -14,7 +14,7 @@
         // Ở đây giả định model TaiKhoan có thuộc tính Quyen
         userRole = user.VaiTro ?? "";
 
-        if (userRole == "Quản lý" || userRole == "Admin")
+        if (userRole == "Quản lý")
         {
             layoutPage = "~/Views/Shared/_QL_Layout.cshtml";
             backLink = Url.Action("QL_DanhSachDonHang", "DonHang");

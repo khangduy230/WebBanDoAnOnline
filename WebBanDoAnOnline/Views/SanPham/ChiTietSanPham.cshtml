@@ -1,6 +1,34 @@
 ﻿@{
     ViewBag.Title = "Chi tiết món ăn";
-    Layout = "~/Views/Shared/_KH_Layout.cshtml";
+
+    // 1. Lấy thông tin tài khoản và xác định quyền
+    var user = Session["TaiKhoan"] as TaiKhoan;
+    string userRole = "";
+    string layoutPage = "~/Views/Shared/_KH_Layout.cshtml"; // Mặc định là NV
+
+    if (user != null)
+    {
+        // Kiểm tra quyền (Tuỳ vào tên cột trong DB của bạn là Quyen hay VaiTro)
+        // Ở đây giả định model TaiKhoan có thuộc tính Quyen
+        userRole = user.VaiTro ?? "";
+
+        if (userRole == "Quản lý" )
+        {
+            layoutPage = "~/Views/Shared/_QL_Layout.cshtml";
+
+        }
+        else if(userRole =="Nhân viên") // Nhân viên
+        {
+            layoutPage = "~/Views/Shared/_NV_Layout.cshtml";
+
+        }
+        else
+        {
+            layoutPage = "~/Views/Shared/_KH_Layout.cshtml";
+        }
+    }
+
+    Layout = layoutPage;
 }
 
 <style>

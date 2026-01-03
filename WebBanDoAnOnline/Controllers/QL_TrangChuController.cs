@@ -51,15 +51,7 @@ namespace WebBanDoAnOnline.Controllers
 
                 // --- 1. THỐNG KÊ SỐ LIỆU CƠ BẢN ---
 
-                // Ngân sách (Từ bảng NganSach)
-                decimal nganSach = db.NganSaches
-                    .Where(n => n.Thang == now.Month && n.Nam == now.Year)
-                    .Sum(n => (decimal?)n.SoTienDuKien) ?? 0;
-
-                // Chi tiêu thực tế (Từ bảng ThuChi, loại = 'Chi')
-                decimal chiTieu = db.ThuChis
-                    .Where(t => t.LoaiGiaoDich == "Chi" && t.NgayGiaoDich >= startOfMonth && (t.isDelete == 0 || t.isDelete == null))
-                    .Sum(t => (decimal?)t.SoTien) ?? 0;
+              
 
                 // Doanh thu bán hàng (Từ bảng DonHang, trừ đơn hủy)
                 decimal doanhThu = db.DonHangs
@@ -105,7 +97,7 @@ namespace WebBanDoAnOnline.Controllers
                 // Đóng gói JSON trả về
                 var data = new
                 {
-                    Stats = new { NganSach = nganSach, ChiTieu = chiTieu, DoanhThu = doanhThu, DonMoi = donMoi },
+                    Stats = new { DoanhThu = doanhThu, DonMoi = donMoi },
                     Menu = topMenu,
                     Staff = staff,
                     Voucher = voucher

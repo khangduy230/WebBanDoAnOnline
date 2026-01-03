@@ -1,0 +1,208 @@
+﻿@{
+    ViewBag.Title = "Đánh giá sản phẩm";
+    Layout = "~/Views/Shared/_KH_Layout.cshtml";
+
+    var kh = ViewBag.KHDG;
+}
+
+@{
+    ViewBag.Title = "Đánh giá sản phẩm";
+    Layout = "~/Views/Shared/_KH_Layout.cshtml";
+    // Không cần lấy ViewBag.KHDG ở đây nữa
+}
+
+<div class="container my-3">
+    <h4 class="mb-3">Đánh giá sản phẩm</h4>
+
+    <!-- Khu vực hiển thị thông tin sản phẩm (Loading trước khi có dữ liệu) -->
+    <div class="p-3 border rounded-3 mb-3 bg-white">
+        <div class="d-flex justify-content-between">
+            <div class="d-flex">
+                <!-- 1. Ảnh sản phẩm: Đặt ID và để src rỗng hoặc ảnh loading mặc định -->
+                <img id="img-sanpham" src="/Content/img/loading.gif" alt="Đang tải..."
+                     style="width:56px;height:56px;border-radius:12px;object-fit:cover;margin-right:12px;"
+                     onerror="this.src='/Content/img/no-image.jpg'" />
+
+                <div>
+                    <!-- 2. Tên sản phẩm -->
+                    <div id="txt-ten-sp" class="fw-bold">Đang tải tên...</div>
+                    <!-- 3. Số lượng -->
+                    <div class="text-muted">Số lượng: <span id="txt-soluong">...</span> x</div>
+                </div>
+            </div>
+            <div class="text-end">
+                <!-- 4. Thành tiền -->
+                <div>Thành tiền: <span id="txt-thanhtien" class="fw-bold" style="color:#F58634">...</span></div>
+                <!-- 5. Trạng thái -->
+                <div id="txt-trangthai" class="text-muted">...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form đánh giá -->
+    <form id="form-danh-gia">
+        <!-- Các input ẩn để lưu ID -->
+        <input type="hidden" id="input-madh" name="MaDH" />
+        <input type="hidden" id="input-masp" name="MaSP" />
+        <input type="hidden" id="input-sosao" name="SoSao" value="0" />
+
+        <div class="mb-2">
+            <label class="fw-bold me-2">Chất lượng sản phẩm:</label>
+            <span id="rating-stars" class="align-middle"></span>
+            <span id="rating-label" class="ms-2 fw-bold" style="color:#F58634;">Tuyệt vời</span>
+        </div>
+
+        <div class="mb-3">
+            <textarea class="form-control" id="input-binhluan" name="BinhLuan" rows="5" placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a href="/CaiDat/DonMua" class="btn btn-outline-secondary">Quay lại</a>
+            <button type="button" onclick="GuiDanhGia()" class="btn btn-warning text-white fw-bold" style="background:#F58634;border-color:#F58634;">Hoàn thành</button>
+        </div>
+    </form>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // 1. Lấy tham số MaDH và MaSP từ URL (ví dụ: ?maDH=10&maSP=5)
+            const urlParams = new URLSearchParams(window.location.search);
+            const maDH = urlParams.get('maDH');
+            const maSP = urlParams.get('maSP');
+
+            if (!maDH || !maSP) {
+                alert("Đường dẫn không hợp lệ!");
+                window.location.href = "/CaiDat/DonMua";
+                return;
+            }
+
+            // 2. Gọi AJAX để lấy thông tin sản phẩm
+            $.ajax({
+                url: '/DanhGia/layThongTinDanhGia',
+                type: 'GET',
+                data: { maDH: maDH, maSP: maSP },
+                success: function (res) {
+                    if (res.success) {
+                        const data = res.data;
+
+                        // 3. Điền dữ liệu vào HTML (DOM Manipulation)
+                        $('#img-sanpham').attr('src', data.AnhSP).attr('alt', data.TenSP);
+                        $('#txt-ten-sp').text(data.TenSP);
+                        $('#txt-soluong').text(data.SoLuong);
+                        $('#txt-trangthai').text(data.TrangThai);
+
+                        // Format tiền tệ
+                        const tienViet = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.ThanhTien);
+                        $('#txt-thanhtien').text(tienViet);
+
+                        // Điền vào input hidden để chuẩn bị gửi form
+                        $('#input-madh').val(data.MaDH);
+                        $('#input-masp').val(data.MaSP);
+                    } else {
+                        alert(res.message);
+                        window.location.href = "/CaiDat/DonMua";
+                    }
+                },
+                error: function () {
+                    alert("Lỗi kết nối server.");
+                }
+            });
+
+            // Khởi tạo rating sao (giữ nguyên logic cũ)
+            renderStars(0);
+        });
+
+        // --- Logic Xử lý Sao ---
+        function renderStars(current) {
+            var starContainer = document.getElementById('rating-stars');
+            var label = document.getElementById('rating-label');
+            var input = document.getElementById('input-sosao');
+
+            // Nhãn hiển thị khi chọn sao
+            var labels = {
+                0: "Vui lòng chọn",
+                1: "Tệ",
+                2: "Không hài lòng",
+                3: "Bình thường",
+                4: "Hài lòng",
+                5: "Tuyệt vời"
+            };
+
+            // Màu sắc
+            var colorSelected = '#ffc107'; // Vàng
+            var colorUnselected = '#333';  // Đen (hoặc dùng #ccc nếu muốn màu xám nhạt)
+
+            starContainer.innerHTML = '';
+            for (var i = 1; i <= 5; i++) {
+                var star = document.createElement('i');
+
+                // Dùng icon sao đặc (fa-star) cho cả 2 trạng thái để thấy rõ màu đen
+                star.className = 'fa fa-star';
+
+                // LOGIC MÀU SẮC:
+                // Nếu i <= số sao hiện tại -> Màu Vàng
+                // Ngược lại -> Màu Đen
+                if (i <= current) {
+                    star.style.color = colorSelected;
+                } else {
+                    star.style.color = colorUnselected;
+                }
+
+                // Style css
+                star.style.cursor = 'pointer';
+                star.style.fontSize = '24px';
+                star.style.marginRight = '4px';
+                star.setAttribute('data-val', i);
+
+                // Sự kiện Click
+                star.onclick = function () {
+                    var v = parseInt(this.getAttribute('data-val'));
+                    input.value = v; // Cập nhật input ẩn
+                    renderStars(v);  // Vẽ lại sao
+                };
+
+                starContainer.appendChild(star);
+            }
+
+            // Cập nhật nhãn chữ bên cạnh
+            label.textContent = labels[current];
+
+            // Đổi màu chữ nhãn: Nếu 0 sao thì màu đen, có sao thì màu cam
+            label.style.color = (current === 0) ? '#333' : '#F58634';
+        }
+
+        // --- Logic Gửi Form bằng AJAX ---
+        function GuiDanhGia() {
+            var soSao = $('#input-sosao').val();
+
+            // KIỂM TRA: Nếu chưa chọn sao (value = 0) thì báo lỗi
+            if (soSao == 0) {
+                alert("Vui lòng chọn số sao đánh giá!");
+                return;
+            }
+
+            var formData = new FormData(document.getElementById('form-danh-gia'));
+
+            $.ajax({
+                url: '/DanhGia/LuuDanhGiaTrang', // Bạn cần sửa hàm này trả về JSON thay vì Redirect
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    // Nếu hàm LuuDanhGiaTrang trả về ActionResult (Redirect), AJAX sẽ coi là thành công
+                    // nhưng tốt nhất nên sửa Controller trả về JSON {success: true}
+
+                    // Giả lập thông báo thành công (hoặc xử lý theo JSON trả về)
+                    alert("Đánh giá thành công!");
+                    window.location.href = "/CaiDat/DonMua";
+                },
+                error: function () {
+                    alert("Có lỗi xảy ra khi gửi đánh giá.");
+                }
+            });
+        }
+    </script>
+}

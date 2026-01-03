@@ -76,16 +76,9 @@ namespace WebBanDoAnOnline.Controllers
             foreach (var item in cartItems)
             {
                 //  giá khuyến mãi
-                decimal giaGoc = item.p.Gia ?? 0;
-                decimal giaKM = item.p.GiaKhuyenMai ?? 0;
-                decimal giaBan = giaGoc;
-
-                if (giaKM > 0 && giaKM < giaGoc &&
-                    (!item.p.NgayBatDauKM.HasValue || item.p.NgayBatDauKM <= now) &&
-                    (!item.p.NgayKetThucKM.HasValue || item.p.NgayKetThucKM >= now))
-                {
-                    giaBan = giaKM;
-                }
+                decimal giaBan = item.p.Gia ?? 0;
+  
+            
 
                 decimal thanhTien = giaBan * (item.g.SoLuong ?? 1);
                 tongTienHang += thanhTien;
@@ -218,12 +211,6 @@ namespace WebBanDoAnOnline.Controllers
                 {
                     var sp = db.SanPhams.Single(p => p.MaSP == item.MaSP);
                     decimal gia = sp.Gia ?? 0;
-                    if (sp.GiaKhuyenMai > 0 && sp.GiaKhuyenMai < gia &&
-                        (!sp.NgayBatDauKM.HasValue || sp.NgayBatDauKM <= now) &&
-                        (!sp.NgayKetThucKM.HasValue || sp.NgayKetThucKM >= now))
-                    {
-                        gia = sp.GiaKhuyenMai ?? 0;
-                    }
                     subTotal += gia * (item.SoLuong ?? 1);
                 }
 
@@ -282,14 +269,6 @@ namespace WebBanDoAnOnline.Controllers
                     if (sp == null) continue;
 
                     decimal giaFinal = sp.Gia ?? 0;
-
-                    // Logic tính giá khuyến mãi (Copy y chang logic ở trên để đồng bộ)
-                    if (sp.GiaKhuyenMai > 0 && sp.GiaKhuyenMai < giaFinal &&
-                        (!sp.NgayBatDauKM.HasValue || sp.NgayBatDauKM <= now) &&
-                        (!sp.NgayKetThucKM.HasValue || sp.NgayKetThucKM >= now))
-                    {
-                        giaFinal = sp.GiaKhuyenMai ?? 0;
-                    }
 
                     ChiTietDonHang ct = new ChiTietDonHang();
                     ct.MaDH = dh.MaDH;

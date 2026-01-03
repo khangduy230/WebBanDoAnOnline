@@ -155,147 +155,66 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-        // POST: API lấy danh sách đơn hàng theo trạng thái
-        // LayDonMua
-        public string LayDonMua()
+        // POST: API lấy danh sách đơn hàng
+        public JsonResult LayDonMua(string status)
         {
             try
             {
-                if (Session["TaiKhoan"] == null) return JsonConvert.SerializeObject(new { success = false, message = "Chưa đăng nhập" });
-                var sessionUser = Session["TaiKhoan"] as TaiKhoan;
-                string statusFilter = Request.Form["status"];
+                var user = Session["TaiKhoan"] as TaiKhoan;
+                if (user == null)
+                    return Json(new { success = false, message = "Vui lòng đăng nhập." });
 
-                // Tối ưu query
-                var loadOptions = new DataLoadOptions();
-                loadOptions.LoadWith<DonHang>(d => d.ChiTietDonHangs);
-                loadOptions.LoadWith<ChiTietDonHang>(ct => ct.SanPham);
-                db.LoadOptions = loadOptions;
-
-                // Query cơ bản
-                var query = db.DonHangs.Where(d => d.MaTK == sessionUser.MaTK && (d.isDelete == null || d.isDelete == 0));
+                var query = db.DonHangs.Where(x => x.MaTK == user.MaTK);
 
                 // Lọc theo trạng thái
-                if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "all")
+                if (status != "all")
                 {
-                    switch (statusFilter)
+                    string statusVN = "";
+                    switch (status)
                     {
-                        case "pending": query = query.Where(d => d.TrangThai == "Chờ xác nhận"); break;
-                        case "shipping": query = query.Where(d => d.TrangThai == "Đã xác nhận" || d.TrangThai == "Đang giao"); break;
-                        case "completed": query = query.Where(d => d.TrangThai == "Đã nhận hàng"); break;
-                        case "cancelled": query = query.Where(d => d.TrangThai == "Đã hủy"); break;
+                        case "pending": statusVN = "Chờ xác nhận"; break;
+                        case "shipping": statusVN = "Đang giao"; break;
+                        case "completed": statusVN = "Đã nhận hàng"; break;
+                        case "cancelled": statusVN = "Đã hủy"; break;
+                    }
+                    if (!string.IsNullOrEmpty(statusVN))
+                    {
+                        if (status == "shipping")
+                            query = query.Where(x => x.TrangThai == "Đang giao" || x.TrangThai == "Đã xác nhận");
+                        else
+                            query = query.Where(x => x.TrangThai == statusVN);
                     }
                 }
 
-                var list = query.OrderByDescending(d => d.Create_at).ToList();
-
-                // Lấy danh sách các mã đơn hàng để tối ưu truy vấn
-                var listMaDH = list.Select(x => x.MaDH).ToList();
-
-                // Lấy tất cả đánh giá của các đơn hàng này vào bộ nhớ (để tránh query lặp trong vòng lặp)
-                var listDanhGia = db.DanhGias.Where(dg => listMaDH.Contains(dg.MaDH ?? 0) && (dg.isDelete == 0 || dg.isDelete == null)).ToList();
-
-                var data = list.Select(d => new
+                var data = query.OrderByDescending(x => x.Create_at).ToList().Select(dh => new
                 {
-                    MaDH = d.MaDH,
-                    MaVanDon = "DH" + d.MaDH.ToString("D6"),
-                    TrangThai = d.TrangThai,
-                    TongTien = d.TongTien,
-                    NgayTao = d.Create_at.HasValue ? d.Create_at.Value.ToString("dd/MM/yyyy HH:mm") : "",
-                    DiaChiGiaoHang = "Giao đến địa chỉ mặc định", // Hoặc query bảng DiaChi nếu cần
-
-                    SanPhams = d.ChiTietDonHangs.Select(ct => new {
+                    MaDH = dh.MaDH,
+                    MaVanDon = "DH" + dh.MaDH,
+                    NgayTao = dh.Create_at.HasValue ? dh.Create_at.Value.ToString("dd/MM/yyyy HH:mm") : "",
+                    TrangThai = dh.TrangThai,
+                    TongTien = dh.TongTien,
+                    SanPhams = db.ChiTietDonHangs.Where(ct => ct.MaDH == dh.MaDH).Select(ct => new {
                         MaSP = ct.MaSP,
                         TenSP = ct.TenSP,
+                        Anh = db.SanPhams.FirstOrDefault(s => s.MaSP == ct.MaSP).Anh,
                         SoLuong = ct.SoLuong,
                         DonGia = ct.DonGia,
-                        Anh = (ct.SanPham != null && !string.IsNullOrEmpty(ct.SanPham.Anh))
-                                ? ct.SanPham.Anh.Replace("~", "")
-                                : "/img/no-image.jpg",
-
-                        // --- QUAN TRỌNG: Kiểm tra xem sản phẩm này trong đơn này đã đánh giá chưa ---
-                        DaDanhGia = listDanhGia.Any(dg => dg.MaDH == d.MaDH && dg.MaSP == ct.MaSP)
+                        // Kiểm tra đã đánh giá chưa để ẩn/hiện nút ở View
+                        DaDanhGia = db.DanhGias.Any(dg => dg.MaDH == dh.MaDH && dg.MaSP == ct.MaSP && (dg.isDelete == 0 || dg.isDelete == null))
                     }).ToList()
-                });
+                }).ToList();
 
-                return JsonConvert.SerializeObject(new { success = true, data = data });
+                return Json(new { success = true, data = data });
             }
             catch (Exception ex)
             {
-                return JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
 
 
-        // --- API 3: GỬI ĐÁNH GIÁ (Mới thêm) ---
-        // --- API 3: GỬI ĐÁNH GIÁ (Đã sửa lỗi và thêm tính điểm TB) ---
-
-        [HttpPost]
-        public string GuiDanhGia()
-        {
-            try
-            {
-                if (Session["TaiKhoan"] == null)
-                    return JsonConvert.SerializeObject(new { success = false, message = "Vui lòng đăng nhập." });
-
-                var user = Session["TaiKhoan"] as TaiKhoan;
-
-                int maDH = 0, maSP = 0, soSao = 5;
-                int.TryParse(Request.Form["MaDH"], out maDH);
-                int.TryParse(Request.Form["MaSP"], out maSP);
-                int.TryParse(Request.Form["SoSao"], out soSao);
-                string binhLuan = Request.Form["BinhLuan"];
-
-                using (var context = new BanDoAnOnlineDataContext()) // Khởi tạo context mới để tránh conflict
-                {
-                    // 1. Check đơn hàng hợp lệ
-                    var dh = context.DonHangs.FirstOrDefault(d => d.MaDH == maDH && d.MaTK == user.MaTK && d.TrangThai == "Đã nhận hàng");
-                    if (dh == null) return JsonConvert.SerializeObject(new { success = false, message = "Đơn hàng không hợp lệ hoặc chưa hoàn thành." });
-
-                    // 2. Check đã đánh giá chưa
-                    var check = context.DanhGias.FirstOrDefault(x => x.MaDH == maDH && x.MaSP == maSP);
-                    if (check != null) return JsonConvert.SerializeObject(new { success = false, message = "Bạn đã đánh giá sản phẩm này rồi." });
-
-                    // 3. Insert đánh giá
-                    var dg = new DanhGia
-                    {
-                        MaTK = user.MaTK,
-                        MaSP = maSP,
-                        MaDH = maDH,
-                        SoSao = soSao,
-                        BinhLuan = binhLuan,
-                        Create_at = DateTime.Now,
-                        isDelete = 0
-                    };
-                    context.DanhGias.InsertOnSubmit(dg);
-                    context.SubmitChanges(); // Lưu đánh giá trước
-
-                    // 4. Tính điểm TB (Quan trọng: Tính lại toàn bộ đánh giá của SP đó)
-                    var sp = context.SanPhams.FirstOrDefault(s => s.MaSP == maSP);
-                    if (sp != null)
-                    {
-                        // Lấy list sao, bỏ qua các đánh giá bị xóa
-                        var ratings = context.DanhGias
-                            .Where(r => r.MaSP == maSP && (r.isDelete == 0 || r.isDelete == null))
-                            .Select(r => r.SoSao)
-                            .ToList();
-
-                        if (ratings.Any())
-                        {
-                            sp.SoLuotDanhGia = ratings.Count;
-                            sp.DiemDanhGia = ratings.Average(r => (double)r);
-                        }
-                        context.SubmitChanges();
-                    }
-                }
-
-                return JsonConvert.SerializeObject(new { success = true, message = "Cảm ơn bạn đã đánh giá!" });
-            }
-            catch (Exception ex)
-            {
-                return JsonConvert.SerializeObject(new { success = false, message = "Lỗi: " + ex.Message });
-            }
-        }
+        
 
         public ActionResult KhuyenMai()
         {
@@ -786,24 +705,7 @@ namespace WebBanDoAnOnline.Controllers
                     }
                 }
 
-                // 4.  XỬ LÝ THÔNG BÁO - KIỂM TRA isDelete TỒN TẠI
-                var thongBaos = db.ThongBaos.Where(tb => tb.MaTK == maTK).ToList();
-                foreach (var tb in thongBaos)
-                {
-                    // Kiểm tra nếu có thuộc tính isDelete
-                    var isDeleteProp = tb.GetType().GetProperty("isDelete");
-                    if (isDeleteProp != null)
-                    {
-                        isDeleteProp.SetValue(tb, (byte)1);
-                    }
-                    
-                    // Kiểm tra nếu có thuộc tính Update_at
-                    var updateAtProp = tb.GetType().GetProperty("Update_at");
-                    if (updateAtProp != null)
-                    {
-                        updateAtProp.SetValue(tb, now);
-                    }
-                }
+                
 
                 // 5. Soft delete đơn hàng và dữ liệu liên quan
                 var donHangs = db.DonHangs.Where(dh => dh.MaTK == maTK && (dh.isDelete == null || dh.isDelete == 0)).ToList();

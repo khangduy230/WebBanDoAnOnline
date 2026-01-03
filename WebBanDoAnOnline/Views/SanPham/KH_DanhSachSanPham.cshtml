@@ -247,7 +247,7 @@
                     var imgUrl = p.Anh ? url_domain + p.Anh.replace('~/', '/') : "/Content/img/no-image.png";
 
                     // Giả lập thời gian giao (nếu API chưa trả về thì mặc định ~15p cho giống ảnh)
-                    var thoiGian = p.ThoiGianGiao || "~15p";
+                    
                     // Giả lập rating
                     var rating = p.DiemDanhGia || 0;
 
@@ -255,7 +255,7 @@
                     var html = `
                     <div class="col-6 col-md-4 col-lg-3">
                         <div class="product-card-custom">
-                            <a href="/SanPham/KH_ChiTietSanPham?maSP=${p.MaSP}" class="text-decoration-none text-dark">
+                            <a href="/SanPham/ChiTietSanPham?maSP=${p.MaSP}" class="text-decoration-none text-dark">
                                 <!-- Ảnh có bo góc riêng -->
                                 <div class="img-wrapper">
                                     <img src="${imgUrl}" alt="${p.TenSP}" />
@@ -269,7 +269,7 @@
 
                                 <!-- Thông tin phụ: Thời gian & Sao -->
                                 <div class="meta-info">
-                                    <span><i class="fas fa-clock text-warning"></i> ${thoiGian}</span>
+                                 
                                     <span><i class="fas fa-star text-warning"></i> ${rating}</span>
                                 </div>
                             </a>

@@ -144,6 +144,7 @@
                     var html = `
                     <div class="col-6 col-md-4 col-lg-3">
                         <div class="card h-100 sp-card position-relative">
+
                             <div class="stock-badge ${statusColor}" onclick="HienMenuTrangThai(${p.MaSP})">
                                 ${p.TrangThai} <i class="fas fa-chevron-down ms-1" style="font-size:0.7em"></i>
                             </div>
@@ -152,12 +153,14 @@
                                 <div class="stock-option" onclick="CapNhatTrangThai(${p.MaSP}, 'Hết hàng')">🔴 Hết hàng</div>
                                 <div class="stock-option" onclick="CapNhatTrangThai(${p.MaSP}, 'Tạm ngưng')">⚪ Tạm ngưng</div>
                             </div>
-                            <img src="${img}" class="card-img-top" style="height:160px; object-fit:cover" onerror="this.src='/img/no-image.jpg'">
-                            <div class="card-body p-3 text-center">
-                                <h6 class="fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
-                                <div class="text-danger fw-bold">${DinhDangTienTe(p.Gia)}</div>
-                                <div class="small text-muted mt-1"><i class="fas fa-star text-warning"></i> ${p.DiemDanhGia || 0}</div>
-                            </div>
+                            <a href="/SanPham/ChiTietSanPham?maSP=${p.MaSP}" class="text-decoration-none text-dark">
+                                <img src="${img}" class="card-img-top" style="height:160px; object-fit:cover" onerror="this.src='/img/no-image.jpg'">
+                                <div class="card-body p-3 text-center">
+                                    <h6 class="fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
+                                    <div class="text-danger fw-bold">${DinhDangTienTe(p.Gia)}</div>
+                                    <div class="small text-muted mt-1"><i class="fas fa-star text-warning"></i> ${p.DiemDanhGia || 0}</div>
+                                </div>
+                            </a>
                         </div>
                     </div>`;
                     grid.append(html);
