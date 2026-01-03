@@ -21,50 +21,49 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-        // 2. API lấy dữ liệu sản phẩm (ĐÃ SỬA: Tính điểm sao)
-        [HttpPost] // Thêm HttpPost cho chuẩn bảo mật
+        // 2. API lấy dữ liệu sản phẩm (ĐÃ SỬA: Lấy Top đánh giá cao nhất)
+        [HttpPost]
         public string LaySanPhamTrangChu()
         {
             try
             {
                 BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
-                // Bước 1: Lấy danh sách sản phẩm thô ra trước
+                // Kỹ thuật: Tính toán điểm trung bình ngay trong câu lệnh Select
+                // để có thể OrderByDescending (Sắp xếp) theo điểm đó.
                 var list = db.SanPhams
                              .Where(x => (x.isDelete == null || x.isDelete == 0) && x.TrangThai == "Còn hàng")
-                             .OrderByDescending(x => x.Create_at)
-                             .Take(8)
-                             .ToList(); // Quan trọng: .ToList() để ngắt kết nối DB, xử lý tính toán ở RAM
+                             .Select(p => new
+                             {
+                                 p.MaSP,
+                                 p.TenSP,
+                                 p.Anh,
+                                 p.Gia,
+                                 // Tính điểm trung bình trực tiếp trong DB
+                                 // (double?) để tránh lỗi nếu chưa có ai đánh giá (sẽ trả về null -> 0)
+                                 DiemTB = db.DanhGias
+                                            .Where(d => d.MaSP == p.MaSP && (d.isDelete == 0 || d.isDelete == null))
+                                            .Average(d => (double?)d.SoSao) ?? 0
+                             })
+                             .OrderByDescending(p => p.DiemTB) // Sắp xếp giảm dần theo điểm sao
+                             .ThenByDescending(p => p.MaSP)    // Nếu bằng điểm thì lấy cái mới hơn
+                             .Take(8)                          // Lấy 8 sản phẩm đầu
+                             .ToList();
 
-                // Bước 2: Duyệt qua từng sản phẩm để tính điểm trung bình
-                var data = list.Select(x =>
+                // Map lại dữ liệu để trả về JSON (Làm tròn số)
+                var data = list.Select(x => new
                 {
-                    // Truy vấn bảng DanhGia để lấy các đánh giá của sản phẩm này
-                    var listDG = db.DanhGias.Where(d => d.MaSP == x.MaSP && (d.isDelete == 0 || d.isDelete == null));
-
-                    double diemTB = 0;
-                    if (listDG.Any())
-                    {
-                        // Tính trung bình cộng cột SoSao
-                        diemTB = listDG.Average(d => (double)d.SoSao);
-                    }
-
-                    return new
-                    {
-                        MaSP = x.MaSP,
-                        TenSP = x.TenSP,
-                        Anh = x.Anh,
-                        GiaGoc = x.Gia ?? 0,
-                        // Trả về thuộc tính SoSao cho View sử dụng
-                        SoSao = Math.Round(diemTB, 1)
-                    };
+                    MaSP = x.MaSP,
+                    TenSP = x.TenSP,
+                    Anh = x.Anh,
+                    GiaGoc = x.Gia ?? 0,
+                    SoSao = Math.Round(x.DiemTB, 1) // Làm tròn 1 chữ số thập phân (VD: 4.7)
                 });
 
                 return JsonConvert.SerializeObject(data);
             }
             catch (Exception ex)
             {
-                // Nên log lỗi ra để debug nếu cần
                 return JsonConvert.SerializeObject(new { error = ex.Message });
             }
         }

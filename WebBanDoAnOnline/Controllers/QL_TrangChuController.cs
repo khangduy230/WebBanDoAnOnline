@@ -66,15 +66,27 @@ namespace WebBanDoAnOnline.Controllers
 
                 // --- 2. TOP 5 MÓN ĂN (Sắp xếp theo điểm đánh giá) ---
                 var topMenu = db.SanPhams
-                    .Where(p => (p.isDelete == 0 || p.isDelete == null))
-                    .OrderByDescending(p => p.DiemDanhGia)
-                    .Take(5)
-                    .Select(p => new {
-                        p.TenSP,
-                        p.Gia,
-                        p.TrangThai,
-                        p.DiemDanhGia
-                    }).ToList();
+                .Where(p => (p.isDelete == 0 || p.isDelete == null))
+                .Select(p => new
+                {
+                    p.TenSP,
+                    p.Gia,
+                    p.TrangThai,
+                    // Tính điểm trung bình ngay tại đây. 
+                    // (double?) ép kiểu để tránh lỗi khi chưa có đánh giá nào (trả về null -> 0)
+                    DiemTrungBinh = db.DanhGias
+                        .Where(d => d.MaSP == p.MaSP && (d.isDelete == 0 || d.isDelete == null))
+                        .Average(d => (double?)d.SoSao) ?? 0
+                })
+                .OrderByDescending(p => p.DiemTrungBinh) // Sắp xếp theo điểm vừa tính
+                .Take(5)
+                .ToList() // Thực thi query lấy dữ liệu về
+                .Select(p => new {
+                    p.TenSP,
+                    p.Gia,
+                    p.TrangThai,
+                    DiemDanhGia = Math.Round(p.DiemTrungBinh, 1) // Làm tròn số (VD: 4.666 -> 4.7)
+                }).ToList();
 
 
                 // --- 3. DANH SÁCH NHÂN SỰ (Lấy Quản lý & Nhân viên) ---

@@ -100,12 +100,17 @@
             </div>
         </div>
 
-        <!-- Cột bên phải (Nhân sự) -->
         <div class="col-lg-4">
             <div class="card dashboard-panel border-0 shadow-sm h-100">
-                <div class="card-body">
+                <!-- THÊM CLASS: d-flex flex-column -->
+                <div class="card-body d-flex flex-column">
                     <h6 class="fw-bold mb-3">Nhân sự mới</h6>
-                    <ul class="list-unstyled user-list mb-0" id="list_Staff"></ul>
+
+                    <!-- THÊM CLASS: flex-grow-1 -->
+                    <ul class="list-unstyled user-list mb-0 flex-grow-1" id="list_Staff">
+                        <!-- Nội dung danh sách nhân viên sẽ được JS render vào đây -->
+                    </ul>
+
                     <div class="text-center mt-3 border-top pt-2">
                         <a href="@Url.Action("QL_DanhSachNguoiDung", "NguoiDung")" class="small text-decoration-none fw-bold">Xem tất cả nhân viên</a>
                     </div>
