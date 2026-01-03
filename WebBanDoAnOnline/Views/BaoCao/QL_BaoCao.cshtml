@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     Layout = "~/Views/Shared/_QL_Layout.cshtml";
 
 }
@@ -141,8 +141,6 @@
         <div class="o"><div class="nhan">Đã giao</div><div class="gt" id="kpiDaGiao">0</div></div>
         <div class="o"><div class="nhan">Đã hủy</div><div class="gt" id="kpiDaHuy">0</div></div>
         <div class="o"><div class="nhan">Doanh thu</div><div class="gt" id="kpiDoanhThu">0</div></div>
-        <div class="o"><div class="nhan">Thu</div><div class="gt" id="kpiThu">0</div></div>
-        <div class="o"><div class="nhan">Chi</div><div class="gt" id="kpiChi">0</div></div>
     </div>
 
     <div class="hang">
@@ -175,103 +173,101 @@
 
 @section scripts{
     <script>
-(function () {
-    var goc = window.location.origin;
+        (function () {
+            var goc = window.location.origin;
 
-    function dinhDangSo(n) {
-        n = Number(n || 0);
-        return n.toLocaleString('vi-VN');
-    }
+            function dinhDangSo(n) {
+                n = Number(n || 0);
+                return n.toLocaleString('vi-VN');
+            }
 
-    function macDinhNgay() {
-        var d = new Date();
-        var y = d.getFullYear(); var m = d.getMonth() + 1; var day = d.getDate();
-        function pad(x){ return x < 10 ? '0' + x : '' + x; }
-        document.getElementById('tuNgay').value = y + '-' + pad(m) + '-01';
-        document.getElementById('denNgay').value = y + '-' + pad(m) + '-' + pad(day);
-    }
+            function macDinhNgay() {
+                var d = new Date();
+                var y = d.getFullYear(); var m = d.getMonth() + 1; var day = d.getDate();
+                function pad(x) { return x < 10 ? '0' + x : '' + x; }
+                document.getElementById('tuNgay').value = y + '-' + pad(m) + '-01';
+                document.getElementById('denNgay').value = y + '-' + pad(m) + '-' + pad(day);
+            }
 
-    function taiBaoCao() {
-        var tu = document.getElementById('tuNgay').value;
-        var den = document.getElementById('denNgay').value;
+            function taiBaoCao() {
+                var tu = document.getElementById('tuNgay').value;
+                var den = document.getElementById('denNgay').value;
 
-        var form = new FormData();
-        form.append('tuNgay', tu);
-        form.append('denNgay', den);
+                var form = new FormData();
+                form.append('tuNgay', tu);
+                form.append('denNgay', den);
 
-        fetch(goc + '/BaoCao/Lay_BaoCao', { method: 'POST', body: form })
-            .then(r => r.text())
-            .then(tx => {
-                var res = typeof tx === 'string' ? JSON.parse(tx) : tx;
-                if (!res.success) { alert(res.message || 'Lỗi'); return; }
-                veBaoCao(res.data);
-            })
-            .catch(e => alert('Lỗi tải báo cáo: ' + e));
-    }
+                fetch(goc + '/BaoCao/Lay_BaoCao', { method: 'POST', body: form })
+                    .then(r => r.text())
+                    .then(tx => {
+                        var res = typeof tx === 'string' ? JSON.parse(tx) : tx;
+                        if (!res.success) { alert(res.message || 'Lỗi'); return; }
+                        veBaoCao(res.data);
+                    })
+                    .catch(e => alert('Lỗi tải báo cáo: ' + e));
+            }
 
-    function veBaoCao(d) {
-        // Khoảng TG
-        document.getElementById('lblKhoang').innerText = ' (' + d.KhoangThoiGian.Tu + ' - ' + d.KhoangThoiGian.Den + ')';
+            function veBaoCao(d) {
+                // Khoảng TG
+                document.getElementById('lblKhoang').innerText = ' (' + d.KhoangThoiGian.Tu + ' - ' + d.KhoangThoiGian.Den + ')';
 
-        // KPI
-        document.getElementById('kpiTongDon').innerText = dinhDangSo(d.TongQuan.TongDon);
-        document.getElementById('kpiDaGiao').innerText = dinhDangSo(d.TongQuan.DaGiao);
-        document.getElementById('kpiDaHuy').innerText = dinhDangSo(d.TongQuan.DaHuy);
-        document.getElementById('kpiDoanhThu').innerText = dinhDangSo(d.TongQuan.DoanhThu) + 'đ';
-        document.getElementById('kpiThu').innerText = dinhDangSo(d.TongQuan.Thu) + 'đ';
-        document.getElementById('kpiChi').innerText = dinhDangSo(d.TongQuan.Chi) + 'đ';
+                // KPI
+                document.getElementById('kpiTongDon').innerText = dinhDangSo(d.TongQuan.TongDon);
+                document.getElementById('kpiDaGiao').innerText = dinhDangSo(d.TongQuan.DaGiao);
+                document.getElementById('kpiDaHuy').innerText = dinhDangSo(d.TongQuan.DaHuy);
+                document.getElementById('kpiDoanhThu').innerText = dinhDangSo(d.TongQuan.DoanhThu) + 'đ';
 
-        // Top SP
-        var spBody = document.querySelector('#tbTopSP tbody');
-        spBody.innerHTML = '';
-        if (d.TopSanPham && d.TopSanPham.length) {
-            d.TopSanPham.forEach(x => {
-                var tr = document.createElement('tr');
-                tr.innerHTML = '<td>' + (x.TenSP || 'Sản phẩm') + '</td>' +
-                               '<td>' + dinhDangSo(x.SoLuong) + '</td>' +
-                               '<td>' + dinhDangSo(x.DoanhThu) + 'đ</td>';
-                spBody.appendChild(tr);
-            });
-        } else {
-            spBody.innerHTML = '<tr><td colspan="3"><i>Không có dữ liệu</i></td></tr>';
-        }
+                // Top SP
+                var spBody = document.querySelector('#tbTopSP tbody');
+                spBody.innerHTML = '';
+                if (d.TopSanPham && d.TopSanPham.length) {
+                    d.TopSanPham.forEach(x => {
+                        var tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + (x.TenSP || 'Sản phẩm') + '</td>' +
+                            '<td>' + dinhDangSo(x.SoLuong) + '</td>' +
+                            '<td>' + dinhDangSo(x.DoanhThu) + 'đ</td>';
+                        spBody.appendChild(tr);
+                    });
+                } else {
+                    spBody.innerHTML = '<tr><td colspan="3"><i>Không có dữ liệu</i></td></tr>';
+                }
 
-        // Doanh thu theo Danh mục + bar đơn giản
-        var dmBody = document.querySelector('#tbDM tbody');
-        dmBody.innerHTML = '';
-        var tongDT = (d.DoanhThuTheoDanhMuc || []).reduce((s, x) => s + (x.DoanhThu || 0), 0);
-        if (d.DoanhThuTheoDanhMuc && d.DoanhThuTheoDanhMuc.length) {
-            d.DoanhThuTheoDanhMuc.forEach(x => {
-                var ty = tongDT > 0 ? Math.round((x.DoanhThu * 100) / tongDT) : 0;
-                var tr = document.createElement('tr');
-                tr.innerHTML =
-                    '<td>' + (x.TenDM || 'Khác') + '</td>' +
-                    '<td>' + dinhDangSo(x.DoanhThu) + 'đ</td>' +
-                    '<td><div class="thanh"><div class="fill" style="width:'+ ty +'%;"></div></div></td>';
-                dmBody.appendChild(tr);
-            });
-        } else {
-            dmBody.innerHTML = '<tr><td colspan="3"><i>Không có dữ liệu</i></td></tr>';
-        }
+                // Doanh thu theo Danh mục + bar đơn giản
+                var dmBody = document.querySelector('#tbDM tbody');
+                dmBody.innerHTML = '';
+                var tongDT = (d.DoanhThuTheoDanhMuc || []).reduce((s, x) => s + (x.DoanhThu || 0), 0);
+                if (d.DoanhThuTheoDanhMuc && d.DoanhThuTheoDanhMuc.length) {
+                    d.DoanhThuTheoDanhMuc.forEach(x => {
+                        var ty = tongDT > 0 ? Math.round((x.DoanhThu * 100) / tongDT) : 0;
+                        var tr = document.createElement('tr');
+                        tr.innerHTML =
+                            '<td>' + (x.TenDM || 'Khác') + '</td>' +
+                            '<td>' + dinhDangSo(x.DoanhThu) + 'đ</td>' +
+                            '<td><div class="thanh"><div class="fill" style="width:' + ty + '%;"></div></div></td>';
+                        dmBody.appendChild(tr);
+                    });
+                } else {
+                    dmBody.innerHTML = '<tr><td colspan="3"><i>Không có dữ liệu</i></td></tr>';
+                }
 
-        // Voucher
-        var vBody = document.querySelector('#tbVoucher tbody');
-        vBody.innerHTML = '';
-        if (d.Voucher && d.Voucher.length) {
-            d.Voucher.forEach(x => {
-                var tr = document.createElement('tr');
-                tr.innerHTML = '<td>' + (x.TenVoucher || '(không tên)') + '</td>' +
-                               '<td>' + dinhDangSo(x.SoDon) + '</td>' +
-                               '<td>' + dinhDangSo(x.DoanhThu) + 'đ</td>';
-                vBody.appendChild(tr);
-            });
-        } else {
-            vBody.innerHTML = '<tr><td colspan="3"><i>Không có dữ liệu</i></td></tr>';
-        }
-    }
+                // Voucher
+                var vBody = document.querySelector('#tbVoucher tbody');
+                vBody.innerHTML = '';
+                if (d.Voucher && d.Voucher.length) {
+                    d.Voucher.forEach(x => {
+                        var tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + (x.TenVoucher || '(không tên)') + '</td>' +
+                            '<td>' + dinhDangSo(x.SoDon) + '</td>' +
+                            '<td>' + dinhDangSo(x.DoanhThu) + 'đ</td>';
+                        vBody.appendChild(tr);
+                    });
+                } else {
+                    vBody.innerHTML = '<tr><td colspan="3"><i>Không có dữ liệu</i></td></tr>';
+                }
+            }
 
-    document.getElementById('btnTai').addEventListener('click', taiBaoCao);
-    macDinhNgay();
-    taiBaoCao();
-})();</script>
+            document.getElementById('btnTai').addEventListener('click', taiBaoCao);
+            macDinhNgay();
+            taiBaoCao();
+        })();</script>
 }
