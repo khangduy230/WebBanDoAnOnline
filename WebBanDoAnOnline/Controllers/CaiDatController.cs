@@ -214,10 +214,6 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-
-
-        
-
         public ActionResult KhuyenMai()
         {
             if (Session["TaiKhoan"] == null)
@@ -507,7 +503,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // GET: Lấy danh sách voucher của user (LayDSVoucher)
         [HttpPost]
-        public string LayDSVoucher()
+        public string LayDSVoucher(string keyword = "", int page = 1, int pageSize = 5)
         {
             try
             {
@@ -519,13 +515,29 @@ namespace WebBanDoAnOnline.Controllers
                 var sessionUser = Session["TaiKhoan"] as TaiKhoan;
                 var now = DateTime.Now;
 
-               
-                var vouchers = db.Vouchers
-                    .Where(v => (v.isDelete == null || v.isDelete == 0))
-                    .OrderByDescending(v => v.NgayBatDau)
-                    .ToList();
+                // 1. Khởi tạo Query
+                var query = db.Vouchers.Where(v => (v.isDelete == null || v.isDelete == 0));
 
-                var data = vouchers.Select(v =>
+                // 2. Xử lý tìm kiếm (Nếu có keyword)
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    keyword = keyword.ToLower();
+                    query = query.Where(v => v.MaCode.ToLower().Contains(keyword) ||
+                                             v.TenVoucher.ToLower().Contains(keyword));
+                }
+
+                // 3. Sắp xếp (Mới nhất lên đầu)
+                query = query.OrderByDescending(v => v.NgayBatDau);
+
+                // 4. Tính toán phân trang
+                int totalItems = query.Count();
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+                // 5. Lấy dữ liệu trang hiện tại
+                var listVouchers = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                // 6. Map dữ liệu sang object hiển thị
+                var data = listVouchers.Select(v =>
                 {
                     string trangThai = "ConHan";
                     if (now < v.NgayBatDau || now > v.NgayKetThuc)
@@ -537,12 +549,10 @@ namespace WebBanDoAnOnline.Controllers
                         trangThai = "HetLuot";
                     }
 
-                    // Định dạng giá trị giảm
                     string giaTriText = v.LoaiGiam == "Percent"
                         ? "Giảm " + v.GiaTri + "%"
                         : "Giảm " + v.GiaTri.ToString("N0") + "đ";
 
-                    // Điều kiện tối thiểu
                     string dieuKienText = v.DieuKienToiThieu.HasValue
                         ? " (Đơn tối thiểu " + v.DieuKienToiThieu.Value.ToString("N0") + "đ)"
                         : "";
@@ -559,7 +569,14 @@ namespace WebBanDoAnOnline.Controllers
                     };
                 }).ToList();
 
-                return Newtonsoft.Json.JsonConvert.SerializeObject(new { success = true, data = data });
+                // Trả về thêm totalPages và currentPage cho Client
+                return Newtonsoft.Json.JsonConvert.SerializeObject(new
+                {
+                    success = true,
+                    data = data,
+                    totalPages = totalPages,
+                    currentPage = page
+                });
             }
             catch (Exception ex)
             {
@@ -568,7 +585,7 @@ namespace WebBanDoAnOnline.Controllers
         }
 
         //  Lưu voucher (Kiểm tra mã có tồn tại không)
-        
+
         public string LuuVoucher()
         {
             try

@@ -406,7 +406,7 @@
         // ĐỔI TÊN: saveAddress -> LuuDiaChi
         function LuuDiaChi() {
             var formData = new FormData($('#addressForm')[0]);
-            formData.append('MacDinh', $('#macDinh').is(':checked'));
+            formData.set('MacDinh', $('#macDinh').is(':checked'));
 
             var url = isEditMode ? '/CaiDat/SuaDiaChi' : '/CaiDat/ThemDiaChi';
 

@@ -186,22 +186,26 @@
 
                         <div class="product-list">
                             ${order.SanPhams.map(sp => {
-                    // Xử lý nút đánh giá: Chuyển hướng sang trang KH_DanhGiaSanPham
+                    // 1. XỬ LÝ ẢNH (Sửa lỗi tại đây)
+                    // Lấy ảnh từ sp.Anh, bỏ dấu '~', nếu null thì lấy ảnh mặc định
+                    var imgUrl = sp.Anh ? sp.Anh.replace("~", "") : "/Content/img/no-image.png";
+
+                    // 2. XỬ LÝ NÚT ĐÁNH GIÁ
                     var btnDanhGia = '';
                     if (order.TrangThai === 'Đã nhận hàng') {
                         if (sp.DaDanhGia === true) {
                             btnDanhGia = `<div class="mt-2 text-success small fw-bold"><i class="fas fa-check-circle"></i> Đã đánh giá</div>`;
                         } else {
-                            // Link trực tiếp đến Controller DanhGia
                             btnDanhGia = `<a href="/DanhGia/KH_DanhGiaSanPham?maDH=${order.MaDH}&maSP=${sp.MaSP}"
                                                          class="btn btn-sm btn-outline-warning ms-auto mt-2">
                                                          <i class="far fa-star"></i> Viết đánh giá
                                                       </a>`;
                         }
                     }
+
                     return `
                                 <div class="product-item">
-                                    <img src="${sp.Anh}" class="product-img" onerror="this.src='/Content/img/no-image.jpg'">
+                                    <img src="${imgUrl}" class="product-img" onerror="this.src='/Content/img/no-image.png'">
                                     <div class="product-info flex-grow-1">
                                         <div class="fw-bold text-dark">${sp.TenSP}</div>
                                         <div class="text-muted small">x${sp.SoLuong}</div>

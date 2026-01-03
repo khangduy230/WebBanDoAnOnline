@@ -4,6 +4,7 @@
 }
 
 <style>
+    /* CSS cũ giữ nguyên */
     .voucher-input-section {
         background: #fff;
         border: 2px solid #e9ecef;
@@ -33,10 +34,6 @@
             border-color: #F58634;
         }
 
-        .voucher-code-input::placeholder {
-            color: #999;
-        }
-
     .btn-save-voucher {
         background-color: #F58634;
         color: white;
@@ -53,7 +50,7 @@
             background-color: #e67e00;
         }
 
-    /* Voucher card */
+    /* CSS Voucher Card */
     .voucher-card {
         background: #fff;
         border: 2px solid #e9ecef;
@@ -122,7 +119,6 @@
         text-align: center;
     }
 
-    /* Badge trạng thái */
     .voucher-status {
         position: absolute;
         top: 16px;
@@ -148,7 +144,6 @@
         color: #0c5460;
     }
 
-    /* Empty state */
     .empty-voucher {
         background: #fff;
         border: 2px dashed #ddd;
@@ -164,160 +159,217 @@
             margin-bottom: 15px;
         }
 
-        .empty-voucher p {
-            font-size: 1.1rem;
-            margin: 0;
-        }
-
-    /* Loading */
-    .voucher-loading {
-        text-align: center;
-        padding: 40px 20px;
+    /* CSS Phân trang */
+    .pagination {
+        margin-top: 20px;
     }
 
-        .voucher-loading .spinner-border {
-            width: 3rem;
-            height: 3rem;
-            color: #F58634;
+    .page-link {
+        color: #F58634;
+        border-color: #dee2e6;
+        cursor: pointer;
+    }
+
+        .page-link:hover {
+            color: #e67e00;
+            background-color: #fff8f0;
+            border-color: #dee2e6;
         }
+
+    .page-item.active .page-link {
+        background-color: #F58634;
+        border-color: #F58634;
+        color: white;
+    }
+
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+    }
 </style>
 
 <h4 class="mb-4">Mã khuyến mãi của tôi</h4>
 
-<!-- Ô nhập mã voucher -->
+<!-- Ô TÌM KIẾM VOUCHER (Đã đổi từ Lưu sang Tìm kiếm) -->
 <div class="voucher-input-section">
     <div class="voucher-input-wrapper">
         <input type="text"
-               id="voucherCodeInput"
+               id="voucherSearchInput"
                class="voucher-code-input"
-               placeholder="Nhập mã voucher tại đây"
+               placeholder="Tìm kiếm theo mã hoặc tên voucher..."
                maxlength="50">
-        <button class="btn-save-voucher" onclick="luuVoucher()">
-            <i class="fas fa-save"></i> Lưu voucher
+        <button class="btn-save-voucher" onclick="TimKiemVoucher()">
+            <i class="fas fa-search"></i> Tìm kiếm
         </button>
     </div>
 </div>
 
 <!-- Danh sách voucher -->
 <div id="voucher-list">
-    <div class="voucher-loading">
-        <div class="spinner-border" role="status"></div>
+    <div class="voucher-loading text-center py-5">
+        <div class="spinner-border text-warning" role="status"></div>
         <p class="mt-3 text-muted">Đang tải danh sách voucher...</p>
     </div>
 </div>
 
+<!-- PHÂN TRANG -->
+<div id="pagination"></div>
 
-    <script>
-        var url_domain = window.location.origin;
+<script>
+    var url_domain = window.location.origin;
 
-        $(document).ready(function () {
-            LayDSVoucher();
+    $(document).ready(function () {
+        // Load trang đầu tiên khi vào
+        LayDSVoucher(1);
 
-            // Enter để lưu voucher
-            $('#voucherCodeInput').keypress(function (e) {
-                if (e.which === 13) {
-                    luuVoucher();
-                }
-            });
+        // Enter để tìm kiếm
+        $('#voucherSearchInput').keypress(function (e) {
+            if (e.which === 13) {
+                TimKiemVoucher();
+            }
         });
+    });
 
-        function LayDSVoucher() {
-            $.ajax({
-                type: "POST",
-                url: url_domain + '/CaiDat/LayDSVoucher',
-                contentType: false, processData: false, cache: false,
-                success: function (response) {
-                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
-                    if (res.success) {
-                        // SỬA LỖI: Gọi đúng tên hàm HienThiDSVoucher
-                        HienThiDSVoucher(res.data);
-                    } else {
-                        $('#voucher-list').html('<div class="alert alert-danger text-center">' + res.message + '</div>');
-                    }
-                },
-                error: function () {
-                    $('#voucher-list').html('<div class="alert alert-danger text-center">Lỗi khi tải danh sách voucher</div>');
-                }
-            });
+    // Hàm kích hoạt tìm kiếm (Reset về trang 1)
+    function TimKiemVoucher() {
+        LayDSVoucher(1);
+    }
+
+    // Hàm gọi API lấy danh sách (Có keyword và page)
+    function LayDSVoucher(page) {
+        var keyword = $('#voucherSearchInput').val().trim();
+
+        var formData = new FormData();
+        formData.append('page', page);
+        formData.append('pageSize', 5); // Số lượng voucher mỗi trang
+        formData.append('keyword', keyword);
+
+        // Hiển thị loading nhẹ nếu không phải lần đầu
+        if (page > 1) {
+            $('#voucher-list').css('opacity', '0.5');
         }
 
-        // Hàm hiển thị danh sách
-        function HienThiDSVoucher(data) {
-            if (data.length === 0) {
-                $('#voucher-list').html(`
-                            <div class="empty-voucher">
-                                <i class="fas fa-ticket-alt"></i>
-                                <p>Chưa có voucher khả dụng</p>
-                            </div>
-                        `);
-                return;
-            }
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/CaiDat/LayDSVoucher',
+            data: formData, contentType: false, processData: false, cache: false,
+            success: function (response) {
+                $('#voucher-list').css('opacity', '1');
+                var res = (typeof response === 'string') ? JSON.parse(response) : response;
 
-            var html = '';
-            for (var i = 0; i < data.length; i++) {
-                var v = data[i];
-
-                var statusHtml = '';
-                var cardClass = '';
-                var quantityHtml = '';
-
-                if (v.TrangThai === 'HetHan') {
-                    statusHtml = '<span class="voucher-status status-expired">Hết hạn</span>';
-                    cardClass = 'disabled-voucher';
-                } else if (v.TrangThai === 'HetLuot') {
-                    statusHtml = '<span class="voucher-status status-used">Hết lượt</span>';
-                    cardClass = 'disabled-voucher';
+                if (res.success) {
+                    HienThiDSVoucher(res.data);
+                    // Gọi hàm tạo phân trang
+                    TaoPhanTrang(res.totalPages, res.currentPage);
                 } else {
-                    statusHtml = '<span class="voucher-status status-active">Còn hạn</span>';
-                    var qtyClass = v.SoLuotConLai <= 10 ? 'low-stock' : '';
-                    quantityHtml = `<div class="voucher-quantity ${qtyClass}"><i class="fas fa-box"></i> Còn lại: ${v.SoLuotConLai} lượt</div>`;
+                    $('#voucher-list').html('<div class="alert alert-danger text-center">' + res.message + '</div>');
+                    $("#pagination").html('');
                 }
-
-                html += `
-                            <div class="voucher-card ${cardClass}">
-                                <div class="voucher-icon"><i class="fas fa-ticket-alt"></i></div>
-                                <div class="voucher-info">
-                                    <div class="voucher-title">${v.TenVoucher}</div>
-                                    <div class="text-success fw-bold small mb-1">${v.GiaTriText}</div>
-                                    <div class="voucher-expiry"><i class="far fa-clock"></i> HSD: ${v.ThoiGian}</div>
-                                    ${quantityHtml}
-                                </div>
-                                <div class="d-flex flex-column align-items-center gap-2">
-                                    <div class="voucher-code-display">${v.MaCode}</div>
-                                    <!-- Thêm nút sao chép mã -->
-                                    <button class="btn btn-sm btn-outline-secondary w-100" onclick="CopyMa('${v.MaCode}')">Sao chép</button>
-                                </div>
-                                ${statusHtml}
-                            </div>`;
+            },
+            error: function () {
+                $('#voucher-list').css('opacity', '1');
+                $('#voucher-list').html('<div class="alert alert-danger text-center">Lỗi khi tải danh sách voucher</div>');
             }
-            $('#voucher-list').html(html);
+        });
+    }
+
+    function HienThiDSVoucher(data) {
+        if (data.length === 0) {
+            $('#voucher-list').html(`
+                <div class="empty-voucher">
+                    <i class="fas fa-search-minus"></i>
+                    <p>Không tìm thấy voucher nào phù hợp</p>
+                </div>
+            `);
+            return;
         }
 
-        function luuVoucher() {
-            var code = $('#voucherCodeInput').val().trim();
-            if (!code) { alert('Vui lòng nhập mã voucher'); return; }
+        var html = '';
+        for (var i = 0; i < data.length; i++) {
+            var v = data[i];
+            var statusHtml = '';
+            var cardClass = '';
+            var quantityHtml = '';
 
-            var formData = new FormData();
-            formData.append('maCode', code);
+            if (v.TrangThai === 'HetHan') {
+                statusHtml = '<span class="voucher-status status-expired">Hết hạn</span>';
+                cardClass = 'disabled-voucher';
+            } else if (v.TrangThai === 'HetLuot') {
+                statusHtml = '<span class="voucher-status status-used">Hết lượt</span>';
+                cardClass = 'disabled-voucher';
+            } else {
+                statusHtml = '<span class="voucher-status status-active">Còn hạn</span>';
+                var qtyClass = v.SoLuotConLai <= 10 ? 'low-stock' : '';
+                quantityHtml = `<div class="voucher-quantity ${qtyClass}"><i class="fas fa-box"></i> Còn lại: ${v.SoLuotConLai} lượt</div>`;
+            }
 
-            $.ajax({
-                type: "POST",
-                url: url_domain + '/CaiDat/LuuVoucher',
-                data: formData, contentType: false, processData: false, cache: false,
-                success: function (response) {
-                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
-                    alert(res.message);
-                    if (res.success) {
-                        $('#voucherCodeInput').val('');
-                        LayDSVoucher();
-                    }
-                },
-                error: function () { alert('Lỗi kết nối server'); }
-            });
+            html += `
+                <div class="voucher-card ${cardClass}">
+                    <div class="voucher-icon"><i class="fas fa-ticket-alt"></i></div>
+                    <div class="voucher-info">
+                        <div class="voucher-title">${v.TenVoucher}</div>
+                        <div class="text-success fw-bold small mb-1">${v.GiaTriText}</div>
+                        <div class="voucher-expiry"><i class="far fa-clock"></i> HSD: ${v.ThoiGian}</div>
+                        ${quantityHtml}
+                    </div>
+                    <div class="d-flex flex-column align-items-center gap-2">
+                        <div class="voucher-code-display">${v.MaCode}</div>
+                        <button class="btn btn-sm btn-outline-secondary w-100" onclick="CopyMa('${v.MaCode}')">Sao chép</button>
+                    </div>
+                    ${statusHtml}
+                </div>`;
+        }
+        $('#voucher-list').html(html);
+    }
+
+    function CopyMa(code) {
+        navigator.clipboard.writeText(code);
+        // Có thể thay bằng toast message đẹp hơn
+        alert("Đã sao chép mã: " + code);
+    }
+
+    // --- LOGIC PHÂN TRANG (Đã sửa đổi cho Voucher) ---
+    function TaoPhanTrang(totalPages, currentPage) {
+        totalPages = parseInt(totalPages);
+        currentPage = parseInt(currentPage);
+
+        if (isNaN(totalPages) || totalPages <= 1) {
+            $("#pagination").html('');
+            return;
         }
 
-        function CopyMa(code) {
-            navigator.clipboard.writeText(code);
-            alert("Đã sao chép mã: " + code);
+        // Helper render nút
+        function renderItem(page, isActive, isDisabled, text) {
+            var activeClass = isActive ? "active" : "";
+            var disabledClass = isDisabled ? "disabled" : "";
+
+            // QUAN TRỌNG: Gọi LayDSVoucher(page) khi click
+            var clickEvent = (isDisabled || isActive) ? "" : `onclick="LayDSVoucher(${page})"`;
+
+            var display = text || page;
+            return `<li class="page-item ${activeClass} ${disabledClass}"><a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a></li>`;
         }
-    </script>
+
+        function renderDots() { return `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`; }
+
+        var html = `<nav><ul class="pagination pagination-sm justify-content-center">`;
+        html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) html += renderItem(i, i === currentPage, false, i);
+        } else {
+            html += renderItem(1, 1 === currentPage, false, 1);
+            var startPage = Math.max(2, currentPage - 1);
+            var endPage = Math.min(totalPages - 1, currentPage + 1);
+
+            if (startPage > 2) html += renderDots();
+            for (let i = startPage; i <= endPage; i++) html += renderItem(i, i === currentPage, false, i);
+            if (endPage < totalPages - 1) html += renderDots();
+            html += renderItem(totalPages, totalPages === currentPage, false, totalPages);
+        }
+        html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
+        html += `</ul></nav>`;
+
+        $("#pagination").html(html);
+    }
+</script>
