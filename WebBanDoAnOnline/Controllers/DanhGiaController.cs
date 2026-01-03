@@ -45,7 +45,17 @@ namespace WebBanDoAnOnline.Controllers
             return View();
         }
 
-
+        public ActionResult QL_QuanLyDanhGia()
+        {
+            var user = Session["TaiKhoan"] as TaiKhoan;
+            if (user == null || !new[] { "Quản lý", "Nhân viên" }.Contains(user.VaiTro))
+            {
+                return RedirectToAction("DangNhap", "TaiKhoan");
+            }
+            // Truyền vai trò xuống View để ẩn/hiện nút Xóa
+            ViewBag.VaiTro = user.VaiTro;
+            return View();
+        }
         // GET: View Quản lý (Dành cho Quản lý & Nhân viên)
         public ActionResult NV_QuanLyDanhGia()
         {

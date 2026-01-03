@@ -1,0 +1,105 @@
+﻿@{
+    ViewBag.Title = "Đặt lại mật khẩu";
+    Layout = "~/Views/Shared/_XacThucLayout.cshtml";
+}
+
+<style>
+    /* CSS tương tự trang trên */
+    .login-card {
+        background: #ffffff;
+        width: 100%;
+        max-width: 420px;
+        padding: 40px 35px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .auth-title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .custom-input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e1e5eb;
+        border-radius: 8px;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.3s;
+    }
+
+        .custom-input:focus {
+            border-color: #fd7e14;
+            box-shadow: 0 0 0 3px rgba(253, 126, 20, 0.15);
+        }
+
+    .btn-action {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        margin-bottom: 15px;
+        transition: background 0.3s;
+        background-color: #fd7e14;
+        color: white;
+    }
+
+        .btn-action:hover {
+            background-color: #e96b02;
+        }
+
+    .alert-custom {
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        margin-bottom: 20px;
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+
+<div class="login-card">
+    <h2 class="auth-title">Đặt mật khẩu mới</h2>
+
+    <form method="post" action="@Url.Action("XuLyDoiMatKhauMoi", "TaiKhoan")">
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert-custom">@ViewBag.Error</div>
+        }
+
+        <!-- Giữ lại tên tài khoản từ bước trước (Controller cần truyền qua ViewBag hoặc Model) -->
+        <input type="hidden" name="TenTK" value="@ViewBag.TenTK" />
+
+        <div class="form-group">
+            <label class="form-label">Mật khẩu mới</label>
+            <input type="password" name="MatKhauMoi" class="custom-input" placeholder="Nhập mật khẩu mới" required />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Xác nhận mật khẩu</label>
+            <input type="password" name="XacNhanMatKhau" class="custom-input" placeholder="Nhập lại mật khẩu mới" required />
+        </div>
+
+        <button type="submit" class="btn-action">Đổi mật khẩu</button>
+    </form>
+</div>

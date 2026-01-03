@@ -168,7 +168,8 @@
         </div>
 
         <div class="forgot-link-wrapper">
-            <a href="#" class="forgot-password-link">Quên mật khẩu?</a>
+            <!-- SỬA DÒNG NÀY: Thay href="#" bằng Url.Action -->
+            <a href="@Url.Action("QMK_TaiKhoanVaCauHoi", "TaiKhoan")" class="forgot-password-link">Quên mật khẩu?</a>
         </div>
 
         <button type="button" id="btn_login" class="btn-action btn-login">Đăng nhập</button>

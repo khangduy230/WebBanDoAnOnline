@@ -193,6 +193,8 @@
       <Column Name="Delete_at" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="isDelete" Type="System.Byte" DbType="TinyInt" CanBeNull="true" />
       <Column Name="Extend_Data" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="CauHoiBaoMat" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="CauTraLoiBaoMat" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
       <Association Name="TaiKhoan_DanhGia" Member="DanhGias" ThisKey="MaTK" OtherKey="MaTK" Type="DanhGia" />
       <Association Name="TaiKhoan_DiaChi" Member="DiaChis" ThisKey="MaTK" OtherKey="MaTK" Type="DiaChi" />
       <Association Name="TaiKhoan_DonHang" Member="DonHangs" ThisKey="MaTK" OtherKey="MaTK" Type="DonHang" />

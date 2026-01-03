@@ -67,13 +67,8 @@ namespace WebBanDoAnOnline.Models
 		{
 			OnCreated();
 		}
-
-        public BanDoAnOnlineDataContext() :
-        base(global::System.Configuration.ConfigurationManager.ConnectionStrings["BanDoAnOnlineConnectionString"].ConnectionString, mappingSource)
-        {
-            OnCreated();
-        }
-        public BanDoAnOnlineDataContext(System.Data.IDbConnection connection) : 
+		
+		public BanDoAnOnlineDataContext(System.Data.IDbConnection connection) : 
 				base(connection, mappingSource)
 		{
 			OnCreated();
@@ -4186,6 +4181,10 @@ namespace WebBanDoAnOnline.Models
 		
 		private string _Extend_Data;
 		
+		private string _CauHoiBaoMat;
+		
+		private string _CauTraLoiBaoMat;
+		
 		private EntitySet<DanhGia> _DanhGias;
 		
 		private EntitySet<DiaChi> _DiaChis;
@@ -4232,6 +4231,10 @@ namespace WebBanDoAnOnline.Models
     partial void OnisDeleteChanged();
     partial void OnExtend_DataChanging(string value);
     partial void OnExtend_DataChanged();
+    partial void OnCauHoiBaoMatChanging(string value);
+    partial void OnCauHoiBaoMatChanged();
+    partial void OnCauTraLoiBaoMatChanging(string value);
+    partial void OnCauTraLoiBaoMatChanged();
     #endregion
 		
 		public TaiKhoan()
@@ -4560,6 +4563,46 @@ namespace WebBanDoAnOnline.Models
 					this._Extend_Data = value;
 					this.SendPropertyChanged("Extend_Data");
 					this.OnExtend_DataChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CauHoiBaoMat", DbType="NVarChar(255)")]
+		public string CauHoiBaoMat
+		{
+			get
+			{
+				return this._CauHoiBaoMat;
+			}
+			set
+			{
+				if ((this._CauHoiBaoMat != value))
+				{
+					this.OnCauHoiBaoMatChanging(value);
+					this.SendPropertyChanging();
+					this._CauHoiBaoMat = value;
+					this.SendPropertyChanged("CauHoiBaoMat");
+					this.OnCauHoiBaoMatChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CauTraLoiBaoMat", DbType="NVarChar(255)")]
+		public string CauTraLoiBaoMat
+		{
+			get
+			{
+				return this._CauTraLoiBaoMat;
+			}
+			set
+			{
+				if ((this._CauTraLoiBaoMat != value))
+				{
+					this.OnCauTraLoiBaoMatChanging(value);
+					this.SendPropertyChanging();
+					this._CauTraLoiBaoMat = value;
+					this.SendPropertyChanged("CauTraLoiBaoMat");
+					this.OnCauTraLoiBaoMatChanged();
 				}
 			}
 		}
