@@ -78,8 +78,8 @@ namespace WebBanDoAnOnline.Models
         {
             OnCreated();
         }
-
-        public BanDoAnOnlineDataContext(string connection, System.Data.Linq.Mapping.MappingSource mappingSource) : 
+		
+		public BanDoAnOnlineDataContext(string connection, System.Data.Linq.Mapping.MappingSource mappingSource) : 
 				base(connection, mappingSource)
 		{
 			OnCreated();
