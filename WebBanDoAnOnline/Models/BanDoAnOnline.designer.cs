@@ -83,11 +83,6 @@ namespace WebBanDoAnOnline.Models
 			OnCreated();
 		}
 
-        public BanDoAnOnlineDataContext() :
-        base(global::System.Configuration.ConfigurationManager.ConnectionStrings["BanDoAnOnlineConnectionString"].ConnectionString, mappingSource)
-        {
-            OnCreated();
-        }
         public BanDoAnOnlineDataContext(string connection, System.Data.Linq.Mapping.MappingSource mappingSource) : 
 				base(connection, mappingSource)
 		{
