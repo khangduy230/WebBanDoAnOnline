@@ -331,7 +331,7 @@
     <Content Include="Views\NguoiDung\QL_SuaNguoiDung.cshtml" />
     <Content Include="Views\NguoiDung\QL_ThemNguoiDung.cshtml" />
     <Content Include="Views\CaiDat\HoSo.cshtml" />
-    <Content Include="Views\CaiDat\BaoMat.cshtml" />
+    <Content Include="Views\CaiDat\DoiMatKhau.cshtml" />
     <Content Include="Views\CaiDat\DonMua.cshtml" />
     <Content Include="Views\Shared\_CaiDat_Layout.cshtml" />
     <Content Include="Views\CaiDat\DiaChi.cshtml" />

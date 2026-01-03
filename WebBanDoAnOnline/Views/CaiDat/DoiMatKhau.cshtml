@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Bảo mật";
+    ViewBag.Title = "Đổi Mật Khẩu";
     Layout = "~/Views/Shared/_CaiDat_Layout.cshtml";
 }
 
@@ -169,7 +169,7 @@
 
                 $.ajax({
                     type: "POST",
-                    url: url_domain + '/CaiDat/DoiMatKhau',
+                    url: url_domain + '/CaiDat/DoiMatKhauTK',
                     data: formData,
                     contentType: false,
                     processData: false,

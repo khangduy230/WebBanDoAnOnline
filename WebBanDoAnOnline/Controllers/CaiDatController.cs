@@ -130,7 +130,7 @@ namespace WebBanDoAnOnline.Controllers
             }
         }
 
-        public ActionResult BaoMat()
+        public ActionResult DoiMatKhau()
         {
             if (Session["TaiKhoan"] == null)
             {
@@ -247,7 +247,7 @@ namespace WebBanDoAnOnline.Controllers
 
         // POST: CaiDat/ChangePassword (Đổi mật khẩu)
         [HttpPost]
-        public string DoiMatKhau()
+        public string DoiMatKhauTK()
         {
             try
             {
