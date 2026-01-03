@@ -1,0 +1,224 @@
+﻿@{
+    ViewBag.Title = "Thanh toán";
+    Layout = "~/Views/Shared/_KH_Layout.cshtml";
+}
+
+<style>
+    .address-card {
+        cursor: pointer;
+        border: 2px solid #eee;
+        padding: 15px;
+        border-radius: 8px;
+        transition: 0.2s;
+        width: 100%;
+    }
+
+        .address-card:hover, .address-card.active {
+            border-color: #ffc107;
+            background-color: #fffcf5;
+        }
+
+    .btn-pay.active {
+        background-color: #ffc107;
+        color: white;
+        border-color: #ffc107;
+    }
+
+    .voucher-item {
+        transition: 0.2s;
+        cursor: pointer;
+    }
+
+        .voucher-item:hover:not(.opacity-50) {
+            border-color: #ffc107;
+            background-color: #fffcf5;
+        }
+</style>
+
+<div class="checkout-Trang container my-4">
+    <div id="loading-checkout" class="text-center py-5"><div class="spinner-border text-warning"></div></div>
+
+    <!-- FORM THANH TOÁN -->
+    <div id="checkout-main-section" style="display:none">
+        <h2 class="fw-bold mb-3">Thanh toán</h2>
+        <div class="row g-4">
+            <!-- TRÁI -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Địa chỉ nhận hàng</h5>
+                        <div id="list-address" class="d-flex flex-column gap-2"></div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Phương thức thanh toán</h5>
+                        <div class="d-flex gap-3">
+                            <button class="btn btn-outline-warning btn-pay active" onclick="ChonPhuongThuc('COD', this)">Tiền mặt</button>
+                            <button class="btn btn-outline-secondary btn-pay" onclick="ChonPhuongThuc('BANK', this)">Ngân hàng</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Voucher</h5>
+                        <div class="d-flex mb-3">
+                            <input id="voucher-input" class="form-control" placeholder="Nhập mã" />
+                            <button class="btn btn-warning ms-2 text-white" onclick="ApDungVoucher()">Áp dụng</button>
+                        </div>
+                        <div id="voucher-msg" class="small mb-3"></div>
+                        <div class="fw-bold small text-muted mb-2">Chọn mã có sẵn:</div>
+                        <div id="list-voucher-inline" class="d-flex flex-column gap-2" style="max-height:300px; overflow-y:auto;"></div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Ghi chú</h5>
+                        <textarea id="note-input" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PHẢI -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm sticky-top" style="top:20px">
+                    <div class="card-body">
+                        <h5 class="fw-bold">Đơn hàng (<span id="count-items">0</span> món)</h5>
+                        <div id="checkout-lines" class="d-flex flex-column gap-3 mb-3" style="max-height:300px; overflow-y:auto"></div>
+                        <hr />
+                        <div class="d-flex justify-content-between small mb-1"><span>Tổng tiền</span><span id="lbl-subtotal">0đ</span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Ship</span><span id="lbl-shipping">0đ</span></div>
+                        <div class="d-flex justify-content-between small text-success mb-2"><span>Giảm</span><span id="lbl-discount">0đ</span></div>
+                        <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
+                            <div class="fw-bold">Thanh toán</div><div id="lbl-total" class="fw-bold text-warning fs-5">0đ</div>
+                        </div>
+                        <button id="btn-place-order" class="btn btn-warning w-100 mt-3 fw-bold text-white" onclick="DatHang()">ĐẶT HÀNG</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THÔNG BÁO THÀNH CÔNG -->
+    <div id="checkout-success-section" style="display:none;" class="text-center py-5">
+        <div class="card shadow border-0 p-5 d-inline-block">
+            <div class="text-success mb-3" style="font-size:4rem"><i class="fa-regular fa-circle-check"></i></div>
+            <h2 class="fw-bold text-success">Đặt hàng thành công!</h2>
+            <p class="text-muted mb-4">Cảm ơn bạn đã mua sắm tại FuTho Food.</p>
+            <a href="/KH_TrangChu/Index" class="btn btn-warning text-white rounded-pill px-4">Về trang chủ</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    var url_domain = '@Url.Content("~")'; if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
+    var currentPayMethod="COD", selectedAddressId=0, subTotal=0, shippingFee=0, discount=0, voucherCodeApplied="";
+
+    function DinhDangTienTe(n) { return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + "đ"; }
+
+    $(document).ready(function(){ TaiThongTin(); });
+
+    function TaiThongTin(){
+        $.ajax({
+            type:"POST", url: url_domain+'/ThanhToan/LayThongTinThanhToan', processData:false, contentType:false,
+            success: function(res){
+                if(res==="LOGIN_REQUIRED") { window.location.href="/TaiKhoan/DangNhap"; return; }
+                var d=JSON.parse(res);
+                subTotal=d.TongTienHang; shippingFee=d.PhiShip;
+
+                // Địa chỉ
+                var htmlAddr = "";
+                if(d.DiaChi.length===0) htmlAddr='<div class="alert alert-warning">Chưa có địa chỉ. <a href="/CaiDat/DiaChi">Thêm</a></div>';
+                else {
+                    d.DiaChi.forEach((a, i) => {
+                        if(i===0) selectedAddressId=a.MaDiaChi;
+                        var active = (i===0) ? "active" : "";
+                        htmlAddr += `<div class="address-card ${active}" onclick="ChonDiaChi(${a.MaDiaChi}, this)">
+                            <div class="fw-bold">${a.TenNguoiNhan} (${a.SDTNhan})</div><div class="small text-muted">${a.DiaChiCuThe}</div></div>`;
+                    });
+                }
+                $("#list-address").html(htmlAddr);
+
+                // Sản phẩm
+                var htmlCart = "";
+                d.SanPham.forEach(p => {
+                    htmlCart += `<div class="d-flex justify-content-between border-bottom pb-2">
+                        <div><div class="fw-bold small">${p.TenSP}</div><div class="text-muted small">x${p.SoLuong}</div></div>
+                        <div class="fw-bold small">${DinhDangTienTe(p.ThanhTien)}</div></div>`;
+                });
+                $("#checkout-lines").html(htmlCart);
+                $("#count-items").text(d.SanPham.length);
+
+                // Voucher Inline
+                var htmlV = "";
+                if(!d.Vouchers.length) htmlV='<div class="text-muted small">Không có mã.</div>';
+                else {
+                    d.Vouchers.forEach(v => {
+                        var min = v.DieuKienToiThieu||0;
+                        var ok = subTotal>=min;
+                        var cls = ok ? "" : "opacity-50 bg-light";
+                        var click = ok ? `onclick="ChonVoucher('${v.MaCode}', this)"` : "";
+                        var txt = v.LoaiGiam==="Tiền" ? DinhDangTienTe(v.GiaTri) : v.GiaTri+"%";
+                        htmlV += `<div class="border rounded p-2 mb-2 voucher-item ${cls}" ${click}>
+                            <div class="d-flex justify-content-between"><span class="fw-bold text-danger">${v.MaCode}</span>
+                            ${ok ? '<span class="badge bg-success">Dùng được</span>' : '<span class="badge bg-secondary">Chưa đủ ĐK</span>'}</div>
+                            <div class="small">Giảm ${txt}</div><div class="small text-muted">Tối thiểu ${DinhDangTienTe(min)}</div>
+                        </div>`;
+                    });
+                }
+                $("#list-voucher-inline").html(htmlV);
+
+                CapNhatUI();
+                $("#loading-checkout").hide(); $("#checkout-main-section").show();
+            }
+        });
+    }
+
+    function CapNhatUI(){
+        $("#lbl-subtotal").text(DinhDangTienTe(subTotal));
+        $("#lbl-shipping").text(DinhDangTienTe(shippingFee));
+        $("#lbl-discount").text("-"+DinhDangTienTe(discount));
+        $("#lbl-total").text(DinhDangTienTe(subTotal+shippingFee-discount));
+    }
+
+    function ChonDiaChi(id, el){ selectedAddressId=id; $(".address-card").removeClass("active"); $(el).addClass("active"); }
+    function ChonPhuongThuc(m, el){
+        currentPayMethod=m; $(".btn-pay").removeClass("active"); $(el).addClass("active");
+        if(m==="BANK") { alert("Chức năng đang bảo trì."); ChonPhuongThuc('COD', $(".btn-pay").first()); }
+    }
+    function ChonVoucher(code){ $("#voucher-input").val(code); ApDungVoucher(); }
+
+    function ApDungVoucher(){
+        var code=$("#voucher-input").val(); if(!code) return;
+        var fd=new FormData(); fd.append('code',code); fd.append('total',subTotal);
+        $.ajax({ type:"POST", url: url_domain+'/ThanhToan/KiemTraVoucher', data:fd, processData:false, contentType:false,
+            success: function(res){
+                var d=JSON.parse(res);
+                if(d.ok) { discount=d.discount; voucherCodeApplied=code; $("#voucher-msg").html('<span class="text-success">'+d.msg+'</span>'); }
+                else { discount=0; voucherCodeApplied=""; $("#voucher-msg").html('<span class="text-danger">'+d.msg+'</span>'); }
+                CapNhatUI();
+            }
+        });
+    }
+
+    function DatHang(){
+        if(selectedAddressId===0) { alert("Chọn địa chỉ"); return; }
+        $("#btn-place-order").prop("disabled",true).text("ĐANG XỬ LÝ...");
+        var fd=new FormData();
+        fd.append('addressId',selectedAddressId); fd.append('payMethod',currentPayMethod);
+        fd.append('note',$("#note-input").val()); fd.append('voucherCode',voucherCodeApplied);
+
+        $.ajax({ type:"POST", url: url_domain+'/ThanhToan/DatHang', data:fd, processData:false, contentType:false,
+            success: function(res){
+                if(res==="SUCCESS"){
+                    $("#checkout-main-section").hide(); $("#checkout-success-section").fadeIn();
+                    if($("#cart-badge").length) $("#cart-badge").text("0").hide();
+                } else if(res==="LOGIN_REQUIRED") window.location.href="/CaiDat/DiaChi";
+                else { alert(res); $("#btn-place-order").prop("disabled",false).text("ĐẶT HÀNG"); }
+            }
+        });
+    }
+</script>

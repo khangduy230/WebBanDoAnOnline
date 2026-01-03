@@ -1,0 +1,473 @@
+﻿@{
+    ViewBag.Title = "Chi tiết món ăn";
+    Layout = "~/Views/Shared/_KH_Layout.cshtml";
+}
+
+<style>
+    /* --- CSS CŨ GIỮ NGUYÊN --- */
+    :root {
+        --mau-chu: #222;
+        --mau-phu: #666;
+        --mau-canh-bao: #F58634;
+        --mau-nut: #ff8a00;
+        --mau-nut-hover: #e67e00;
+        --mau-nen-xam: #f5f5f5;
+        --mau-duong-ke: #e6e6e6;
+        --mau-sao: #ffb703;
+        --mau-xanh: #27ae60;
+        --mau-den: #111;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: var(--mau-chu);
+        background: #fff;
+    }
+
+    /* Layout Sản phẩm */
+    .khung-san-pham {
+        margin: 24px auto;
+        max-width: 980px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--mau-den);
+        color: #fff;
+    }
+
+    .khung-noi-dung {
+        display: flex;
+        gap: 24px;
+        padding: 24px;
+        align-items: center;
+    }
+
+    .anh-san-pham {
+        width: 360px;
+        height: 220px;
+        border-radius: 10px;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 2px solid #333;
+    }
+
+        .anh-san-pham img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    .thong-tin-chinh {
+        flex: 1;
+    }
+
+    .ten-san-pham h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 800;
+    }
+
+    .gia-san-pham {
+        font-weight: 800;
+        font-size: 18px;
+        margin-top: 5px;
+        color: var(--mau-sao);
+    }
+
+    .nhom-thong-so {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(120px,1fr));
+        gap: 12px;
+        margin-top: 15px;
+    }
+
+    .thong-so {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #ddd;
+    }
+
+    .nhom-nut {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .nut {
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        font-weight: 700;
+        transition: .2s;
+    }
+
+    .nut-phu {
+        border-color: #fff;
+        background: transparent;
+        color: #fff;
+    }
+
+    .nut-chinh {
+        background: var(--mau-nut);
+        color: #fff;
+        border-color: var(--mau-nut);
+    }
+
+    .nut:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Layout Đánh giá & Mô tả */
+    .khoi-noi-dung {
+        max-width: 980px;
+        margin: 24px auto;
+        padding: 0 8px;
+    }
+
+    .tieu-de-nho {
+        font-weight: 800;
+        margin: 0 0 15px 0;
+        font-size: 20px;
+        border-bottom: 2px solid var(--mau-canh-bao);
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    .doan-van {
+        color: var(--mau-phu);
+        line-height: 1.7;
+        font-size: 15px;
+        background: var(--mau-nen-xam);
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px dashed var(--mau-duong-ke);
+        margin-bottom: 40px;
+    }
+
+    /* CSS Đánh giá */
+    .bo-loc-danh-gia {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .nut-loc {
+        padding: 6px 15px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        background: #fff;
+        color: #666;
+        cursor: pointer;
+        transition: 0.3s;
+        font-size: 14px;
+    }
+
+        .nut-loc:hover, .nut-loc.active {
+            background: var(--mau-canh-bao);
+            color: #fff;
+            border-color: var(--mau-canh-bao);
+        }
+
+    .item-danh-gia {
+        display: flex;
+        gap: 15px;
+        padding: 20px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #eee;
+        overflow: hidden;
+    }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .noi-dung-dg {
+        flex: 1;
+    }
+
+    .ten-dg {
+        font-weight: bold;
+        font-size: 15px;
+        color: #333;
+    }
+
+    .ngay-dg {
+        font-size: 12px;
+        color: #999;
+        margin-left: 10px;
+        font-weight: normal;
+    }
+
+    .sao-dg {
+        color: var(--mau-sao);
+        font-size: 14px;
+        margin: 4px 0;
+    }
+
+    .text-dg {
+        font-size: 14px;
+        color: #555;
+        line-height: 1.5;
+    }
+
+    /* CSS Phân trang */
+    .pagination .page-item.active .page-link {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: black;
+    }
+
+    .pagination .page-link {
+        color: #333;
+        cursor: pointer;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #ccc;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .khung-noi-dung {
+            flex-direction: column;
+        }
+
+        .anh-san-pham {
+            width: 100%;
+        }
+    }
+</style>
+
+<!-- KHU VỰC THÔNG TIN SẢN PHẨM -->
+<section class="khung-san-pham">
+    <div id="Taiing_sp" class="text-center p-5"><div class="spinner-border text-light" role="status"></div></div>
+
+    <div class="khung-noi-dung" id="content_sp" style="display:none;">
+        <div class="anh-san-pham"><img id="sp_anh" src="" alt="Ảnh món ăn" /></div>
+        <div class="thong-tin-chinh">
+            <div class="ten-san-pham"><h1 id="sp_ten"></h1></div>
+            <div class="gia-san-pham" id="sp_gia"></div>
+            <div class="nhom-thong-so">
+                <div class="thong-so"><span style="color:var(--mau-sao)">★</span> <span id="sp_diem">0</span> (<span id="sp_luot_dg">0</span> đánh giá)</div>
+                <div class="thong-so">🍽️ <span id="sp_danhmuc"></span></div>
+                <div class="thong-so">⏱️ <span id="sp_thoigian"></span></div>
+            </div>
+            <div class="nhom-nut">
+                <button class="nut nut-chinh" onclick="ThemVaoGioHienTai()">Thêm vào giỏ hàng</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- KHU VỰC MÔ TẢ & ĐÁNH GIÁ -->
+<section class="khoi-noi-dung">
+    <h2 class="tieu-de-nho">Mô tả món ăn</h2>
+    <div class="doan-van" id="sp_mota">Đang cập nhật...</div>
+
+    <h2 class="tieu-de-nho">Đánh giá từ khách hàng</h2>
+
+    <!-- Bộ lọc sao -->
+    <div class="bo-loc-danh-gia">
+        <button class="nut-loc active" onclick="LocDanhGia('all', this)">Tất cả</button>
+        <button class="nut-loc" onclick="LocDanhGia(5, this)">5 Sao</button>
+        <button class="nut-loc" onclick="LocDanhGia(4, this)">4 Sao</button>
+        <button class="nut-loc" onclick="LocDanhGia(3, this)">3 Sao</button>
+        <button class="nut-loc" onclick="LocDanhGia(2, this)">2 Sao</button>
+        <button class="nut-loc" onclick="LocDanhGia(1, this)">1 Sao</button>
+    </div>
+
+    <!-- Danh sách đánh giá -->
+    <div id="Taiing_dg" class="text-center py-3"><div class="spinner-border text-warning" role="status"></div></div>
+    <div id="list_danh_gia"></div>
+
+    <!-- PHÂN TRANG CHO ĐÁNH GIÁ (Mới thêm) -->
+    <div id="review-pagination" class="d-flex justify-content-center mt-4"></div>
+</section>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+    var url_domain = window.location.origin;
+    const urlParams = new URLSearchParams(window.location.search);
+    const maSP = urlParams.get('maSP');
+
+    // Các biến phục vụ phân trang đánh giá
+    var globalReviews = [];          // Danh sách gốc từ Server
+    var currentFilteredList = [];    // Danh sách sau khi lọc sao
+    var reviewPageSize = 5;          // Số đánh giá mỗi trang (Bạn có thể sửa số này)
+    var currentReviewPage = 1;       // Trang hiện tại
+
+    $(document).ready(function () {
+        if (!maSP) {
+            alert("Sản phẩm không tồn tại!");
+            return;
+        }
+        TaiSanPham();
+        TaiDanhGia();
+    });
+
+    // --- 1. TẢI THÔNG TIN SẢN PHẨM ---
+    function TaiSanPham() {
+        $.ajax({
+            type: "POST", url: url_domain + '/SanPham/LayTTSP', data: { id: maSP },
+            success: function (res) {
+                var sp = JSON.parse(res);
+                if (sp.Error) { $("#content_sp").html("<h3 class='text-center p-5'>Sản phẩm không tồn tại</h3>"); return; }
+                $("#Taiing_sp").hide(); $("#content_sp").fadeIn();
+                $("#sp_ten").text(sp.TenSP); $("#sp_gia").text(DinhDangTienTe(sp.Gia));
+                $("#sp_diem").text(sp.DiemTrungBinh); $("#sp_luot_dg").text(sp.SoLuotDanhGia);
+                $("#sp_danhmuc").text(sp.TenDM); $("#sp_thoigian").text(sp.ThoiGianGiao);
+                $("#sp_mota").html(sp.MoTa || "Chưa có mô tả.");
+                $("#sp_anh").attr("src", sp.Anh ? url_domain + sp.Anh.replace('~', '') : "/Content/img/no-image.png");
+            }
+        });
+    }
+
+    // --- 2. TẢI DANH SÁCH ĐÁNH GIÁ ---
+    function TaiDanhGia() {
+        $.ajax({
+            type: "POST", url: url_domain + '/SanPham/LayDanhSachDanhGia', data: { id: maSP },
+            success: function (res) {
+                globalReviews = JSON.parse(res);
+                currentFilteredList = globalReviews; // Mặc định là tất cả
+                $("#Taiing_dg").hide();
+
+                // Hiển thị trang 1
+                ChuyenTrangDanhGia(1);
+            },
+            error: function () { $("#Taiing_dg").html("Lỗi tải đánh giá."); }
+        });
+    }
+
+    // --- 3. HIỂN THỊ ĐÁNH GIÁ THEO TRANG ---
+    function HienThiDanhGia(list, page) {
+        var container = $("#list_danh_gia");
+        container.empty();
+
+        if (!list || list.length === 0) {
+            container.html('<div class="text-muted fst-italic py-3">Chưa có đánh giá nào cho bộ lọc này.</div>');
+            $("#review-pagination").html('');
+            return;
+        }
+
+        // Logic cắt mảng (Phân trang Client)
+        var totalItems = list.length;
+        var totalPages = Math.ceil(totalItems / reviewPageSize);
+
+        // Kiểm tra page hợp lệ
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+
+        var startIndex = (page - 1) * reviewPageSize;
+        var endIndex = startIndex + reviewPageSize;
+        var pageItems = list.slice(startIndex, endIndex);
+
+        // Render HTML
+        pageItems.forEach(item => {
+            var avatarUrl = item.AnhDaiDien ? url_domain + item.AnhDaiDien.replace('~', '') : "https://ui-avatars.com/api/?name=" + item.TenNguoiDung + "&background=random";
+            var html = `
+                <div class="item-danh-gia">
+                    <div class="avatar"><img src="${avatarUrl}" alt="Avatar"></div>
+                    <div class="noi-dung-dg">
+                        <div class="ten-dg">${item.TenNguoiDung} <span class="ngay-dg">${item.NgayDanhGia}</span></div>
+                        <div class="sao-dg">${VeSao(item.SoSao)}</div>
+                        <div class="text-dg">${item.NoiDung || '<i>Khách hàng không viết lời bình</i>'}</div>
+                    </div>
+                </div>`;
+            container.append(html);
+        });
+
+        // Gọi hàm tạo thanh phân trang
+        TaoPhanTrangDanhGia(totalPages, page);
+    }
+
+    // --- 4. HÀM CHUYỂN TRANG ---
+    function ChuyenTrangDanhGia(page) {
+        currentReviewPage = page;
+        HienThiDanhGia(currentFilteredList, page);
+    }
+
+    // --- 5. TẠO PHÂN TRANG (Logic y hệt mẫu bạn đưa, áp dụng cho Đánh giá) ---
+    function TaoPhanTrangDanhGia(totalPages, currentPage) {
+        totalPages = parseInt(totalPages);
+        currentPage = parseInt(currentPage);
+
+        if (isNaN(totalPages) || totalPages <= 1) {
+            $("#review-pagination").html('');
+            return;
+        }
+
+        // Helper render nút
+        function renderItem(page, isActive, isDisabled, text) {
+            var activeClass = isActive ? "active" : "";
+            var disabledClass = isDisabled ? "disabled" : "";
+            // Thay onclick="TaiSanPham" thành onclick="ChuyenTrangDanhGia"
+            var clickEvent = (isDisabled || isActive) ? "" : `onclick="ChuyenTrangDanhGia(${page})"`;
+            var display = text || page;
+            return `<li class="page-item ${activeClass} ${disabledClass}">
+                        <a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a>
+                    </li>`;
+        }
+        function renderDots() { return `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`; }
+
+        var html = `<nav><ul class="pagination pagination-sm justify-content-center">`;
+
+        // Nút Previous
+        html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
+
+        // Logic thu gọn trang
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) html += renderItem(i, i === currentPage, false, i);
+        } else {
+            html += renderItem(1, 1 === currentPage, false, 1);
+            var startPage = Math.max(2, currentPage - 1);
+            var endPage = Math.min(totalPages - 1, currentPage + 1);
+            if (startPage > 2) html += renderDots();
+            for (let i = startPage; i <= endPage; i++) html += renderItem(i, i === currentPage, false, i);
+            if (endPage < totalPages - 1) html += renderDots();
+            html += renderItem(totalPages, totalPages === currentPage, false, totalPages);
+        }
+
+        // Nút Next
+        html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
+        html += `</ul></nav>`;
+
+        $("#review-pagination").html(html);
+    }
+
+    // --- 6. LỌC ĐÁNH GIÁ ---
+    function LocDanhGia(star, btnElement) {
+        $(".nut-loc").removeClass("active");
+        $(btnElement).addClass("active");
+
+        if (star === 'all') {
+            currentFilteredList = globalReviews;
+        } else {
+            currentFilteredList = globalReviews.filter(x => x.SoSao == star);
+        }
+        // Khi lọc xong, quay về trang 1
+        ChuyenTrangDanhGia(1);
+    }
+
+    // --- CÁC HÀM TIỆN ÍCH KHÁC ---
+    function VeSao(n) { var s = ""; for (var i = 1; i <= 5; i++) s += (i <= n) ? "★" : "☆"; return s; }
+    function DinhDangTienTe(n) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n); }
+    function ThemVaoGioHienTai() {
+        if (typeof ThemVaoGio === 'function') { ThemVaoGio(maSP); }
+        else { var fd = new FormData(); fd.append('productId', maSP); fd.append('quantity', 1); $.ajax({ url: url_domain + '/GioHang/ThemVaoGio', type: 'POST', data: fd, contentType: false, processData: false, success: function (res) { alert(res); } }); }
+    }
+</script>

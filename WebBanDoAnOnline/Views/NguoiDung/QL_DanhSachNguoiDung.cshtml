@@ -1,0 +1,188 @@
+﻿@{
+    ViewBag.Title = "Quản lý Người dùng";
+
+}
+
+<main class="user-Trang container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div><h3 class="mb-0">Quản lý Người dùng</h3><hr /></div>
+        <div class="d-flex align-items-center">
+            <input id="txt_search_user" class="form-control me-2" style="width:220px;" placeholder="Tìm kiếm..." />
+            <a href="@Url.Action("QL_ThemNguoiDung", "NguoiDung")" class="btn btn-warning text-white">Thêm người dùng</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Họ tên / Email</th>
+                            <th>Tài khoản / SĐT</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user_table_body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="pagination" class="d-flex justify-content-center mt-4"></div>
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var url_domain = window.location.origin;
+
+    // --- 1. HÀM TẠO BADGE TRẠNG THÁI ---
+    function TaoTrangThai(status) {
+        if (!status) return '';
+        if (status === 'Hoạt động') return '<span class="badge bg-success">Hoạt động</span>';
+        return '<span class="badge bg-danger">Bị khóa</span>';
+    }
+
+    // --- 2. HÀM TẢI NGƯỜI DÙNG ---
+    function TaiNguoiDung(TimKiem, Trang = 1) {
+        var term = (TimKiem === null || TimKiem === undefined) ? $("#txt_search_user").val() : TimKiem;
+
+        var formData = new FormData();
+        formData.append('TimKiem', term);
+        formData.append('Trang', Trang);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/NguoiDung/Lay_DSNguoiDung',
+            data: formData, processData: false, contentType: false, cache: false,
+            success: function (res) {
+                var data = (typeof res === 'string') ? JSON.parse(res) : res;
+                var users = data.NguoiDungs;
+                var container = $("#user_table_body");
+                container.empty();
+
+                if (!users || users.length === 0) {
+                    container.html('<tr><td colspan="5" class="text-center py-5 text-muted">Không tìm thấy người dùng nào.</td></tr>');
+                    $("#pagination").html("");
+                    return;
+                }
+
+                for (var i = 0; i < users.length; i++) {
+                    var u = users[i];
+                    var actionBtn = "";
+
+                    if (u.TrangThai === "Hoạt động") {
+                        actionBtn = `<button class="btn btn-sm btn-outline-danger" onclick="TaoKhoa(${u.MaTK}, 'lock')" title="Khóa"><i class="fas fa-lock"></i> Khóa</button>`;
+                    } else {
+                        actionBtn = `<button class="btn btn-sm btn-outline-success" onclick="TaoKhoa(${u.MaTK}, 'unlock')" title="Mở"><i class="fas fa-lock-open"></i> Mở</button>`;
+                    }
+
+                    var rowClass = (u.TrangThai !== 'Hoạt động') ? 'table-secondary opacity-75' : '';
+
+                    var html = `
+                    <tr class="${rowClass}">
+                        <td>
+                            <div class="fw-bold">${u.HoTen}</div>
+                            <div class="small text-muted">${u.Email || ''}</div>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-primary">${u.TenTK}</div>
+                            <div class="small text-muted">${u.SoDienThoai || ''}</div>
+                        </td>
+                        <td><span class="fw-bold">${u.VaiTro}</span></td>
+                        <td>${TaoTrangThai(u.TrangThai)}</td>
+                        <td class="text-center">
+                            <a href="/NguoiDung/QL_SuaNguoiDung/${u.MaTK}" class="btn btn-sm btn-outline-warning me-1">Sửa</a>
+                            ${actionBtn}
+                        </td>
+                    </tr>`;
+                    container.append(html);
+                }
+
+                // ★ QUAN TRỌNG: Đã sửa dongTrang thành currentTrang
+                HienThiPhanTrang(data.TongTrang, data.currentTrang);
+            },
+            error: function () {
+                $("#user_table_body").html('<tr><td colspan="5" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+            }
+        });
+    }
+
+    // --- 3. HÀM KHÓA / MỞ KHÓA ---
+    function TaoKhoa(id, actionType) {
+        var msg = (actionType === 'lock') ? "Bạn muốn KHÓA tài khoản này?" : "Bạn muốn MỞ KHÓA tài khoản này?";
+        if (!confirm(msg)) return;
+        var fd = new FormData(); fd.append('id', id);
+
+        // Bạn kiểm tra lại URL này trong Controller xem là DatTrangThai hay TaoKhoa nhé
+        $.ajax({
+            type: "POST", url: url_domain + '/NguoiDung/DatTrangThai',
+            data: fd, processData: false, contentType: false,
+            success: function (res) {
+                alert(res);
+                var currentPage = $("#pagination .page-item.active .page-link").text();
+                TaiNguoiDung(null, currentPage || 1);
+            }
+        });
+    }
+
+    // --- 4. HÀM PHÂN TRANG (ĐÃ SỬA CLASS CSS) ---
+    function HienThiPhanTrang(totalPages, currentPage) {
+        totalPages = parseInt(totalPages);
+        currentPage = parseInt(currentPage);
+
+        if (isNaN(totalPages) || totalPages <= 1) { $("#pagination").html(''); return; }
+
+        var kword = $("#txt_search_user").val() || "";
+        var kwordSafe = kword.replace(/'/g, "\\'");
+
+        function renderItem(page, isActive, isDisabled, text) {
+            var activeClass = isActive ? "active" : "";
+            var disabledClass = isDisabled ? "disabled" : "";
+            var clickEvent = (isDisabled || isActive) ? "" : `onclick="TaiNguoiDung('${kwordSafe}', ${page})"`;
+            var display = text || page;
+
+            // ★ ĐÃ SỬA: Dùng class page-item và page-link của Bootstrap
+            return `<li class="page-item ${activeClass} ${disabledClass}">
+                        <a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a>
+                    </li>`;
+        }
+
+        function renderDots() {
+            return `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+
+        var html = `<nav><ul class="pagination justify-content-center">`;
+
+        html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) html += renderItem(i, i === currentPage, false, i);
+        } else {
+            html += renderItem(1, 1 === currentPage, false, 1);
+            var start = Math.max(2, currentPage - 1);
+            var end = Math.min(totalPages - 1, currentPage + 1);
+
+            if (start > 2) html += renderDots();
+            for (let i = start; i <= end; i++) html += renderItem(i, i === currentPage, false, i);
+            if (end < totalPages - 1) html += renderDots();
+
+            html += renderItem(totalPages, totalPages === currentPage, false, totalPages);
+        }
+
+        html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
+        html += `</ul></nav>`;
+        $("#pagination").html(html);
+    }
+
+    // --- 5. KHỞI TẠO ---
+    $(document).ready(function () {
+        TaiNguoiDung("");
+        var t;
+        $("#txt_search_user").keyup(function () {
+            clearTimeout(t);
+            t = setTimeout(function () { TaiNguoiDung($("#txt_search_user").val(), 1); }, 500);
+        });
+    });
+</script>

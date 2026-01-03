@@ -1,0 +1,323 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FuTho Food</title>
+
+    <!-- 1. CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link href="/Content/Site.css" rel="stylesheet" />
+
+    <style>
+        /* ... (Giữ nguyên CSS của bạn) ... */
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #333 !important;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: #333 !important;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            border-radius: 50px;
+            border: 1px solid #ddd;
+            padding: 5px 35px 5px 15px;
+            background: #f9f9f9;
+            outline: none;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: none;
+            color: #666;
+        }
+
+        .icon-btn {
+            font-size: 1.2rem;
+            color: #333;
+            position: relative;
+            margin-top: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .badge-count {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            font-size: 0.65rem;
+            padding: 3px 5px;
+            border-radius: 50%;
+        }
+
+        .dropdown-menu {
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .auth-panel {
+            display: none;
+            align-items: center;
+            gap: 15px;
+        }
+    </style>
+
+    <!-- 2. jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <!-- HEADER (z-index cao để không bị che) -->
+    <header class="main-header border-bottom py-2 sticky-top bg-white" style="z-index: 1100;">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg p-0 justify-content-between">
+                <!-- Logo -->
+                <a class="navbar-brand" href="/KH_TrangChu/Index">FuTho <span class="fw-light">Food</span></a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Menu -->
+                <div class="collapse navbar-collapse flex-grow-0" id="mainMenu">
+                    <ul class="navbar-nav text-center">
+                        <li class="nav-item"><a class="nav-link" href="/KH_TrangChu/Index">Trang chủ</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/SanPham/KH_DanhSachSanPham">Thực đơn</a></li>
+                    </ul>
+                </div>
+
+                <!-- Actions -->
+                <div class="header-actions d-none d-lg-flex">
+                    <!-- Search -->
+                    <div class="search-wrapper">
+                        <input type="text" id="global-search" class="search-input" placeholder="Tìm kiếm...">
+                        <button class="search-btn" id="global-search-icon"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </div>
+
+                    <!-- Panel Khách -->
+                    <div id="panel-guest" class="auth-panel">
+                        <a href="/TaiKhoan/DangNhap" class="icon-btn"><i class="fa-regular fa-bell"></i></a>
+                        <a href="~/GioHang/KH_GioHang" class="icon-btn"><i class="fa-solid fa-bag-shopping"></i></a>
+                        <a href="~/TaiKhoan/DangNhap" class="btn btn-dark btn-sm rounded-pill px-3 ms-2">Đăng nhập</a>
+                    </div>
+
+                    <!-- Panel User -->
+                    <div id="panel-user" class="auth-panel">
+                        <!-- Thông báo -->
+                        <div class="dropdown">
+                            <a class="icon-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="TaiThongBao()">
+                                <i class="fa-regular fa-bell"></i>
+                                <span id="notif-badge" class="badge bg-danger badge-count" style="display:none;">0</span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end" style="width: 340px;">
+                                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-light">
+                                    <h6 class="m-0 fw-bold">Thông báo</h6>
+                                    <a href="#" onclick="DanhDauTatCaDaDoc(event)" class="small text-decoration-none">Đọc tất cả</a>
+                                </div>
+                                <div id="list-thong-bao" style="max-height: 350px; overflow-y: auto;">
+                                    <div class="text-center py-3 text-muted"><span class="spinner-border spinner-border-sm"></span></div>
+                                </div>
+                                <div class="text-center p-2 border-top">
+                                    <a href="/ThongBao/Index" class="small fw-bold text-decoration-none">Xem tất cả</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Giỏ hàng -->
+                        <a href="/GioHang/KH_GioHang" class="icon-btn">
+                            <i class="fa-solid fa-bag-shopping"></i>
+                            <span id="cart-badge" class="badge bg-danger badge-count" style="display:none;">0</span>
+                        </a>
+
+                        <!-- Avatar -->
+                        <div class="dropdown">
+                            <a href="#" role="button" data-bs-toggle="dropdown">
+                                <img id="user-avatar-img" src="" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover;">
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end mt-2">
+                                <li class="dropdown-header">Xin chào, <span id="user-fullname"></span></li>
+                                <li><a class="dropdown-item" href="~/CaiDat/HoSo"><i class="fa-regular fa-user me-2"></i> Tài khoản</a></li>
+                                <li><a class="dropdown-item" href="~/CaiDat/DonMua"><i class="fa-solid fa-receipt me-2"></i> Đơn mua</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="/TaiKhoan/DangXuat" method="post" id="logoutForm">
+                                        <a class="dropdown-item text-danger" href="javascript:document.getElementById('logoutForm').submit()">
+                                            <i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất
+                                        </a>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container body-content py-4">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="site-footer bg-light py-4 mt-auto">
+        <div class="container text-center">
+            <div class="footer-logo fw-bold fs-4">FuTho<span class="fw-light">Food</span></div>
+            <p class="text-muted">SĐT Liên hệ: 0971123456</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        var url_domain = window.location.origin;
+
+        $(document).ready(function () {
+            // 1. Check Login
+            $.ajax({
+                type: "POST",
+                url: url_domain + '/KH_TrangChu/LayThongTinHeader',
+                contentType: false, processData: false, cache: false,
+                success: function (response) {
+                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                    if (res.isLogin) {
+                        $("#panel-guest").hide();
+                        $("#panel-user").css("display", "flex");
+                        $("#user-fullname").text(res.fullName);
+                        $("#user-avatar-img").attr("src", res.avatar || "/img/default-avatar.png");
+                        if (res.cartCount > 0) $("#cart-badge").text(res.cartCount).show();
+                        if (res.notifCount > 0) $("#notif-badge").text(res.notifCount).show();
+                    } else {
+                        $("#panel-user").hide();
+                        $("#panel-guest").css("display", "flex");
+                    }
+                },
+                error: function () {
+                    $("#panel-user").hide();
+                    $("#panel-guest").css("display", "flex");
+                }
+            });
+
+            // 2. Search
+            $('#global-search-icon').click(XuLyTimKiem);
+            $('#global-search').keypress(function (e) { if (e.which === 13) XuLyTimKiem(); });
+
+            function XuLyTimKiem() {
+                var k = $('#global-search').val().trim();
+
+                // Kiểm tra xem người dùng có đang đứng ở trang Thực đơn hay không
+                var isMenuPage = window.location.pathname.toLowerCase().includes('/SanPham/KH_DanhSachSanPham');
+
+                if (isMenuPage) {
+                    // TRƯỜNG HỢP: ĐANG Ở TRANG THỰC ĐƠN -> Tìm kiếm tại chỗ & HIỆN DANH MỤC
+                    // Kiểm tra xem hàm TaiSanPham có tồn tại không (từ View)
+                    if (typeof TaiSanPham === 'function') {
+                        // Cập nhật URL trên thanh địa chỉ mà không reload (để trông chuyên nghiệp hơn)
+                        var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?searchTerm=' + encodeURIComponent(k);
+                        window.history.pushState({ path: newUrl }, '', newUrl);
+
+                        // Logic yêu cầu: Ở trang thực đơn thì tìm kiếm CÓ hiển thị danh mục
+                        $("#menu-categories-container").fadeIn();
+
+                        // Gọi hàm tìm kiếm của View
+                        TaiSanPham(null, k, 1);
+                    }
+                } else {
+                    // TRƯỜNG HỢP: Ở TRANG KHÁC (Trang chủ, Login...) -> Chuyển trang
+                    // Logic yêu cầu: Trang ngoài chuyển vào thì KHÔNG hiển thị danh mục
+                    if (k) {
+                        window.location.href = '/SanPham/KH_DanhSachSanPham?searchTerm=' + encodeURIComponent(k);
+                    }
+                }
+            }
+            $('.dropdown-menu').click(function (e) { e.stopPropagation(); });
+        });
+
+        // 3. Thông báo
+        function TaiThongBao() {
+            $.post(url_domain + "/ThongBao/LayThongBao", function (response) {
+                var res = (typeof response === 'string') ? JSON.parse(response) : response;
+                var htmlStr = "";
+                if (res.success && res.data.length > 0) {
+                    for (var i = 0; i < res.data.length; i++) {
+                        var item = res.data[i];
+                        var bg = item.DaDoc ? "bg-white" : "bg-warning-subtle";
+                        htmlStr += `<a href="/ThongBao/KH_ThongBao?openId=${item.Id}" class="dropdown-item p-2 border-bottom ${bg}">
+                                            <div class="d-flex"><div class="me-3 mt-1 text-warning"><i class="fas fa-bell"></i></div>
+                                            <div><div class="fw-bold small">${item.TieuDe}</div><div class="small text-muted">${item.BinhLuanCon || ''}</div></div></div></a>`;
+                    }
+                } else { htmlStr = '<div class="text-center py-3 small text-muted">Không có thông báo.</div>'; }
+                $("#list-thong-bao").html(htmlStr);
+            });
+        }
+
+        function DanhDauTatCaDaDoc(e) {
+            if (e) e.preventDefault();
+            $.post(url_domain + "/ThongBao/DanhDauTatCaDaDoc", function () {
+                TaiThongBao(); $("#notif-badge").hide();
+            });
+        }
+
+        // 4. Cập nhật Badge Giỏ hàng (Global function)
+        function CapNhatBadgeGioHang() {
+            $.post(url_domain + '/KH_TrangChu/LayThongTinHeader', function (response) {
+                var d = (typeof response === 'string') ? JSON.parse(response) : response;
+                if (d.isLogin && d.cartCount > 0) {
+                    $("#cart-badge").text(d.cartCount).show();
+                } else {
+                    $("#cart-badge").hide();
+                }
+            });
+        }
+
+        // 5. Thêm vào giỏ hàng (Dùng chung cho toàn site)
+        function ThemVaoGio(idSanPham) {
+            var formData = new FormData();
+            formData.append('productId', idSanPham);
+            formData.append('quantity', 1);
+            formData.append('notes', '');
+
+            $.ajax({
+                type: "POST",
+                url: url_domain + '/GioHang/ThemVaoGio',
+                data: formData,
+                contentType: false, processData: false, cache: false,
+                success: function (response) {
+                    if (response.indexOf("đăng nhập") !== -1) {
+                        if (confirm("Bạn cần đăng nhập để mua hàng. Đến trang đăng nhập?")) {
+                            window.location.href = "/TaiKhoan/DangNhap";
+                        }
+                    } else {
+                        alert(response);
+                        CapNhatBadgeGioHang();
+                    }
+                },
+                error: function () { alert("Lỗi kết nối."); }
+            });
+        }
+    </script>
+
+    
+    @RenderSection("scripts", required: false)
+</body>
+</html>

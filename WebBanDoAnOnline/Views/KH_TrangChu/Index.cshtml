@@ -1,0 +1,143 @@
+﻿@{
+    ViewBag.Title = "Trang chủ";
+   
+}
+
+<!-- 1. HERO SECTION -->
+<section class="hero-section py-5 bg-light">
+    <div class="row align-items-center">
+        <div class="col-lg-6 px-5">
+            <h1 class="hero-heading fw-bold display-4 mb-3">
+                Dinh dưỡng tận nơi <br />
+                <span class="text-warning">Thảnh thơi sống khỏe.</span>
+            </h1>
+            <p class="hero-subheading lead text-muted">
+                Hệ thống đặt món ăn trực tuyến FuTho Food. Hương vị đậm đà, giao hàng nhanh chóng.
+            </p>
+            <a href="#featured-food" class="btn btn-warning btn-lg rounded-pill fw-bold text-white px-4">Đặt món ngay</a>
+        </div>
+        <div class="col-lg-6 mt-4 mt-lg-0 text-center">
+            <img src="~/img/banner.png" alt="Banner" class="img-fluid rounded shadow-lg" style="max-height: 400px;" />
+        </div>
+    </div>
+</section>
+
+<!-- 2. DANH SÁCH SẢN PHẨM -->
+<section id="featured-food" class="featured-section py-5 container">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h2 class="section-title fw-bold text-dark">Món ăn nổi bật</h2>
+        <a href="/SanPham/KH_DanhSachSanPham" class="btn btn-outline-dark rounded-pill btn-sm">Xem tất cả <i class="fas fa-arrow-right"></i></a>
+    </div>
+
+    <!-- Container chứa sản phẩm -->
+    <div id="ds_sanpham" class="row g-4">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-warning" role="status"></div>
+            <div class="mt-2 text-muted">Đang tải món ngon...</div>
+        </div>
+    </div>
+</section>
+
+<!-- 3. JAVASCRIPT XỬ LÝ -->
+<script>
+    // Hàm định dạng tiền tệ
+    function DinhDangTienTe(n) {
+        return n.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") + "đ";
+    }
+
+    var url_domain = '@Url.Content("~")';
+    if (url_domain.endsWith("/")) url_domain = url_domain.slice(0, -1);
+
+    $(document).ready(function() {
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/KH_TrangChu/LaySanPhamTrangChu',
+            contentType: false, processData: false, cache: false,
+            success: function (response) {
+                var dssp = JSON.parse(response);
+                var div_show = $("#ds_sanpham");
+                var html_str = "";
+
+                if (dssp.length === 0) {
+                    div_show.html('<div class="col-12 text-center text-muted">Chưa có sản phẩm nào.</div>');
+                    return;
+                }
+
+                for (var i = 0; i < dssp.length; i++) {
+                    var sp = dssp[i];
+
+                    // Xử lý ảnh: Bỏ dấu ~ nếu có
+                    var imgUrl = sp.Anh ? sp.Anh.replace('~', '') : '/img/no-image.jpg';
+
+                    // Xử lý giá
+                    var giaHienThi = "";
+                    var badge = "";
+
+                    if (sp.DangGiamGia) {
+                        var percent = Math.round((1 - sp.GiaKM / sp.GiaGoc) * 100);
+                        badge = `<span class="position-absolute top-0 start-0 bg-danger text-white badge m-2 shadow">-${percent}%</span>`;
+                        giaHienThi = `<span class="fw-bold text-danger fs-5">${DinhDangTienTe(sp.GiaKM)}</span>
+                                      <small class="text-decoration-line-through text-muted ms-1" style="font-size:0.9em">${DinhDangTienTe(sp.GiaGoc)}</small>`;
+                    } else {
+                        giaHienThi = `<span class="fw-bold text-dark fs-5">${DinhDangTienTe(sp.GiaGoc)}</span>`;
+                    }
+
+                    // --- SỬA LỖI Ở ĐÂY ---
+                    // Cũ (Sai): /SanPham/KH_ChiTietSanPham/${sp.MaSP}
+                    // Mới (Đúng): /SanPham/KH_ChiTietSanPham?maSP=${sp.MaSP}
+
+                    html_str += `
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <div class="card h-100 border-0 shadow-sm product-card">
+                            <div class="position-relative overflow-hidden rounded-top">
+                                <a href="/SanPham/KH_ChiTietSanPham?maSP=${sp.MaSP}">
+                                    <img src="${imgUrl}" class="card-img-top" style="height: 200px; object-fit: cover;"
+                                         onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                                </a>
+                                ${badge}
+                            </div>
+                            <div class="card-body d-flex flex-column p-3">
+                                <h5 class="card-title text-truncate mb-1">
+                                    <a href="/SanPham/KH_ChiTietSanPham?maSP=${sp.MaSP}" class="text-decoration-none text-dark fw-bold" title="${sp.TenSP}">${sp.TenSP}</a>
+                                </h5>
+
+                                <div class="mt-auto pt-2">
+                                    <div class="mb-2">${giaHienThi}</div>
+                                    <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
+                                        <span><i class="fas fa-clock text-warning"></i> ~15p</span>
+                                        <span><i class="fas fa-star text-warning"></i> ${sp.LuotXem || 0}</span>
+                                    </div>
+
+                                    <button class="btn btn-warning w-100 fw-bold shadow-sm btn-hover-effect" onclick="ThemVaoGio(${sp.MaSP})">
+                                        <i class="fas fa-cart-plus"></i> Thêm
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+                div_show.html(html_str);
+            },
+            error: function (err) {
+                console.log(err);
+                $("#ds_sanpham").html('<div class="col-12 text-center text-danger">Lỗi tải dữ liệu server.</div>');
+            }
+        });
+    });
+</script>
+
+<style>
+    .product-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+
+    .btn-hover-effect:hover {
+        background-color: #ffca2c;
+        transform: scale(1.02);
+    }
+</style>

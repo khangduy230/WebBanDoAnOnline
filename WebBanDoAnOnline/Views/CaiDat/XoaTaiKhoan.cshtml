@@ -1,0 +1,104 @@
+﻿@{
+    ViewBag.Title = "Xóa tài khoản";
+    Layout = "~/Views/Shared/_CaiDat_Layout.cshtml";
+}
+
+<style>
+    .delete-container {
+        padding: 40px;
+        text-align: center;
+        background: #fff;
+        border-radius: 12px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .delete-icon {
+        font-size: 80px;
+        color: #dc3545;
+        margin-bottom: 20px;
+        opacity: 0.2;
+    }
+
+    .btn-danger-custom {
+        background-color: #dc3545;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 30px;
+        border: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+        .btn-danger-custom:hover {
+            background-color: #c82333;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+</style>
+
+<div class="delete-container">
+    <div class="delete-icon">
+        <i class="fas fa-user-times"></i>
+    </div>
+    <h3 class="fw-bold text-danger mb-3">Xóa tài khoản vĩnh viễn</h3>
+    <p class="text-muted mb-4">
+        Hành động này sẽ vô hiệu hóa tài khoản của bạn ngay lập tức.<br />
+        Bạn sẽ không thể đăng nhập lại và mọi dữ liệu liên quan sẽ bị ẩn đi.
+    </p>
+
+    <button onclick="XuLyXoaTaiKhoan()" class="btn-danger-custom">
+        <i class="fas fa-trash-alt me-2"></i> Xóa tài khoản của tôi
+    </button>
+</div>
+
+@section Scripts {
+    <script>
+        function XuLyXoaTaiKhoan() {
+            // Bước 1: Hỏi xác nhận lần đầu
+            if (!confirm("⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa tài khoản này không?\nHành động này không thể hoàn tác!")) {
+                return;
+            }
+
+            // Bước 2: Hỏi xác nhận lần cuối + Nhập mật khẩu
+            var password = prompt("🔒 Vui lòng nhập mật khẩu của bạn để xác nhận xóa:");
+
+            if (password === null) return; // Người dùng bấm Hủy
+            if (password.trim() === "") {
+                alert("Bạn chưa nhập mật khẩu. Hủy thao tác.");
+                return;
+            }
+
+            // Bước 3: Gửi request lên server
+            var formData = new FormData();
+            formData.append('password', password);
+
+            $.ajax({
+                type: "POST",
+                url: '/CaiDat/XacNhanXoaTaiKhoan', // Gọi API cũ trong Controller
+                data: formData,
+                contentType: false, processData: false, cache: false,
+                beforeSend: function () {
+                    // Hiển thị loading đơn giản nếu cần (hoặc disable nút)
+                    $('button').prop('disabled', true).text('Đang xử lý...');
+                },
+                success: function (res) {
+                    var data = JSON.parse(res);
+                    if (data.success) {
+                        alert("✅ " + data.message);
+                        window.location.href = "/KH_TrangChu/Index"; // Về trang chủ sau khi xóa xong (đã logout)
+                    } else {
+                        alert("❌ Lỗi: " + data.message);
+                        $('button').prop('disabled', false).html('<i class="fas fa-trash-alt me-2"></i> Xóa tài khoản của tôi');
+                    }
+                },
+                error: function () {
+                    alert("Lỗi kết nối server.");
+                    $('button').prop('disabled', false).html('<i class="fas fa-trash-alt me-2"></i> Xóa tài khoản của tôi');
+                }
+            });
+        }
+    </script>
+}

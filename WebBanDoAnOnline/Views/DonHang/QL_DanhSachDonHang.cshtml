@@ -1,0 +1,250 @@
+﻿@{
+    ViewBag.Title = "Quản lý đơn hàng";
+    Layout = "~/Views/Shared/_QL_Layout.cshtml";
+}
+
+<style>
+    .orders-page { padding: 16px; font-family: Arial, Helvetica, sans-serif; }
+    .page-title { margin: 0 0 16px 0; font-size: 20px; font-weight: 600; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+
+    .toolbar { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr auto; gap: 8px; margin-bottom: 12px; align-items: end; }
+    .form-field { display: flex; flex-direction: column; gap: 6px; }
+    .form-field label { font-size: 12px; color: #374151; }
+    .form-input, .form-select { height: 34px; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 10px; font-size: 14px; }
+    .btn { height: 34px; padding: 6px 12px; border-radius: 6px; border: 1px solid transparent; font-size: 14px; cursor: pointer; }
+    .btn-primary { background: #2563eb; color: #fff; border-color: #1d4ed8; }
+    .btn-secondary { background: #f3f4f6; color: #111827; border-color: #e5e7eb; }
+
+    .orders-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .orders-table th, .orders-table td { border-bottom: 1px solid #e5e7eb; padding: 10px 8px; text-align: left; }
+    .orders-table th { background: #f9fafb; font-weight: 600; color: #374151; }
+
+    .status { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; border: 1px solid transparent; }
+    .status.pending { background: #fff7ed; color: #9a3412; border-color: #fdba74; }
+    .status.confirmed { background: #ecfdf5; color: #065f46; border-color: #6ee7b7; }
+    .status.shipping { background: #eff6ff; color: #1e40af; border-color: #93c5fd; }
+    .status.completed { background: #f0fdf4; color: #166534; border-color: #86efac; }
+    .status.cancelled { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+    .pagination { display: flex; justify-content: flex-end; gap: 6px; margin-top: 12px; }
+    .page-btn { min-width: 34px; height: 34px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; }
+    .page-btn.active { background: #2563eb; color: #fff; border-color: #1d4ed8; }
+
+    @@media (max-width: 768px) {
+        .toolbar { grid-template-columns: 1fr 1fr; }
+    }
+</style>
+
+<div class="orders-page">
+    <h2 class="page-title">Quản lý đơn hàng</h2>
+
+    <div class="card">
+        <!-- Thanh công cụ tìm kiếm / lọc -->
+        <div class="toolbar">
+            <div class="form-field">
+                <label for="searchKeyword">Tìm kiếm (Mã đơn / Khách hàng / SĐT)</label>
+                <input id="searchKeyword" class="form-input" type="text" placeholder="VD: DH000123, Nguyễn Văn A, 0901..." />
+            </div>
+
+            <div class="form-field">
+                <label for="statusFilter">Trạng thái</label>
+                <select id="statusFilter" class="form-select">
+                    <option value="">Tất cả</option>
+                    <option value="pending">Chờ xác nhận</option>
+                    <option value="confirmed">Đã xác nhận</option>
+                    <option value="shipping">Đang giao</option>
+                    <option value="completed">Đã nhận hàng</option>
+                    <option value="cancelled">Đã hủy</option>
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label for="dateFrom">Ngày từ</label>
+                <input id="dateFrom" class="form-input" type="date" />
+            </div>
+
+            <div class="form-field">
+                <label for="dateTo">Ngày đến</label>
+                <input id="dateTo" class="form-input" type="date" />
+            </div>
+
+            <div class="form-field" style="display:flex; gap:8px;">
+                <button id="btnSearch" class="btn btn-primary">Tìm kiếm</button>
+                <button id="btnReset" class="btn btn-secondary">Làm mới</button>
+            </div>
+        </div>
+
+        <!-- Bảng danh sách đơn hàng -->
+        <table class="orders-table" id="ordersTable">
+            <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>SĐT</th>
+                    <th>Ngày tạo</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="ordersTbody">
+                <!-- JS sẽ render vào đây -->
+            </tbody>
+        </table>
+
+        <!-- Phân trang -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+</div>
+
+<!-- Thêm jQuery nếu Layout chưa có -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+    var currentPage = 1;
+    var url_domain = window.location.origin;
+
+    $(document).ready(function () {
+        // Tải dữ liệu lần đầu
+        TaiDanhSachDonHang(1);
+
+        // Sự kiện click nút Tìm kiếm
+        $("#btnSearch").click(function () {
+            TaiDanhSachDonHang(1);
+        });
+
+        // Sự kiện click nút Làm mới
+        $("#btnReset").click(function () {
+            $("#searchKeyword").val("");
+            $("#statusFilter").val("");
+            $("#dateFrom").val("");
+            $("#dateTo").val("");
+            TaiDanhSachDonHang(1);
+        });
+
+        // Sự kiện nhấn Enter ở ô tìm kiếm
+        $("#searchKeyword").on("keydown", function (e) {
+            if (e.key === "Enter") TaiDanhSachDonHang(1);
+        });
+    });
+
+    // --- HÀM TẢI DỮ LIỆU TỪ SERVER (AJAX) ---
+    function TaiDanhSachDonHang(page) {
+        currentPage = page;
+
+        // Thu thập dữ liệu từ form
+        var formData = new FormData();
+        formData.append('keyword', $("#searchKeyword").val());
+        formData.append('status', $("#statusFilter").val());
+        formData.append('dateFrom', $("#dateFrom").val());
+        formData.append('dateTo', $("#dateTo").val());
+        formData.append('page', page);
+
+        $.ajax({
+            type: "POST",
+            url: url_domain + '/DonHang/LayDanhSachDonHang',
+            data: formData,
+            processData: false, contentType: false, cache: false,
+            beforeSend: function () {
+                $("#ordersTbody").html('<tr><td colspan="7" class="text-center">Đang tải dữ liệu...</td></tr>');
+            },
+            success: function (res) {
+                var data = (typeof res === 'string') ? JSON.parse(res) : res;
+
+                if (data.Error) {
+                    alert("Lỗi: " + data.Error);
+                    return;
+                }
+
+                RenderTable(data.List);
+                RenderPagination(data.TotalPages, data.CurrentPage);
+            },
+            error: function () {
+                $("#ordersTbody").html('<tr><td colspan="7" class="text-danger text-center">Lỗi kết nối server.</td></tr>');
+            }
+        });
+    }
+
+    // --- HÀM RENDER BẢNG HTML ---
+    function RenderTable(list) {
+        var tbody = $("#ordersTbody");
+        tbody.empty();
+
+        if (!list || list.length === 0) {
+            tbody.html('<tr><td colspan="7" style="text-align:center; color:#6b7280; padding:20px;">Không tìm thấy đơn hàng nào</td></tr>');
+            return;
+        }
+
+        list.forEach(function (o) {
+            var html = `
+                <tr>
+                    <td><a href="/DonHang/ChiTietDonHang?code=${o.code}" style="font-weight:bold; color:#2563eb; text-decoration:none;">${o.code}</a></td>
+                    <td>${o.customerName}</td>
+                    <td>${o.phone}</td>
+                    <td>${o.createdAt}</td>
+                    <td>${DinhDangTienTe(o.total)}</td>
+                    <td>${GetStatusHtml(o.status, o.statusText)}</td>
+                    <td>
+                        <a class="btn btn-secondary" href="/DonHang/ChiTietDonHang?code=${o.code}">Xem chi tiết</a>
+                    </td>
+                </tr>
+            `;
+            tbody.append(html);
+        });
+    }
+
+    // --- CÁC HÀM HELPER ---
+
+    function DinhDangTienTe(n) {
+        return n.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+    }
+
+    function GetStatusHtml(cssClass, text) {
+        // Áp dụng đúng class CSS đã định nghĩa trong style
+        return `<span class="status ${cssClass}">${text}</span>`;
+    }
+
+    function RenderPagination(totalPages, curPage) {
+        var pag = $("#pagination");
+        pag.empty();
+
+        if (totalPages <= 1) return;
+
+        // Nút Previous
+        var prevDisabled = (curPage === 1);
+        pag.append(CreatePageBtn("«", 1, prevDisabled, false));
+        pag.append(CreatePageBtn("‹", Math.max(1, curPage - 1), prevDisabled, false));
+
+        // Các nút số trang (Logic hiển thị rút gọn)
+        var start = Math.max(1, curPage - 2);
+        var end = Math.min(totalPages, start + 4);
+
+        // Điều chỉnh lại start nếu end chạm trần
+        if (end - start < 4) start = Math.max(1, end - 4);
+
+        for (var i = start; i <= end; i++) {
+            pag.append(CreatePageBtn(i, i, false, i === curPage));
+        }
+
+        // Nút Next
+        var nextDisabled = (curPage === totalPages);
+        pag.append(CreatePageBtn("›", Math.min(totalPages, curPage + 1), nextDisabled, false));
+        pag.append(CreatePageBtn("»", totalPages, nextDisabled, false));
+    }
+
+    function CreatePageBtn(text, pageIndex, disabled, active) {
+        var btn = $("<button></button>")
+            .addClass("page-btn")
+            .text(text);
+
+        if (active) btn.addClass("active");
+        if (disabled) btn.prop("disabled", true).css("opacity", "0.5").css("cursor", "default");
+        else {
+            btn.click(function () {
+                TaiDanhSachDonHang(pageIndex);
+            });
+        }
+        return btn;
+    }
+</script>

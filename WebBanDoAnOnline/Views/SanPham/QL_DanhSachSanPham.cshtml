@@ -1,0 +1,398 @@
+﻿@{
+    ViewBag.Title = "Quản lý sản phẩm";
+    // LƯU Ý: Đổi dòng này thành Layout của Quản lý (nếu bạn có file _QL_Layout.cshtml)
+    // Nếu chưa có Layout riêng, bạn vẫn phải dùng tạm _NV_Layout nhưng nội dung bên dưới đã là của Quản lý.
+    Layout = "~/Views/Shared/_QL_Layout.cshtml";
+}
+
+<style>
+    /* CSS CHO PHẦN TRẠNG THÁI (Giống nhân viên) */
+    .stock-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #eee;
+        z-index: 5;
+    }
+
+    /* Màu sắc trạng thái */
+    .status-ok {
+        color: #198754;
+        border-color: #198754;
+    }
+    /* Xanh */
+    .status-warn {
+        color: #ffc107;
+        border-color: #ffc107;
+    }
+    /* Vàng */
+    .status-err {
+        color: #dc3545;
+        border-color: #dc3545;
+    }
+    /* Đỏ */
+
+    /* Menu thả xuống chọn trạng thái */
+    .stock-menu {
+        display: none;
+        position: absolute;
+        top: 38px;
+        right: 10px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        z-index: 10;
+        overflow: hidden;
+        min-width: 130px;
+    }
+
+        .stock-menu.show {
+            display: block;
+            animation: fadeIn 0.2s;
+        }
+
+    .stock-option {
+        display: block;
+        padding: 8px 15px;
+        font-size: 0.85rem;
+        color: #333;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+        text-align: left;
+    }
+
+        .stock-option:hover {
+            background: #f0f0f0;
+        }
+
+    /* CSS GIAO DIỆN QUẢN LÝ CŨ */
+    .sp-card {
+        transition: transform 0.2s;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+        .sp-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+    .cat-btn {
+        border: 1px solid #e0e0e0;
+        background: #fff;
+        color: #555;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        transition: 0.2s;
+        white-space: nowrap;
+    }
+
+        .cat-btn:hover, .cat-btn.active {
+            background: #ffc107;
+            color: #fff;
+            border-color: #ffc107;
+            font-weight: 600;
+        }
+
+    /* Animation hiện menu */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="container-fluid px-0">
+    <!-- HEADER & TÌM KIẾM -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-4">
+            <h4 class="mb-0 fw-bold text-secondary">Quản lý Sản phẩm</h4>
+        </div>
+        <div class="col-md-4">
+            <div class="position-relative">
+                <input type="text" id="global-search" class="form-control rounded-pill" placeholder="Tìm tên sản phẩm...">
+                <button onclick="TimKiemTrigger()" class="btn position-absolute top-0 end-0 text-warning"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="@Url.Action("QL_ThemSanPham", "SanPham")" class="btn btn-warning text-white fw-bold rounded-pill shadow-sm">
+                <i class="fas fa-plus"></i> Thêm món mới
+            </a>
+        </div>
+
+        <!-- DANH MỤC -->
+        <div class="col-12 mt-3">
+            <div id="category-list" class="d-flex gap-2 overflow-auto pb-2" style="scrollbar-width:thin">
+                <button class="cat-btn active" onclick="ChonDanhMuc(null, this)">Tất cả</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DANH SÁCH SẢN PHẨM -->
+    <div id="product-grid" class="row g-3">
+        <div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>
+    </div>
+
+    <!-- PHÂN TRANG -->
+    <div id="pagination" class="d-flex justify-content-center mt-5"></div>
+</div>
+
+<script>
+    var url_domain = window.location.origin;
+    var activeCategoryId = null;
+
+    // Hàm định dạng tiền tệ
+    function DinhDangTienTe(n) {
+        return n.toLocaleString('vi-VN') + 'đ';
+    }
+
+    $(document).ready(function () {
+        TaiDanhMuc();
+        TaiSanPham(null, "", 1);
+
+        // Đóng menu trạng thái khi click ra ngoài
+        $(document).click(function (e) {
+            if (!$(e.target).closest('.stock-badge, .stock-menu').length) {
+                $(".stock-menu").removeClass("show");
+            }
+        });
+
+        // Sự kiện nhấn Enter khi tìm kiếm
+        $('#global-search').keypress(function (e) {
+            if (e.which == 13) TimKiemTrigger();
+        });
+    });
+
+    // --- 1. TẢI DANH MỤC ---
+    function TaiDanhMuc() {
+        $.ajax({
+            type: "POST", url: url_domain + '/DanhMuc/Lay_DSDM',
+            success: function (res) {
+                var cats = (typeof res === 'string') ? JSON.parse(res) : res;
+                cats.forEach(c => {
+                    $("#category-list").append(`<button class="cat-btn" onclick="ChonDanhMuc(${c.MaDM}, this)">${c.TenDM}</button>`);
+                });
+            }
+        });
+    }
+
+    function ChonDanhMuc(id, btn) {
+        $(".cat-btn").removeClass("active");
+        $(btn).addClass("active");
+        activeCategoryId = id;
+        TimKiemTrigger();
+    }
+
+    function TimKiemTrigger() {
+        TaiSanPham(activeCategoryId, $("#global-search").val(), 1);
+    }
+
+    // --- 2. TẢI SẢN PHẨM ---
+    function TaiSanPham(maDM, tuKhoa, trang) {
+        activeCategoryId = maDM;
+        // Cập nhật lại giá trị ô tìm kiếm nếu gọi từ phân trang
+        if ($("#global-search").val() !== tuKhoa) $("#global-search").val(tuKhoa);
+
+        var fd = new FormData();
+        if (maDM && maDM !== 'null') fd.append('maDM', maDM);
+        fd.append('searchTerm', tuKhoa);
+        fd.append('page', trang);
+
+        $("#product-grid").html('<div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>');
+
+        $.ajax({
+            type: "POST", url: url_domain + '/SanPham/Lay_Menu',
+            data: fd, processData: false, contentType: false,
+            success: function (res) {
+                var data = (typeof res === 'string') ? JSON.parse(res) : res;
+                var listSP = data.Products;
+                var grid = $("#product-grid");
+                grid.empty();
+
+                if (!listSP || listSP.length === 0) {
+                    grid.html('<div class="col-12 text-center text-muted py-5">Không có sản phẩm nào.</div>');
+                    $("#pagination").html(''); return;
+                }
+
+                listSP.forEach(p => {
+                    // Xử lý đường dẫn ảnh
+                    var img = p.Anh ? p.Anh.replace('~/', '/') : '/img/no-image.jpg';
+                    if (img.indexOf('/') !== 0) img = '/' + img; // Đảm bảo đường dẫn tuyệt đối
+
+                    // Xử lý màu sắc trạng thái
+                    var statusColor = "status-ok";
+                    if (p.TrangThai === "Hết hàng") statusColor = "status-err";
+                    if (p.TrangThai === "Tạm ngưng") statusColor = "status-warn";
+
+                    var diemSao = p.DiemDanhGia || 0;
+
+                    var html = `
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="card h-100 sp-card position-relative">
+
+                        <div class="stock-badge ${statusColor}" onclick="HienMenuTrangThai(${p.MaSP})">
+                            ${p.TrangThai} <i class="fas fa-chevron-down ms-1" style="font-size:0.7em"></i>
+                        </div>
+
+                        <div class="stock-menu" id="menu-${p.MaSP}">
+                            <div class="stock-option" onclick="CapNhatTrangThai(${p.MaSP}, 'Còn hàng')">🟢 Còn hàng</div>
+                            <div class="stock-option" onclick="CapNhatTrangThai(${p.MaSP}, 'Hết hàng')">🔴 Hết hàng</div>
+                            <div class="stock-option" onclick="CapNhatTrangThai(${p.MaSP}, 'Tạm ngưng')">⚪ Tạm ngưng</div>
+                        </div>
+
+                        <div style="position:relative;">
+                            <img src="${img}" class="card-img-top" style="height:160px; object-fit:cover" onerror="this.src='/img/no-image.jpg'">
+                            <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark opacity-75">#${p.MaSP}</span>
+                        </div>
+
+                        <div class="card-body p-3 text-center d-flex flex-column">
+                            <h6 class="fw-bold text-truncate mb-1" title="${p.TenSP}">${p.TenSP}</h6>
+                            <div class="text-danger fw-bold">${DinhDangTienTe(p.Gia)}</div>
+                            <div class="mb-3 mt-1 small text-warning fw-bold">
+                                <i class="fas fa-star"></i> ${diemSao}
+                            </div>
+
+                            <div class="mt-auto row g-2">
+                                <div class="col-6">
+                                    <a href="${url_domain}/SanPham/QL_SuaSanPham/${p.MaSP}" class="btn btn-outline-warning w-100 btn-sm fw-bold">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <button onclick="XoaSanPham(${p.MaSP})" class="btn btn-outline-danger w-100 btn-sm fw-bold">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                    grid.append(html);
+                });
+
+                // GỌI HÀM PHÂN TRANG MỚI
+                TaoPhanTrang(data.TotalPages, data.CurrentPage);
+            }
+        });
+    }
+
+    // --- 3. XỬ LÝ TRẠNG THÁI ---
+    function HienMenuTrangThai(id) {
+        $(".stock-menu").not(`#menu-${id}`).removeClass("show");
+        $(`#menu-${id}`).toggleClass("show");
+    }
+
+    function CapNhatTrangThai(id, status) {
+        var fd = new FormData(); fd.append('id', id); fd.append('status', status);
+        $.ajax({
+            type: "POST", url: url_domain + '/SanPham/CapNhatTrangThai',
+            data: fd, processData: false, contentType: false,
+            success: function (res) {
+                if (res === "OK") {
+                    var currPage = $("#pagination .page-item.active a").text() || 1;
+                    TaiSanPham(activeCategoryId, $("#global-search").val(), parseInt(currPage));
+                } else alert(res);
+            }
+        });
+    }
+
+    // --- 4. XÓA SẢN PHẨM ---
+    function XoaSanPham(id) {
+        if (confirm("Xóa sản phẩm này?")) {
+            $.post(url_domain + '/SanPham/XoaSanPham', { id: id }, function (res) {
+                alert(res); TimKiemTrigger();
+            });
+        }
+    }
+
+    // --- 5. HÀM TẠO PHÂN TRANG (ĐÃ SỬA THEO MẪU CỦA KHÁCH HÀNG) ---
+    function TaoPhanTrang(totalPages, currentPage) {
+        // Chuyển về số nguyên để tính toán
+        totalPages = parseInt(totalPages);
+        currentPage = parseInt(currentPage);
+
+        // Nếu chỉ có 0 hoặc 1 trang thì ẩn phân trang
+        if (isNaN(totalPages) || totalPages <= 1) {
+            $("#pagination").html('');
+            return;
+        }
+
+        // Lấy từ khóa tìm kiếm và escape ký tự đặc biệt
+        var kword = $("#global-search").val() || "";
+        var kwordSafe = kword.replace(/'/g, "\\'");
+
+        // Lấy danh mục hiện tại, nếu null thì truyền chuỗi 'null' cho hàm JS
+        var catParam = (activeCategoryId === null) ? 'null' : activeCategoryId;
+
+        // Hàm helper để render từng nút
+        function renderItem(page, isActive, isDisabled, text) {
+            var activeClass = isActive ? "active" : "";
+            var disabledClass = isDisabled ? "disabled" : "";
+            // Nếu nút không bị disable và không đang active thì mới gắn sự kiện onclick
+            var clickEvent = (isDisabled || isActive) ? "" : `onclick="TaiSanPham(${catParam}, '${kwordSafe}', ${page})"`;
+            var display = text || page;
+
+            return `<li class="page-item ${activeClass} ${disabledClass}">
+                        <a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a>
+                    </li>`;
+        }
+
+        // Hàm helper render dấu 3 chấm
+        function renderDots() {
+            return `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`;
+        }
+
+        var html = `<nav><ul class="pagination pagination-sm justify-content-center">`;
+
+        // Nút Previous (Trang trước)
+        html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
+
+        // Logic hiển thị số trang (Giới hạn hiển thị nếu quá nhiều trang)
+        if (totalPages <= 7) {
+            // Nếu ít trang (<= 7) thì hiện hết
+            for (let i = 1; i <= totalPages; i++) {
+                html += renderItem(i, i === currentPage, false, i);
+            }
+        } else {
+            // Nếu nhiều trang, xử lý hiển thị rút gọn
+            html += renderItem(1, 1 === currentPage, false, 1); // Luôn hiện trang 1
+
+            var startPage = Math.max(2, currentPage - 1);
+            var endPage = Math.min(totalPages - 1, currentPage + 1);
+
+            if (startPage > 2) html += renderDots(); // Thêm ... đằng trước
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += renderItem(i, i === currentPage, false, i);
+            }
+
+            if (endPage < totalPages - 1) html += renderDots(); // Thêm ... đằng sau
+
+            html += renderItem(totalPages, totalPages === currentPage, false, totalPages); // Luôn hiện trang cuối
+        }
+
+        // Nút Next (Trang sau)
+        html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
+
+        html += `</ul></nav>`;
+        $("#pagination").html(html);
+    }
+</script>

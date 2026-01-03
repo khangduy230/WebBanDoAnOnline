@@ -1,0 +1,536 @@
+﻿@{
+    ViewBag.Title = "Đơn mua";
+    Layout = "~/Views/Shared/_CaiDat_Layout.cshtml";
+}
+
+<style>
+    /* 1. CSS Timeline & Card */
+    .order-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transition: box-shadow 0.3s;
+    }
+
+        .order-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px dashed #e0e0e0;
+    }
+
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .status-badge.pending {
+            background: #FFF3E0;
+            color: #F58634;
+        }
+
+        .status-badge.shipping {
+            background: #E3F2FD;
+            color: #2196F3;
+        }
+
+        .status-badge.completed {
+            background: #E8F5E9;
+            color: #4CAF50;
+        }
+
+        .status-badge.cancelled {
+            background: #FFEBEE;
+            color: #F44336;
+        }
+
+    /* Timeline */
+    .order-timeline {
+        position: relative;
+        padding: 20px 0;
+        margin-bottom: 20px;
+    }
+
+    .timeline-container {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .timeline-line {
+        position: absolute;
+        top: 25px;
+        left: 10%;
+        right: 10%;
+        height: 3px;
+        background: #e0e0e0;
+        z-index: 0;
+    }
+
+    .timeline-progress {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: #F58634;
+        transition: width 0.5s;
+    }
+
+    .timeline-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .timeline-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: white;
+        border: 3px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 8px;
+        color: #999;
+    }
+
+    .timeline-step.active .timeline-icon {
+        border-color: #F58634;
+        background: #FFF3E0;
+        color: #F58634;
+    }
+
+    .timeline-step.completed .timeline-icon {
+        border-color: #4CAF50;
+        background: #4CAF50;
+        color: white;
+    }
+
+    .timeline-label {
+        font-size: 12px;
+        color: #666;
+        font-weight: 500;
+    }
+
+    /* Product List */
+    .product-list {
+        margin-bottom: 20px;
+    }
+
+    .product-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .product-img {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #eee;
+    }
+
+    .product-info {
+        flex: 1;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+    }
+
+    .product-price {
+        font-weight: 700;
+        color: #F58634;
+    }
+
+    /* Tabs */
+    .filter-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 24px;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        border-bottom: 2px solid #eee;
+    }
+
+    .filter-tab {
+        padding: 10px 20px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        white-space: nowrap;
+        font-weight: 500;
+        color: #666;
+        border-radius: 8px 8px 0 0;
+    }
+
+        .filter-tab.active {
+            color: #F58634;
+            font-weight: 600;
+            border-bottom: 3px solid #F58634;
+            margin-bottom: -2px;
+        }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+        .empty-state i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+    /* Buttons */
+    .btn-action {
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background: white;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+        .btn-action:hover {
+            border-color: #F58634;
+            color: #F58634;
+        }
+
+    .btn-shop-now {
+        background: #F58634;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 20px;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+</style>
+
+<h4 class="mb-4">Đơn mua của tôi</h4>
+
+<!-- Bộ lọc -->
+<div class="filter-tabs">
+    <button class="filter-tab active" onclick="DoiTab('all', this)"><i class="fas fa-list"></i> Tất cả</button>
+    <button class="filter-tab" onclick="DoiTab('pending', this)"><i class="fas fa-clock"></i> Chờ xác nhận</button>
+    <button class="filter-tab" onclick="DoiTab('shipping', this)"><i class="fas fa-shipping-fast"></i> Đang giao</button>
+    <button class="filter-tab" onclick="DoiTab('completed', this)"><i class="fas fa-check-circle"></i> Hoàn thành</button>
+    <button class="filter-tab" onclick="DoiTab('cancelled', this)"><i class="fas fa-times-circle"></i> Đã hủy</button>
+</div>
+
+<!-- Danh sách đơn hàng -->
+<div id="order-list">
+    <div class="text-center py-5">
+        <div class="spinner-border text-warning" role="status"><span class="visually-hidden">Đang tải...</span></div>
+    </div>
+</div>
+
+<!-- MODAL ĐÁNH GIÁ -->
+<div class="modal fade" id="modalDanhGia" tabindex="-1" style="display:none; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1050;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px; margin: 10% auto;">
+        <div class="modal-content" style="background: white; border-radius: 12px; padding: 20px;">
+            <div class="modal-header border-bottom-0 pb-0 d-flex justify-content-between">
+                <h5 class="fw-bold">Đánh giá món ăn</h5>
+                <button type="button" class="btn-close" onclick="$('#modalDanhGia').fadeOut()"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="dg_MaDH" />
+                <input type="hidden" id="dg_MaSP" />
+
+                <div class="text-center mb-3">
+                    <h6 id="dg_TenSP" class="fw-bold text-primary"></h6>
+                </div>
+
+                <div class="text-center mb-3">
+                    <div class="rating-stars" style="font-size: 30px; cursor: pointer; color: #ddd;">
+                        <i class="fas fa-star" onclick="ChonSao(1)"></i>
+                        <i class="fas fa-star" onclick="ChonSao(2)"></i>
+                        <i class="fas fa-star" onclick="ChonSao(3)"></i>
+                        <i class="fas fa-star" onclick="ChonSao(4)"></i>
+                        <i class="fas fa-star" onclick="ChonSao(5)"></i>
+                    </div>
+                    <input type="hidden" id="dg_SoSao" value="5" />
+                    <small class="text-muted" id="dg_Label">Tuyệt vời</small>
+                </div>
+
+                <div class="form-group">
+                    <textarea class="form-control" id="dg_NoiDung" rows="3" placeholder="Hãy chia sẻ cảm nhận của bạn về món ăn này..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-secondary" onclick="$('#modalDanhGia').fadeOut()">Đóng</button>
+                <button type="button" class="btn btn-warning text-white fw-bold" onclick="GuiDanhGia()">Gửi đánh giá</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+    <script>
+        var trangThaiHienTai = 'all';
+
+        $(document).ready(function () {
+            LayDonMua(trangThaiHienTai);
+
+            // Bắt sự kiện click vào nút đánh giá (Cách mới an toàn hơn)
+            $(document).on('click', '.btn-open-review', function () {
+                var maDH = $(this).data('dh');
+                var maSP = $(this).data('sp');
+                var tenSP = $(this).data('name');
+
+                MoPopupDanhGia(maDH, maSP, tenSP);
+            });
+        });
+
+        // 1. Chuyển Tab
+        function DoiTab(status, btn) {
+            $('.filter-tab').removeClass('active');
+            $(btn).addClass('active');
+            trangThaiHienTai = status;
+            LayDonMua(status);
+        }
+
+        // 2. Lấy danh sách
+        function LayDonMua(status) {
+            var formData = new FormData();
+            formData.append('status', status);
+
+            $.ajax({
+                type: "POST",
+                url: '/CaiDat/LayDonMua',
+                data: formData, contentType: false, processData: false, cache: false,
+                success: function (res) {
+                    var data = JSON.parse(res);
+                    if (data.success) {
+                        HienThiDanhSach(data.data);
+                    } else {
+                        $('#order-list').html('<div class="alert alert-danger text-center">' + data.message + '</div>');
+                    }
+                },
+                error: function () {
+                    $('#order-list').html('<div class="alert alert-danger text-center">Lỗi kết nối server</div>');
+                }
+            });
+        }
+
+        // 3. Render HTML
+        function HienThiDanhSach(orders) {
+            var html = '';
+            if (orders.length === 0) {
+                html = `<div class="empty-state">
+                                <i class="fas fa-shopping-bag"></i>
+                                <h5>Chưa có đơn hàng nào</h5>
+                                <a href="/SanPham/KH_DanhSachSanPham" class="btn-shop-now">Đặt món ngay</a>
+                            </div>`;
+            } else {
+                orders.forEach(function (order) {
+                    var statusInfo = XuLyTrangThai(order.TrangThai);
+                    var timeline = TaoTimeline(order.TrangThai);
+                    // Nếu đã hủy thì thanh đỏ, ngược lại cam
+                    var progressStyle = (order.TrangThai === 'Đã hủy') ? 'width: 100%; background: #dc3545;' : `width: ${timeline.progress}%`;
+
+                    html += `
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div>
+                                    <strong>${order.MaVanDon}</strong> <br>
+                                    <small class="text-muted"><i class="far fa-calendar"></i> ${order.NgayTao}</small>
+                                </div>
+                                <span class="status-badge ${statusInfo.class}"><i class="${statusInfo.icon}"></i> ${statusInfo.text}</span>
+                            </div>
+
+                            <div class="order-timeline">
+                                <div class="timeline-container">
+                                    <div class="timeline-line"><div class="timeline-progress" style="${progressStyle}"></div></div>
+                                    ${timeline.steps.map(s => `
+                                        <div class="timeline-step ${s.class}">
+                                            <div class="timeline-icon"><i class="${s.icon}"></i></div>
+                                            <div class="timeline-label">${s.label}</div>
+                                        </div>`).join('')}
+                                </div>
+                            </div>
+
+                            <div class="product-list">
+                                ${order.SanPhams.map(sp => {
+                        // Logic nút đánh giá: Dùng data-attribute để tránh lỗi chuỗi
+                                    var btnDanhGia = '';
+
+                                    // Chỉ hiện nút nếu đơn hàng đã nhận VÀ sản phẩm CHƯA đánh giá
+                                    if (order.TrangThai === 'Đã nhận hàng') {
+                                        if (sp.DaDanhGia === true) {
+                                            // Nếu đã đánh giá rồi -> Hiện chữ/icon đã đánh giá
+                                            btnDanhGia = `<div class="mt-2 text-success small fw-bold">
+                        <i class="fas fa-check-circle"></i> Đã đánh giá
+                      </div>`;
+                                        } else {
+                                            // Nếu chưa đánh giá -> Hiện nút
+                                            btnDanhGia = `<a href="/DanhGia/KH_DanhGiaSanPham?maDH=${order.MaDH}&maSP=${sp.MaSP}" class="btn btn-sm btn-outline-warning ms-auto mt-2">
+    <i class="far fa-star"></i> Viết đánh giá
+</a>`;
+                                        }
+                                    }
+
+                        return `
+                                    <div class="product-item">
+                                        <img src="${sp.Anh}" class="product-img" onerror="this.src='/Content/img/no-image.jpg'">
+                                        <div class="product-info">
+                                            <div class="product-name">${sp.TenSP}</div>
+                                            <div class="text-muted small">x${sp.SoLuong}</div>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-end">
+                                            <div class="product-price mb-2">${DinhDangTienTe(sp.DonGia)}đ</div>
+                                            ${btnDanhGia}
+                                        </div>
+                                    </div>`;
+                    }).join('')}
+                            </div>
+
+                            <div class="d-flex justify-content-between border-top pt-3">
+                                <span class="text-muted">Tổng tiền:</span>
+                                <span class="fs-5 fw-bold text-danger">${DinhDangTienTe(order.TongTien)}đ</span>
+                            </div>
+
+                            <div class="mt-3 d-flex justify-content-end gap-2">
+                                 ${LayNutHanhDong(order.TrangThai, order.MaDH)}
+                            </div>
+                        </div>`;
+                });
+            }
+            $('#order-list').html(html);
+        }
+
+        // --- CÁC HÀM HELPERS ---
+        function XuLyTrangThai(status) {
+            switch (status) {
+                case 'Chờ xác nhận': return { class: 'pending', icon: 'fas fa-clock', text: 'Chờ xác nhận' };
+                case 'Đã xác nhận': return { class: 'shipping', icon: 'fas fa-box', text: 'Đã xác nhận' };
+                case 'Đang giao': return { class: 'shipping', icon: 'fas fa-shipping-fast', text: 'Đang giao' };
+                case 'Đã nhận hàng': return { class: 'completed', icon: 'fas fa-check-circle', text: 'Hoàn thành' };
+                case 'Đã hủy': return { class: 'cancelled', icon: 'fas fa-times-circle', text: 'Đã hủy' };
+                default: return { class: 'pending', icon: 'fas fa-info', text: status };
+            }
+        }
+
+        function TaoTimeline(status) {
+            var steps = [
+                { icon: 'fas fa-file-invoice', label: 'Đã đặt', class: 'completed' },
+                { icon: 'fas fa-user-check', label: 'Đã xác nhận', class: '' },
+                { icon: 'fas fa-motorcycle', label: 'Đang giao', class: '' },
+                { icon: 'fas fa-star', label: 'Hoàn thành', class: '' }
+            ];
+            var progress = 0;
+            if (status === 'Đã hủy') return { steps: [{ icon: 'fas fa-file-invoice', label: 'Đã đặt', class: 'completed' }, { icon: 'fas fa-times', label: 'Đã hủy', class: 'active cancelled' }], progress: 100 };
+
+            switch (status) {
+                case 'Chờ xác nhận': steps[0].class = 'active'; progress = 15; break;
+                case 'Đã xác nhận': steps[0].class = 'completed'; steps[1].class = 'active'; progress = 50; break;
+                case 'Đang giao': steps[0].class = 'completed'; steps[1].class = 'completed'; steps[2].class = 'active'; progress = 75; break;
+                case 'Đã nhận hàng': steps.forEach(s => s.class = 'completed'); progress = 100; break;
+            }
+            return { steps: steps, progress: progress };
+        }
+
+        function LayNutHanhDong(status, maDH) {
+            if (status === 'Chờ xác nhận') return `<button class="btn-action text-danger border-danger" onclick="HuyDonHang(${maDH})">Hủy đơn</button>`;
+            if (status === 'Đã nhận hàng' || status === 'Đã hủy') return `<button class="btn-action primary" onclick="MuaLai()">Mua lại</button>`;
+            return '';
+        }
+
+        function DinhDangTienTe(n) { return new Intl.NumberFormat('vi-VN').format(n); }
+        function MuaLai() { window.location.href = '/SanPham/KH_DanhSachSanPham'; }
+
+        function HuyDonHang(id) {
+            if (!confirm('Hủy đơn hàng này?')) return;
+            var fd = new FormData(); fd.append('id', id);
+            $.ajax({
+                type: "POST", url: '/CaiDat/HuyDonHang', data: fd, contentType: false, processData: false,
+                success: function (res) {
+                    var r = JSON.parse(res);
+                    alert(r.message);
+                    if (r.success) LayDonMua(trangThaiHienTai);
+                }
+            });
+        }
+
+        // --- XỬ LÝ ĐÁNH GIÁ ---
+
+        function MoPopupDanhGia(maDH, maSP, tenSP) {
+            $('#dg_MaDH').val(maDH);
+            $('#dg_MaSP').val(maSP);
+            $('#dg_TenSP').text(tenSP);
+            $('#dg_NoiDung').val('');
+            ChonSao(5); // Reset 5 sao
+            $('#modalDanhGia').fadeIn();
+        }
+
+        function ChonSao(val) {
+            $('#dg_SoSao').val(val);
+            $('.rating-stars i').each(function (index) {
+                if (index < val) $(this).css('color', '#ffc107');
+                else $(this).css('color', '#ddd');
+            });
+            var labels = ["Tệ", "Không hài lòng", "Bình thường", "Hài lòng", "Tuyệt vời"];
+            $('#dg_Label').text(labels[val - 1]);
+        }
+
+        function GuiDanhGia() {
+            var btn = $("button[onclick='GuiDanhGia()']");
+            btn.prop("disabled", true).text("Đang gửi...");
+
+            var formData = new FormData();
+            formData.append('MaDH', $('#dg_MaDH').val());
+            formData.append('MaSP', $('#dg_MaSP').val());
+            formData.append('SoSao', $('#dg_SoSao').val());
+            formData.append('BinhLuan', $('#dg_NoiDung').val());
+
+            $.ajax({
+                type: "POST",
+                url: '/CaiDat/GuiDanhGia',
+                data: formData, contentType: false, processData: false,
+                success: function (res) {
+                    var r = JSON.parse(res);
+                    if (r.success) {
+                        alert(r.message);
+                        $('#modalDanhGia').fadeOut();
+                        LayDonMua(trangThaiHienTai); // Load lại để ẩn nút đánh giá
+                    } else {
+                        alert(r.message);
+                    }
+                    btn.prop("disabled", false).text("Gửi đánh giá");
+                },
+                error: function () {
+                    alert("Lỗi kết nối server!");
+                    btn.prop("disabled", false).text("Gửi đánh giá");
+                }
+            });
+        }
+    </script>
+

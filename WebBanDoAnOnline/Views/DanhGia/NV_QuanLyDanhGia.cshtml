@@ -1,0 +1,351 @@
+﻿@{
+    ViewBag.Title = "Quản lý đánh giá";
+    Layout = "~/Views/Shared/_NV_Layout.cshtml";
+    var userRole = ViewBag.VaiTro as string; // Lấy vai trò từ Controller
+}
+
+<style>
+    /* CSS Tùy chỉnh */
+    .danhgia-card { background: #fff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    .search-input { border-radius: 20px 0 0 20px; border-right: none; }
+    .search-btn { border-radius: 0 20px 20px 0; }
+
+    .table-custom th { font-size: 13px; text-transform: uppercase; color: #888; font-weight: 700; border-top: none; }
+    .table-custom td { vertical-align: middle; padding: 15px 10px; border-bottom: 1px solid #f1f1f1; }
+
+    .avatar-sm { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #eee; margin-right: 8px; }
+    .product-sm { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid #eee; margin-right: 8px; }
+
+    .star-active { color: #ffc107; font-size: 12px; }
+    .star-inactive { color: #e9ecef; font-size: 12px; }
+
+    .comment-box { max-width: 300px; font-size: 14px; line-height: 1.4; color: #444; }
+    .reply-box { background: #f8f9fa; padding: 8px; border-radius: 6px; border-left: 3px solid #0d6efd; margin-top: 5px; font-size: 13px; color: #555; }
+
+    /* Modal Custom */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1050; justify-content: center; align-items: center; }
+    .modal-box { background: white; width: 90%; max-width: 500px; padding: 25px; border-radius: 12px; animation: slideDown 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    @@keyframes slideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+
+<div class="container-fluid px-0">
+    <div class="danhgia-card">
+        <!-- HEADER & TOOLBAR -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h4 class="fw-bold text-dark m-0">Đánh giá & Bình luận</h4>
+                <p class="text-muted small m-0">Quản lý phản hồi từ khách hàng</p>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button id="btn-hide-selected" class="btn btn-warning text-white btn-sm" style="display:none;" onclick="XuLyHangLoat('an')">
+                    <i class="fas fa-eye-slash"></i> Ẩn đã chọn
+                </button>
+                <button id="btn-toggle-view" class="btn btn-outline-secondary btn-sm" onclick="DoiCheDoXem()">
+                    <i class="fas fa-history"></i> Xem đánh giá đã ẩn
+                </button>
+            </div>
+        </div>
+
+        <!-- SEARCH -->
+        <div class="row mb-4">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <input type="text" id="global-search" class="form-control search-input" placeholder="Tìm tên khách, sản phẩm, nội dung...">
+                    <button class="btn btn-primary search-btn" onclick="TaiDanhSachDanhGia(1)"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-responsive">
+            <table class="table table-custom table-hover">
+                <thead>
+                    <tr>
+                        <th width="40"><input type="checkbox" id="check-all"></th>
+                        <th width="200">Khách hàng / Sản phẩm</th>
+                        <th width="120">Đánh giá</th>
+                        <th>Nội dung bình luận</th>
+                        <th width="120">Thời gian</th>
+                        <th width="140" class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-danh-gia">
+                    <!-- Dữ liệu load bằng Ajax -->
+                </tbody>
+            </table>
+            <!-- Loading -->
+            <div id="loading-spinner" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+        </div>
+
+        <!-- PHÂN TRANG -->
+        <div id="pagination" class="d-flex justify-content-center mt-4"></div>
+    </div>
+</div>
+
+<!-- MODAL TRẢ LỜI -->
+<div id="modal-reply" class="modal-overlay">
+    <div class="modal-box">
+        <h5 class="fw-bold mb-3">Trả lời đánh giá</h5>
+        <input type="hidden" id="reply-id">
+        <div class="mb-3">
+            <label class="form-label text-muted small">Nội dung phản hồi:</label>
+            <textarea id="reply-content" class="form-control" rows="4" placeholder="Nhập câu trả lời của cửa hàng..."></textarea>
+        </div>
+        <div class="text-end">
+            <button class="btn btn-light me-2" onclick="$('#modal-reply').fadeOut()">Hủy</button>
+            <button class="btn btn-primary" onclick="GuiTraLoi()">Gửi phản hồi</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var url_domain = window.location.origin;
+    var CheDoXemDaAn = false; // false: Đang xem ds hiện, true: Đang xem ds đã ẩn
+    var UserRole = '@userRole'; // Lấy vai trò để check quyền xóa
+
+    $(document).ready(function () {
+        TaiDanhSachDanhGia(1);
+
+        // Sự kiện tìm kiếm (Enter)
+        $('#global-search').keypress(function(event){
+            if(event.keyCode == 13 || event.which == 13) TaiDanhSachDanhGia(1);
+        });
+
+        // Checkbox logic
+        $("#check-all").change(function() {
+            $(".check-item").prop('checked', $(this).prop('checked'));
+            KiemTraNutChon();
+        });
+        $(document).on('change', '.check-item', function() {
+            var all = $('.check-item').length === $('.check-item:checked').length;
+            $("#check-all").prop('checked', all);
+            KiemTraNutChon();
+        });
+    });
+
+    // --- 1. CORE: LOAD DANH SÁCH ---
+    function TaiDanhSachDanhGia(page) {
+        var tuKhoa = $("#global-search").val();
+        var trangThai = CheDoXemDaAn ? "da_an" : "chua_an";
+
+        $("#tbody-danh-gia").empty();
+        $("#loading-spinner").show();
+        $("#btn-hide-selected").hide();
+        $("#check-all").prop('checked', false);
+
+        var fd = new FormData();
+        fd.append('tuKhoa', tuKhoa);
+        fd.append('trangThaiAn', trangThai);
+        fd.append('page', page);
+
+        $.ajax({
+            type: "POST", url: url_domain + '/DanhGia/LayDanhSachDanhGia',
+            data: fd, processData: false, contentType: false,
+            success: function (res) {
+                $("#loading-spinner").hide();
+                var response = JSON.parse(res);
+                if (response.success) {
+                    RenderBang(response.data);
+                    TaoPhanTrang(response.totalPages, response.currentPage);
+                } else {
+                    $("#tbody-danh-gia").html(`<tr><td colspan="6" class="text-center text-danger">${response.message}</td></tr>`);
+                }
+            }
+        });
+    }
+
+    // --- 2. RENDER HTML ---
+    function RenderBang(data) {
+        if (!data || data.length === 0) {
+            $("#tbody-danh-gia").html('<tr><td colspan="6" class="text-center text-muted py-5">Không tìm thấy đánh giá nào.</td></tr>');
+            $("#pagination").html('');
+            return;
+        }
+
+        var html = "";
+        data.forEach(item => {
+            var avatar = item.Avatar ? item.Avatar.replace('~', '') : '/img/no-image.jpg';
+            var imgSP = item.AnhSanPham ? item.AnhSanPham.replace('~', '') : '/img/no-image.jpg';
+
+            // Vẽ sao
+            var stars = "";
+            for(let i=1; i<=5; i++) stars += `<i class="fas fa-star ${i <= item.SoSao ? 'star-active' : 'star-inactive'}"></i>`;
+
+            // HTML Trả lời
+            var replyHtml = item.PhanHoi
+                ? `<div class="reply-box"><i class="fas fa-reply me-1"></i> <b>Shop:</b> ${item.PhanHoi}</div>`
+                : `<button class="btn btn-sm btn-link text-decoration-none p-0 mt-1" onclick="MoModalTraLoi(${item.MaDG})">↪️ Trả lời ngay</button>`;
+
+            // Nút Ẩn/Hiện
+            var btnAnHien = CheDoXemDaAn
+                ? `<button class="btn btn-sm btn-success" title="Hiện lại" onclick="AnHien(${item.MaDG})"><i class="fas fa-eye"></i></button>`
+                : `<button class="btn btn-sm btn-warning text-white" title="Ẩn đi" onclick="AnHien(${item.MaDG})"><i class="fas fa-eye-slash"></i></button>`;
+
+            // Nút Xóa (Chỉ Quản lý mới thấy)
+            var btnXoa = (UserRole === "Quản lý")
+                ? `<button class="btn btn-sm btn-danger ms-1" title="Xóa vĩnh viễn" onclick="XoaDanhGia(${item.MaDG})"><i class="fas fa-trash"></i></button>`
+                : ``;
+
+            html += `
+            <tr>
+                <td><input type="checkbox" class="check-item" value="${item.MaDG}"></td>
+                <td>
+                    <div class="d-flex align-items-center mb-2">
+                        <img src="${avatar}" class="avatar-sm">
+                        <span class="fw-bold text-dark" style="font-size:13px">${item.TenKhachHang}</span>
+                    </div>
+                    <div class="d-flex align-items-center bg-light p-1 rounded" style="width:fit-content">
+                        <img src="${imgSP}" class="product-sm">
+                        <span class="small text-secondary text-truncate" style="max-width:140px">${item.TenSanPham}</span>
+                    </div>
+                </td>
+                <td>
+                    <div>${stars}</div>
+                    <div class="small text-muted mt-1">${item.SoSao}/5 điểm</div>
+                </td>
+                <td>
+                    <div class="comment-box">${item.BinhLuan || '<i class="text-muted">Không có nội dung</i>'}</div>
+                    ${replyHtml}
+                </td>
+                <td class="small text-muted">${item.ThoiGian}</td>
+                <td class="text-end">
+                    ${btnAnHien}
+                    ${btnXoa}
+                </td>
+            </tr>`;
+        });
+        $("#tbody-danh-gia").html(html);
+    }
+
+    // --- 3. CÁC CHỨC NĂNG HÀNH ĐỘNG ---
+
+    // A. Ẩn / Hiện
+    function AnHien(id) {
+        if(!confirm("Xác nhận thay đổi trạng thái ẩn/hiện?")) return;
+        var fd = new FormData(); fd.append('maDG', id);
+        $.ajax({
+            type: "POST", url: url_domain + '/DanhGia/ToggleAnDanhGia', data: fd, processData: false, contentType: false,
+            success: function(res) {
+                if(res === "OK") ReloadPage();
+                else alert(res);
+            }
+        });
+    }
+
+    // B. Xóa Vĩnh Viễn
+    function XoaDanhGia(id) {
+        if(!confirm("CẢNH BÁO: Hành động này sẽ xóa vĩnh viễn đánh giá này và không thể khôi phục.\nBạn có chắc chắn muốn xóa?")) return;
+        var fd = new FormData(); fd.append('maDG', id);
+        $.ajax({
+            type: "POST", url: url_domain + '/DanhGia/XoaDanhGia', data: fd, processData: false, contentType: false,
+            success: function(res) {
+                if(res === "OK") ReloadPage();
+                else alert(res);
+            }
+        });
+    }
+
+    // C. Trả lời đánh giá
+    function MoModalTraLoi(id) {
+        $("#reply-id").val(id);
+        $("#reply-content").val("");
+        $("#modal-reply").css("display", "flex").hide().fadeIn();
+    }
+
+    function GuiTraLoi() {
+        var id = $("#reply-id").val();
+        var noiDung = $("#reply-content").val();
+        if(!noiDung.trim()) { alert("Vui lòng nhập nội dung!"); return; }
+
+        var fd = new FormData(); fd.append('maDG', id); fd.append('noiDung', noiDung);
+        $.ajax({
+            type: "POST", url: url_domain + '/DanhGia/TraLoiDanhGia', data: fd, processData: false, contentType: false,
+            success: function(res) {
+                if(res === "OK") {
+                    $("#modal-reply").fadeOut();
+                    ReloadPage();
+                } else alert(res);
+            }
+        });
+    }
+
+    // D. Xử lý hàng loạt (Ẩn)
+    function XuLyHangLoat(action) {
+        var ids = [];
+        $(".check-item:checked").each(function() { ids.push($(this).val()); });
+        if(ids.length === 0) return;
+        if(!confirm(`Bạn muốn ẩn ${ids.length} đánh giá đã chọn?`)) return;
+
+        // Gọi nhiều request (do API thiết kế đơn lẻ)
+        var promises = ids.map(id => {
+            var fd = new FormData(); fd.append('maDG', id);
+            return $.ajax({ type: "POST", url: url_domain + '/DanhGia/ToggleAnDanhGia', data: fd, processData: false, contentType: false });
+        });
+
+        $.when.apply($, promises).done(function() { ReloadPage(); });
+    }
+
+    // --- 4. TIỆN ÍCH ---
+    function DoiCheDoXem() {
+        CheDoXemDaAn = !CheDoXemDaAn;
+        if(CheDoXemDaAn) {
+            $("#btn-toggle-view").html('<i class="fas fa-arrow-left"></i> Quay lại').removeClass("btn-outline-secondary").addClass("btn-secondary");
+        } else {
+            $("#btn-toggle-view").html('<i class="fas fa-history"></i> Xem đánh giá đã ẩn').removeClass("btn-secondary").addClass("btn-outline-secondary");
+        }
+        TaiDanhSachDanhGia(1);
+    }
+
+    function KiemTraNutChon() {
+        if($(".check-item:checked").length > 0) $("#btn-hide-selected").fadeIn();
+        else $("#btn-hide-selected").fadeOut();
+    }
+
+    function ReloadPage() {
+        var currentPage = $("#pagination .page-item.active a").text() || 1;
+        TaiDanhSachDanhGia(parseInt(currentPage));
+    }
+
+    // --- 5. HÀM PHÂN TRANG (Logic cũ của bạn) ---
+    function TaoPhanTrang(totalPages, currentPage) {
+        totalPages = parseInt(totalPages);
+        currentPage = parseInt(currentPage);
+        if (isNaN(totalPages) || totalPages <= 1) { $("#pagination").html(''); return; }
+
+        var kword = $("#global-search").val() || ""; // Chỉ lấy keyword để giữ logic code cũ, thực tế hàm TaiDanhSachDanhGia tự lấy
+        var kwordSafe = kword.replace(/'/g, "\\'");
+        var catParam = 'null';
+
+        // Hàm render item gọi TaiDanhSachDanhGia(page)
+        function renderItem(page, isActive, isDisabled, text) {
+            var activeClass = isActive ? "active" : "";
+            var disabledClass = isDisabled ? "disabled" : "";
+            var clickEvent = (isDisabled || isActive) ? "" : `onclick="TaiDanhSachDanhGia(${page})"`;
+            var display = text || page;
+            return `<li class="page-item ${activeClass} ${disabledClass}"><a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a></li>`;
+        }
+        function renderDots() { return `<li class="page-item disabled"><a class="page-link" href="#">...</a></li>`; }
+
+        var html = `<nav><ul class="pagination pagination-sm justify-content-center">`;
+        html += renderItem(currentPage - 1, false, currentPage === 1, "&laquo;");
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) html += renderItem(i, i === currentPage, false, i);
+        } else {
+            html += renderItem(1, 1 === currentPage, false, 1);
+            var startPage = Math.max(2, currentPage - 1);
+            var endPage = Math.min(totalPages - 1, currentPage + 1);
+            if (startPage > 2) html += renderDots();
+            for (let i = startPage; i <= endPage; i++) html += renderItem(i, i === currentPage, false, i);
+            if (endPage < totalPages - 1) html += renderDots();
+            html += renderItem(totalPages, totalPages === currentPage, false, totalPages);
+        }
+        html += renderItem(currentPage + 1, false, currentPage === totalPages, "&raquo;");
+        html += `</ul></nav>`;
+        $("#pagination").html(html);
+    }
+</script>
