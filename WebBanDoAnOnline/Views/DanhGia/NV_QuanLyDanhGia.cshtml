@@ -5,27 +5,113 @@
 }
 
 <style>
-    /* CSS Tùy chỉnh */
-    .danhgia-card { background: #fff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-    .search-input { border-radius: 20px 0 0 20px; border-right: none; }
-    .search-btn { border-radius: 0 20px 20px 0; }
+    /* 1. KHUNG TÌM KIẾM ĐẸP (SEAMLESS) */
+    .search-container {
+        position: relative;
+        max-width: 400px; /* Giới hạn chiều rộng cho đẹp */
+    }
 
-    .table-custom th { font-size: 13px; text-transform: uppercase; color: #888; font-weight: 700; border-top: none; }
-    .table-custom td { vertical-align: middle; padding: 15px 10px; border-bottom: 1px solid #f1f1f1; }
+    .search-input {
+        width: 100%;
+        padding: 10px 45px 10px 20px; /* Chừa chỗ cho nút search bên phải */
+        border: 1px solid #e0e0e0;
+        border-radius: 50px !important; /* Bo tròn viên thuốc */
+        background: #f9f9f9;
+        transition: all 0.3s ease;
+        height: 45px;
+    }
 
-    .avatar-sm { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #eee; margin-right: 8px; }
-    .product-sm { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid #eee; margin-right: 8px; }
+        .search-input:focus {
+            background: #fff;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+            outline: none;
+        }
 
-    .star-active { color: #ffc107; font-size: 12px; }
-    .star-inactive { color: #e9ecef; font-size: 12px; }
+    .search-btn-icon {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #888;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        transition: color 0.2s;
+    }
 
-    .comment-box { max-width: 300px; font-size: 14px; line-height: 1.4; color: #444; }
-    .reply-box { background: #f8f9fa; padding: 8px; border-radius: 6px; border-left: 3px solid #0d6efd; margin-top: 5px; font-size: 13px; color: #555; }
+        .search-btn-icon:hover {
+            color: #0d6efd;
+            background: #ecf4ff;
+        }
 
-    /* Modal Custom */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1050; justify-content: center; align-items: center; }
-    .modal-box { background: white; width: 90%; max-width: 500px; padding: 25px; border-radius: 12px; animation: slideDown 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-    @@keyframes slideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    /* 2. CÁC THÀNH PHẦN KHÁC */
+    .danhgia-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    }
+
+    .table-custom th {
+        background-color: #f8f9fa;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #666;
+        font-weight: 700;
+        border: none;
+        padding: 15px 10px;
+    }
+
+    .table-custom td {
+        vertical-align: middle;
+        padding: 15px 10px;
+        border-bottom: 1px solid #f1f1f1;
+        font-size: 14px;
+    }
+
+    /* Ảnh đại diện & Sản phẩm */
+    .avatar-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-right: 10px;
+    }
+
+    .product-sm {
+        width: 45px;
+        height: 45px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid #eee;
+        margin-right: 10px;
+    }
+
+    .comment-box {
+        max-width: 350px;
+        line-height: 1.5;
+        color: #333;
+    }
+
+    /* Loading Overlay đẹp hơn */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.8);
+        z-index: 10;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        border-radius: 12px;
+    }
 </style>
 
 <div class="container-fluid px-0">
@@ -47,37 +133,52 @@
             </div>
         </div>
 
-        <!-- SEARCH -->
-        <div class="row mb-4">
-            <div class="col-md-5">
-                <div class="input-group">
-                    <input type="text" id="global-search" class="form-control search-input" placeholder="Tìm tên khách, sản phẩm, nội dung...">
-                    <button class="btn btn-primary search-btn" onclick="TaiDanhSachDanhGia(1)"><i class="fas fa-search"></i></button>
+        <!-- SEARCH & FILTER TOOLBAR -->
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-6">
+                <!-- Input Search kiểu mới -->
+                <div class="search-container">
+                    <input type="text" id="global-search" class="search-input" placeholder="Tìm tên khách, sản phẩm, nội dung...">
+                    <button class="search-btn-icon" onclick="TaiDanhSachDanhGia(1)">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-6 text-end">
+                <div class="d-inline-flex gap-2">
+                    <button id="btn-hide-selected" class="btn btn-warning text-dark fw-bold btn-sm" style="display:none;" onclick="XuLyHangLoat('an')">
+                        <i class="fas fa-eye-slash"></i> Ẩn chọn
+                    </button>
+                    <button id="btn-toggle-view" class="btn btn-light border btn-sm text-secondary" onclick="DoiCheDoXem()">
+                        <i class="fas fa-history"></i> Xem đã ẩn
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- TABLE -->
-        <div class="table-responsive">
-            <table class="table table-custom table-hover">
+        <!-- TABLE VÙNG CHỨA DỮ LIỆU -->
+        <div class="table-responsive position-relative">
+            <!-- Thêm loading overlay đè lên bảng khi search -->
+            <div id="loading-spinner" class="loading-overlay">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+
+            <table class="table table-custom table-hover align-middle">
                 <thead>
                     <tr>
-                        <th width="40"><input type="checkbox" id="check-all"></th>
-                        <th width="200">Khách hàng / Sản phẩm</th>
-                        <th width="120">Đánh giá</th>
+                        <th width="40" class="text-center"><input type="checkbox" id="check-all" style="cursor:pointer"></th>
+                        <th width="220">Khách hàng / Sản phẩm</th>
+                        <th width="140">Đánh giá</th>
                         <th>Nội dung bình luận</th>
-                        <th width="120">Thời gian</th>
-                        <th width="140" class="text-end">Hành động</th>
+                        <th width="130">Thời gian</th>
+                        <th width="120" class="text-end">Hành động</th>
                     </tr>
                 </thead>
                 <tbody id="tbody-danh-gia">
-                    <!-- Dữ liệu load bằng Ajax -->
+                    <!-- Dữ liệu sẽ đổ vào đây -->
                 </tbody>
             </table>
-            <!-- Loading -->
-            <div id="loading-spinner" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status"></div>
-            </div>
         </div>
 
         <!-- PHÂN TRANG -->
@@ -259,18 +360,7 @@
         });
     }
 
-    // B. Xóa Vĩnh Viễn
-    function XoaDanhGia(id) {
-        if(!confirm("CẢNH BÁO: Hành động này sẽ xóa vĩnh viễn đánh giá này và không thể khôi phục.\nBạn có chắc chắn muốn xóa?")) return;
-        var fd = new FormData(); fd.append('maDG', id);
-        $.ajax({
-            type: "POST", url: url_domain + '/DanhGia/XoaDanhGia', data: fd, processData: false, contentType: false,
-            success: function(res) {
-                if(res === "OK") ReloadPage();
-                else alert(res);
-            }
-        });
-    }
+    
 
     // C. Trả lời đánh giá
     function MoModalTraLoi(id) {

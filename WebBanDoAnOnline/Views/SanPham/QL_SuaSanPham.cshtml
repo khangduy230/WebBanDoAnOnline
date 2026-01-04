@@ -56,7 +56,7 @@
                 </div>
                 <hr />
                 <button type="button" id="btn_capnhat" class="btn btn-primary">Cập nhật</button>
-                <a href="@Url.Action("LaySanPham", "SanPham" )" class="btn btn-secondary">Quay lại</a>
+                <a href="@Url.Action("QL_DanhSachSanPham", "SanPham" )" class="btn btn-secondary">Quay lại</a>
             </form>
         </div>
     </div>
@@ -143,7 +143,7 @@
             success: function(res) {
                 alert(res);
                 if(res.includes("thành công")) {
-                    window.location.href = '@Url.Action("LaySanPham", "SanPham")';
+                    window.location.href = '@Url.Action("QL_DanhSachSanPham", "SanPham")';
                 }
             },
             error: function(err) {
