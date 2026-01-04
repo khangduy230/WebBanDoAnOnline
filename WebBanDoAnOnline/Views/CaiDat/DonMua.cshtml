@@ -1,4 +1,5 @@
-﻿@{
+﻿﻿
+@{
     ViewBag.Title = "Đơn mua";
     Layout = "~/Views/Shared/_CaiDat_Layout.cshtml";
 }
@@ -99,7 +100,23 @@
         border: 1px solid #ddd;
         background: white;
         font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s;
     }
+
+        /* --- SỬA LỖI HIỂN THỊ NÚT MUA LẠI --- */
+        /* Ghi đè background white của .btn-action khi là nút màu cam */
+        .btn-action.btn-warning {
+            background-color: #F58634 !important;
+            border-color: #F58634 !important;
+            color: white !important;
+        }
+
+            .btn-action.btn-warning:hover {
+                background-color: #e0701b !important;
+                color: white !important;
+            }
 </style>
 
 <h4 class="mb-4">Đơn mua của tôi</h4>
@@ -186,8 +203,7 @@
 
                         <div class="product-list">
                             ${order.SanPhams.map(sp => {
-                    // 1. XỬ LÝ ẢNH (Sửa lỗi tại đây)
-                    // Lấy ảnh từ sp.Anh, bỏ dấu '~', nếu null thì lấy ảnh mặc định
+                    // 1. XỬ LÝ ẢNH
                     var imgUrl = sp.Anh ? sp.Anh.replace("~", "") : "/Content/img/no-image.png";
 
                     // 2. XỬ LÝ NÚT ĐÁNH GIÁ
@@ -244,8 +260,19 @@
     }
 
     function LayNutHanhDong(status, maDH) {
-        if (status === 'Chờ xác nhận') return `<button class="btn-action text-danger border-danger" onclick="HuyDonHang(${maDH})">Hủy đơn</button>`;
-        if (status === 'Đã nhận hàng' || status === 'Đã hủy') return `<a href="/SanPham/KH_DanhSachSanPham" class="btn-action btn-warning text-white text-decoration-none">Mua lại</a>`;
+        if (!status) return '';
+        var s = status.trim(); // Xóa khoảng trắng thừa
+
+        if (s === 'Chờ xác nhận') {
+            return `<button class="btn-action text-danger border-danger" onclick="HuyDonHang(${maDH})">Hủy đơn</button>`;
+        }
+
+        // Kiểm tra trạng thái (không phân biệt hoa thường để tránh lỗi)
+        var sLower = s.toLowerCase();
+        if (sLower === 'đã nhận hàng' || sLower === 'đã hủy' || sLower === 'hoàn thành') {
+            return `<a href="/SanPham/KH_DanhSachSanPham" class="btn-action btn-warning">Mua lại</a>`;
+        }
+
         return '';
     }
 

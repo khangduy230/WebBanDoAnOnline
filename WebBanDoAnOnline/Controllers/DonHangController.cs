@@ -234,63 +234,92 @@ namespace WebBanDoAnOnline.Controllers
 
 
         // 3: LẤY CHI TIẾT 1 ĐƠN HÀNG
-
-
         public string LayChiTietDonHang()
         {
-            string id_str = Request["id"];
-            if (string.IsNullOrEmpty(id_str)) return "{}";
-            int id = int.Parse(id_str);
-
-            BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
-            var dh = db.DonHangs.FirstOrDefault(d => d.MaDH == id);
-            if (dh == null) return "{}";
-
-            var user = db.TaiKhoans.FirstOrDefault(u => u.MaTK == dh.MaTK);
-            var addr = db.DiaChis.FirstOrDefault(a => a.MaDiaChi == dh.MaDiaChi);
-
-            var details = (from ct in db.ChiTietDonHangs
-                           join sp in db.SanPhams on ct.MaSP equals sp.MaSP
-                           where ct.MaDH == id
-                           select new { sp.TenSP, sp.Anh, ct.SoLuong, ct.ThanhTien }).ToList();
-
-            string statusUI = "pending";
-            if (dh.TrangThai == "Đang giao") statusUI = "shipping";
-            else if (dh.TrangThai == "Đã nhận hàng") statusUI = "completed";
-            else if (dh.TrangThai == "Đã hủy") statusUI = "cancelled";
-
-            // Tính lại phí ship dựa trên logic cũ (hoặc lấy từ DB nếu có cột PhiShip)
-            decimal tongTienHang = dh.TongTienSanPham; // Cột này có trong DB của bạn
-            decimal phiShip = dh.TongTien - tongTienHang + (dh.TienGiamGia ?? 0); // Tính ngược lại nếu cần
-
-            var result = new
+            try
             {
-                id = dh.MaDH,
-                time = dh.Create_at.HasValue ? dh.Create_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
-                status = statusUI,
-                statusText = dh.TrangThai,
-                payMethod = dh.PhuongThucTT,
+                string id_str = Request["id"];
+                if (string.IsNullOrEmpty(id_str)) return "{}";
+                int id = int.Parse(id_str);
 
-                // Trả về số liệu chính xác từ DB
-                subTotal = tongTienHang,
-                shipFee = phiShip,
-                discount = dh.TienGiamGia ?? 0,
-                total = dh.TongTien,
-                note = dh.GhiChu, // Thêm ghi chú
+                BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+                var dh = db.DonHangs.FirstOrDefault(d => d.MaDH == id);
+                if (dh == null) return "{}";
 
-                cusName = addr != null ? addr.TenNguoiNhan : user.HoTen,
-                cusPhone = addr != null ? addr.SDTNhan : user.SoDienThoai,
-                cusAddr = addr != null ? addr.DiaChiCuThe : "Tại cửa hàng",
+                var user = db.TaiKhoans.FirstOrDefault(u => u.MaTK == dh.MaTK);
+                var addr = db.DiaChis.FirstOrDefault(a => a.MaDiaChi == dh.MaDiaChi);
 
-                items = details.Select(d => new {
-                    name = d.TenSP,
-                    image = !string.IsNullOrEmpty(d.Anh) ? d.Anh.Replace("~", "") : "/img/no-image.jpg",
-                    qty = d.SoLuong,
-                    price = d.ThanhTien
-                })
-            };
+                // Lấy chi tiết sản phẩm
+                var details = (from ct in db.ChiTietDonHangs
+                               join sp in db.SanPhams on ct.MaSP equals sp.MaSP
+                               where ct.MaDH == id
+                               select new { sp.TenSP, sp.Anh, ct.SoLuong, ct.ThanhTien }).ToList();
 
-            return JsonConvert.SerializeObject(result);
+                // --- SỬA LẠI: Lấy lịch sử xử lý an toàn hơn ---
+                // Thay vì join phức tạp, ta lấy list lịch sử trước rồi mới map tên nhân viên
+                var historyRaw = db.LichSuTrangThais
+                                   .Where(ls => ls.MaDH == id)
+                                   .OrderByDescending(ls => ls.ThoiGian)
+                                   .ToList();
+
+                var history = historyRaw.Select(ls => {
+                    string actorName = "Khách hàng / Hệ thống";
+                    if (ls.MaNhanVien != null)
+                    {
+                        var nv = db.TaiKhoans.FirstOrDefault(t => t.MaTK == ls.MaNhanVien);
+                        if (nv != null) actorName = nv.HoTen;
+                    }
+
+                    return new
+                    {
+                        Time = ls.ThoiGian.HasValue ? ls.ThoiGian.Value.ToString("HH:mm dd/MM/yyyy") : "",
+                        StatusOld = ls.TrangThaiCu,
+                        StatusNew = ls.TrangThaiMoi,
+                        Actor = actorName,
+                        Note = ls.GhiChu
+                    };
+                }).ToList();
+                // ------------------------------
+
+                string statusUI = "pending";
+                if (dh.TrangThai == "Đang giao") statusUI = "shipping";
+                else if (dh.TrangThai == "Đã nhận hàng") statusUI = "completed";
+                else if (dh.TrangThai == "Đã hủy") statusUI = "cancelled";
+
+                decimal tongTienHang = dh.TongTienSanPham;
+                decimal phiShip = dh.TongTien - tongTienHang + (dh.TienGiamGia ?? 0);
+
+                var result = new
+                {
+                    id = dh.MaDH,
+                    time = dh.Create_at.HasValue ? dh.Create_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
+                    status = statusUI,
+                    statusText = dh.TrangThai,
+                    payMethod = dh.PhuongThucTT,
+                    subTotal = tongTienHang,
+                    shipFee = phiShip,
+                    discount = dh.TienGiamGia ?? 0,
+                    total = dh.TongTien,
+                    note = dh.GhiChu,
+                    cusName = addr != null ? addr.TenNguoiNhan : (user != null ? user.HoTen : "Khách vãng lai"),
+                    cusPhone = addr != null ? addr.SDTNhan : (user != null ? user.SoDienThoai : ""),
+                    cusAddr = addr != null ? addr.DiaChiCuThe : "Tại cửa hàng",
+                    items = details.Select(d => new {
+                        name = d.TenSP,
+                        image = !string.IsNullOrEmpty(d.Anh) ? d.Anh.Replace("~", "") : "/img/no-image.jpg",
+                        qty = d.SoLuong,
+                        price = d.ThanhTien
+                    }),
+                    history = history
+                };
+
+                return JsonConvert.SerializeObject(result);
+            }
+            catch (Exception ex)
+            {
+                // Trả về lỗi JSON để client biết thay vì chết trang
+                return JsonConvert.SerializeObject(new { error = ex.Message });
+            }
         }
 
         // Helper: Map trạng thái tiếng Việt trong DB sang Class CSS trong View
@@ -333,10 +362,10 @@ namespace WebBanDoAnOnline.Controllers
                 if (!string.IsNullOrEmpty(status) && status != "all")
                 {
                     // Map value từ <select> của View sang dữ liệu trong DB
-                    if (status == "pending") query = query.Where(x => x.TrangThai == "Chờ xác nhận" );
+                    if (status == "pending") query = query.Where(x => x.TrangThai == "Chờ xác nhận");
                     else if (status == "confirmed") query = query.Where(x => x.TrangThai == "Đã xác nhận");
                     else if (status == "shipping") query = query.Where(x => x.TrangThai == "Đang giao");
-                    else if (status == "completed") query = query.Where(x => x.TrangThai == "Đã nhận hàng" );
+                    else if (status == "completed") query = query.Where(x => x.TrangThai == "Đã nhận hàng");
                     else if (status == "cancelled") query = query.Where(x => x.TrangThai == "Đã hủy");
                 }
 

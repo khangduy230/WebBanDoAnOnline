@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     ViewBag.Title = "Thực đơn";
     Layout = "~/Views/Shared/_KH_Layout.cshtml";
 }
@@ -122,6 +122,39 @@
             background: #ddd;
             border-radius: 4px;
         }
+    /* --- 3. CSS PHÂN TRANG  --- */
+    .pagination .page-link {
+        color: #F58634; /* Màu chữ cam */
+        border: 1px solid #dee2e6;
+        margin: 0 3px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+        .pagination .page-link:hover {
+            color: #c96218;
+            background-color: #fff4e6; /* Nền cam rất nhạt */
+            border-color: #F58634;
+        }
+
+        .pagination .page-link:focus {
+            box-shadow: 0 0 0 0.25rem rgba(245, 134, 52, 0.25);
+            color: #c96218;
+        }
+
+    .pagination .page-item.active .page-link {
+        background-color: #F58634;
+        border-color: #F58634;
+        color: #fff;
+        box-shadow: 0 2px 5px rgba(245, 134, 52, 0.3);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #adb5bd;
+        background-color: #fff;
+        border-color: #dee2e6;
+    }
 </style>
 
 <div class="container mb-5 mt-4">
@@ -247,7 +280,7 @@
                     var imgUrl = p.Anh ? url_domain + p.Anh.replace('~/', '/') : "/Content/img/no-image.png";
 
                     // Giả lập thời gian giao (nếu API chưa trả về thì mặc định ~15p cho giống ảnh)
-                    
+
                     // Giả lập rating
                     var rating = p.DiemDanhGia || 0;
 
@@ -269,7 +302,7 @@
 
                                 <!-- Thông tin phụ: Thời gian & Sao -->
                                 <div class="meta-info">
-                                 
+
                                     <span><i class="fas fa-star text-warning"></i> ${rating}</span>
                                 </div>
                             </a>

@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿﻿
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -116,14 +117,14 @@
 
                     <!-- Panel Khách -->
                     <div id="panel-guest" class="auth-panel">
-                      
+
                         <a href="~/GioHang/KH_GioHang" class="icon-btn"><i class="fa-solid fa-bag-shopping"></i></a>
                         <a href="~/TaiKhoan/DangNhap" class="btn btn-dark btn-sm rounded-pill px-3 ms-2">Đăng nhập</a>
                     </div>
 
                     <!-- Panel User -->
                     <div id="panel-user" class="auth-panel">
-                        
+
                         <!-- Giỏ hàng -->
                         <a href="/GioHang/KH_GioHang" class="icon-btn">
                             <i class="fa-solid fa-bag-shopping"></i>
@@ -161,10 +162,10 @@
         </div>
     </main>
 
-    <footer class="site-footer bg-light py-4 mt-auto">
+    <footer class="site-footer py-4 mt-auto">
         <div class="container text-center">
             <div class="footer-logo fw-bold fs-4">FuTho<span class="fw-light">Food</span></div>
-            <p class="text-muted">SĐT Liên hệ: 0971123456</p>
+            <p>SĐT Liên hệ: 0971123456</p>
         </div>
     </footer>
 
@@ -234,9 +235,9 @@
             $('.dropdown-menu').click(function (e) { e.stopPropagation(); });
         });
 
-       
 
-        
+
+
 
         // 4. Cập nhật Badge Giỏ hàng (Global function)
         function CapNhatBadgeGioHang() {
@@ -277,7 +278,7 @@
         }
     </script>
 
-    
+
     @RenderSection("scripts", required: false)
 </body>
 </html>

@@ -1,4 +1,4 @@
-﻿@using WebBanDoAnOnline.Models
+﻿﻿@using WebBanDoAnOnline.Models
 @{
     ViewBag.Title = "Chi tiết đơn hàng";
 
@@ -351,6 +351,65 @@
         font-weight: 700;
         margin-top: 15px;
     }
+
+    .history-timeline {
+        border-left: 2px solid #e9ecef;
+        margin-left: 10px;
+        padding-left: 25px;
+        position: relative;
+        margin-top: 15px;
+    }
+
+    .history-item {
+        margin-bottom: 25px;
+        position: relative;
+    }
+
+        .history-item::before {
+            content: '';
+            position: absolute;
+            left: -31px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #adb5bd;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px #e9ecef;
+        }
+
+
+        .history-item:first-child::before {
+            background: #ffc107;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+        }
+
+    .h-time {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 2px;
+    }
+
+    .h-content {
+        font-size: 14px;
+        color: #333;
+    }
+
+    .h-actor {
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .h-note {
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-style: italic;
+        color: #666;
+        font-size: 13px;
+        margin-top: 6px;
+        border-left: 3px solid #dee2e6;
+    }
 </style>
 
 <div class="od-Trang">
@@ -412,7 +471,12 @@
                 <div class="info-row mt-3"><span class="info-label">Ghi chú</span> <span class="info-value text-danger fst-italic" id="od-note">Không có</span></div>
             </div>
         </div>
-
+        <div class="od-group mb-4">
+            <h5>Lịch sử xử lý & Trạng thái</h5>
+            <div class="history-timeline" id="od-history-list">
+                <div class="text-muted fst-italic">Đang tải lịch sử...</div>
+            </div>
+        </div>
         <!-- 4. DANH SÁCH -->
         <div class="od-group">
             <h5>Chi tiết sản phẩm</h5>
@@ -489,7 +553,30 @@
                 $("#od-cus-phone").text(d.cusPhone);
                 $("#od-cus-addr").text(d.cusAddr);
                 if(d.note) $("#od-note").text(d.note);
+                var hHtml = "";
+                if (d.history && d.history.length > 0) {
+                    d.history.forEach(h => {
+                        // Xử lý hiển thị chuyển trạng thái
+                        var statusChange = "";
+                        if (h.StatusOld) {
+                            statusChange = `<span>${h.StatusOld}</span> <i class="fas fa-arrow-right mx-1 text-muted" style="font-size:10px"></i> <span class="fw-bold text-primary">${h.StatusNew}</span>`;
+                        } else {
+                            statusChange = `<span class="fw-bold text-primary">${h.StatusNew}</span>`;
+                        }
 
+                        hHtml += `
+                        <div class="history-item">
+                            <div class="h-time"><i class="far fa-clock me-1"></i> ${h.Time}</div>
+                            <div class="h-content">
+                                <span class="h-actor">${h.Actor}</span> đã cập nhật: ${statusChange}
+                            </div>
+                            ${h.Note ? `<div class="h-note">"${h.Note}"</div>` : ''}
+                        </div>`;
+                    });
+                } else {
+                    hHtml = '<div class="text-muted fst-italic py-2">Chưa có lịch sử ghi nhận.</div>';
+                }
+                $("#od-history-list").html(hHtml);
                 // 2. Render danh sách món ăn
                 var html = "";
                 if(d.items && d.items.length > 0) {

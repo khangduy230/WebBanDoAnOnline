@@ -1,6 +1,6 @@
-﻿@{
+﻿﻿@{
     ViewBag.Title = "Trang chủ";
-    Layout = "~/Views/Shared/_KH_Layout.cshtml"; // Đảm bảo có layout này
+    Layout = "~/Views/Shared/_KH_Layout.cshtml";
 }
 
 <!-- 1. HERO SECTION -->
@@ -71,7 +71,7 @@
                     // Xử lý đường dẫn ảnh
                     var imgUrl = sp.Anh ? sp.Anh.replace('~', '') : '/img/no-image.jpg';
 
-                    // Xử lý hiển thị sao 
+                    // Xử lý hiển thị sao
                     var starDisplay = sp.SoSao > 0
                         ? `<i class="fas fa-star text-warning"></i> ${sp.SoSao}`
                         : `<span class="fas fa-star text-warning"></span> 0`;
