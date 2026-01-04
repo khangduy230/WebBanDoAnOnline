@@ -297,7 +297,7 @@
 
     // --- 2. RENDER HTML ---
     function RenderBang(data) {
-        if (!data || data.length === 0) {ẩn đã chọn
+        if (!data || data.length === 0) {
             $("#tbody-danh-gia").html('<tr><td colspan="6" class="text-center text-muted py-5">Không tìm thấy đánh giá nào.</td></tr>');
             $("#pagination").html('');
             return;
@@ -469,7 +469,7 @@
         // Khi tất cả request hoàn tất (dù thành công hay thất bại)
         $.when.apply($, promises).always(function () {
             // Reset nút
-            $("#btn-hide-selected").prop("disabled", false).html('<i class="fas fa-eye-slash"></i> Ẩn/Hiện đã chọn');
+            $("#btn-hide-selected").prop("disabled", false).html('<i class="fas fa-eye-slash"></i> Hiện đã chọn');
             // Tải lại trang để cập nhật trạng thái mới
             ReloadPage();
             alert("Đã xử lý xong!");
