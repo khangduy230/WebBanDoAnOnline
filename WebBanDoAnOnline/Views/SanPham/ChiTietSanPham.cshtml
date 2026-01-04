@@ -406,10 +406,21 @@
 
         // Render HTML
         pageItems.forEach(item => {
-            var avatarUrl = item.AnhDaiDien ? url_domain + item.AnhDaiDien.replace('~', '') : "https://ui-avatars.com/api/?name=" + item.TenNguoiDung + "&background=random";
+            var defaultImg = "/img/default-avatar.png";
+
+            // 2. Kiểm tra: Nếu có ảnh DB thì dùng, không thì dùng ảnh mặc định
+            var avatarUrl = (item.AnhDaiDien && item.AnhDaiDien.trim() !== "")
+                ? url_domain + item.AnhDaiDien.replace('~', '')
+                : defaultImg;
+
             var html = `
                 <div class="item-danh-gia">
-                    <div class="avatar"><img src="${avatarUrl}" alt="Avatar"></div>
+                    <div class="avatar">
+                        <!-- Thêm thuộc tính onerror: Nếu ảnh DB bị lỗi (404) thì tự động chuyển về ảnh mặc định -->
+                        <img src="${avatarUrl}" 
+                             onerror="this.onerror=null;this.src='${defaultImg}';" 
+                             alt="Avatar">
+                    </div>
                     <div class="noi-dung-dg">
                         <div class="ten-dg">${item.TenNguoiDung} <span class="ngay-dg">${item.NgayDanhGia}</span></div>
                         <div class="sao-dg">${VeSao(item.SoSao)}</div>
