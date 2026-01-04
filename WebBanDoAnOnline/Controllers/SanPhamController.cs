@@ -181,7 +181,7 @@ namespace WebBanDoAnOnline.Controllers
             return JsonConvert.SerializeObject(result);
         }
 
-        // --- API MỚI: Lấy danh sách đánh giá của sản phẩm ---
+        // --- Tìm API này trong SanPhamController.cs ---
         public string LayDanhSachDanhGia()
         {
             try
@@ -192,17 +192,19 @@ namespace WebBanDoAnOnline.Controllers
 
                 BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
-                // Join bảng DanhGia với TaiKhoan để lấy tên và avatar
                 var query = from dg in db.DanhGias
                             join tk in db.TaiKhoans on dg.MaTK equals tk.MaTK
                             where dg.MaSP == maSP && (dg.isDelete == 0 || dg.isDelete == null)
-                            orderby dg.Create_at descending // Mới nhất lên đầu
+                            orderby dg.Create_at descending
                             select new
                             {
                                 TenNguoiDung = tk.HoTen,
                                 AnhDaiDien = tk.AnhDaiDien,
                                 SoSao = dg.SoSao,
                                 NoiDung = dg.BinhLuan,
+                                // --- THÊM DÒNG NÀY ---
+                                PhanHoi = dg.PhanHoi,
+                                // ---------------------
                                 NgayDanhGia = string.Format("{0:dd/MM/yyyy}", dg.Create_at)
                             };
 

@@ -267,17 +267,32 @@
     .pagination .page-item.disabled .page-link {
         color: #ccc;
     }
-
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .khung-noi-dung {
-            flex-direction: column;
-        }
-
-        .anh-san-pham {
-            width: 100%;
-        }
+    .shop-reply {
+        margin-top: 10px;
+        background-color: #f8f9fa; /* Màu nền xám nhạt */
+        padding: 10px 15px;
+        border-radius: 8px;
+        border-left: 4px solid #F58634; /* Viền cam bên trái */
+        font-size: 14px;
+        color: #444;
     }
+
+    .shop-reply-title {
+        font-weight: bold;
+        color: #F58634;
+        margin-bottom: 4px;
+        font-size: 13px;
+        display: block;
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .khung-noi-dung {
+                flex-direction: column;
+            }
+
+            .anh-san-pham {
+                width: 100%;
+            }
+        }
 </style>
 
 <!-- KHU VỰC THÔNG TIN SẢN PHẨM -->
@@ -406,17 +421,27 @@
 
         // Render HTML
         pageItems.forEach(item => {
-            var defaultImg = "/img/default-avatar.png";
+            var defaultImg = "/img/default-avatar.png"; // Đảm bảo đường dẫn đúng
 
-            // 2. Kiểm tra: Nếu có ảnh DB thì dùng, không thì dùng ảnh mặc định
             var avatarUrl = (item.AnhDaiDien && item.AnhDaiDien.trim() !== "")
                 ? url_domain + item.AnhDaiDien.replace('~', '')
                 : defaultImg;
 
+            // --- XỬ LÝ HTML PHẢN HỒI ---
+            var replyHtml = "";
+            if (item.PhanHoi && item.PhanHoi.trim() !== "") {
+                replyHtml = `
+            <div class="shop-reply">
+                <span class="shop-reply-title"><i class="fas fa-store"></i> Phản hồi từ Cửa hàng:</span>
+                ${item.PhanHoi}
+            </div>
+        `;
+            }
+            // ----------------------------
+
             var html = `
                 <div class="item-danh-gia">
                     <div class="avatar">
-                        <!-- Thêm thuộc tính onerror: Nếu ảnh DB bị lỗi (404) thì tự động chuyển về ảnh mặc định -->
                         <img src="${avatarUrl}" 
                              onerror="this.onerror=null;this.src='${defaultImg}';" 
                              alt="Avatar">
@@ -425,6 +450,9 @@
                         <div class="ten-dg">${item.TenNguoiDung} <span class="ngay-dg">${item.NgayDanhGia}</span></div>
                         <div class="sao-dg">${VeSao(item.SoSao)}</div>
                         <div class="text-dg">${item.NoiDung || '<i>Khách hàng không viết lời bình</i>'}</div>
+                
+                        <!-- Chèn biến replyHtml vào đây -->
+                        ${replyHtml} 
                     </div>
                 </div>`;
             container.append(html);
