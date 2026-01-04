@@ -326,12 +326,19 @@ namespace WebBanDoAnOnline.Controllers
                 if (dh == null || ct == null)
                     return Json(new { success = false, message = "Không tìm thấy sản phẩm" }, JsonRequestBehavior.AllowGet);
 
+                // Xử lý đường dẫn ảnh: Nếu có dấu ~ thì bỏ đi
+                string anhSP = "";
+                if (ct.SanPham != null && !string.IsNullOrEmpty(ct.SanPham.Anh))
+                {
+                    anhSP = ct.SanPham.Anh.Replace("~", "");
+                }
+
                 var data = new
                 {
                     MaDH = dh.MaDH,
                     MaSP = ct.MaSP,
                     TenSP = ct.TenSP ?? (ct.SanPham != null ? ct.SanPham.TenSP : "Sản phẩm"),
-                    AnhSP = ct.SanPham != null ? ct.SanPham.Anh : "",
+                    AnhSP = anhSP, // Đã xử lý
                     SoLuong = ct.SoLuong ?? 1,
                     ThanhTien = ct.DonGia * (ct.SoLuong ?? 1),
                     TrangThai = dh.TrangThai
