@@ -168,12 +168,13 @@
 
         var html = "";
         data.forEach(item => {
+            // Xử lý đường dẫn ảnh (Bỏ dấu ~)
             var avatar = item.Avatar ? item.Avatar.replace('~', '') : '/img/no-image.jpg';
             var imgSP = item.AnhSanPham ? item.AnhSanPham.replace('~', '') : '/img/no-image.jpg';
 
             // Vẽ sao
             var stars = "";
-            for(let i=1; i<=5; i++) stars += `<i class="fas fa-star ${i <= item.SoSao ? 'star-active' : 'star-inactive'}"></i>`;
+            for (let i = 1; i <= 5; i++) stars += `<i class="fas fa-star ${i <= item.SoSao ? 'star-active' : 'star-inactive'}"></i>`;
 
             // HTML Trả lời
             var replyHtml = item.PhanHoi
@@ -190,33 +191,36 @@
                 ? `<button class="btn btn-sm btn-danger ms-1" title="Xóa vĩnh viễn" onclick="XoaDanhGia(${item.MaDG})"><i class="fas fa-trash"></i></button>`
                 : ``;
 
+            // --- SỬA Ở ĐÂY: THÊM onerror VÀO THẺ IMG ---
             html += `
-            <tr>
-                <td><input type="checkbox" class="check-item" value="${item.MaDG}"></td>
-                <td>
-                    <div class="d-flex align-items-center mb-2">
-                        <img src="${avatar}" class="avatar-sm">
-                        <span class="fw-bold text-dark" style="font-size:13px">${item.TenKhachHang}</span>
-                    </div>
-                    <div class="d-flex align-items-center bg-light p-1 rounded" style="width:fit-content">
-                        <img src="${imgSP}" class="product-sm">
-                        <span class="small text-secondary text-truncate" style="max-width:140px">${item.TenSanPham}</span>
-                    </div>
-                </td>
-                <td>
-                    <div>${stars}</div>
-                    <div class="small text-muted mt-1">${item.SoSao}/5 điểm</div>
-                </td>
-                <td>
-                    <div class="comment-box">${item.BinhLuan || '<i class="text-muted">Không có nội dung</i>'}</div>
-                    ${replyHtml}
-                </td>
-                <td class="small text-muted">${item.ThoiGian}</td>
-                <td class="text-end">
-                    ${btnAnHien}
-                    ${btnXoa}
-                </td>
-            </tr>`;
+        <tr>
+            <td><input type="checkbox" class="check-item" value="${item.MaDG}"></td>
+            <td>
+                <div class="d-flex align-items-center mb-2">
+                    <!-- Thêm onerror để xử lý ảnh avatar lỗi -->
+                    <img src="${avatar}" class="avatar-sm" onerror="this.onerror=null;this.src='/img/default-avatar.png';"> 
+                    <span class="fw-bold text-dark" style="font-size:13px">${item.TenKhachHang}</span>
+                </div>
+                <div class="d-flex align-items-center bg-light p-1 rounded" style="width:fit-content">
+                    <!-- Thêm onerror để xử lý ảnh sản phẩm lỗi -->
+                    <img src="${imgSP}" class="product-sm" onerror="this.onerror=null;this.src='/img/no-image.jpg';">
+                    <span class="small text-secondary text-truncate" style="max-width:140px">${item.TenSanPham}</span>
+                </div>
+            </td>
+            <td>
+                <div>${stars}</div>
+                <div class="small text-muted mt-1">${item.SoSao}/5 điểm</div>
+            </td>
+            <td>
+                <div class="comment-box">${item.BinhLuan || '<i class="text-muted">Không có nội dung</i>'}</div>
+                ${replyHtml}
+            </td>
+            <td class="small text-muted">${item.ThoiGian}</td>
+            <td class="text-end">
+                ${btnAnHien}
+                ${btnXoa}
+            </td>
+        </tr>`;
         });
         $("#tbody-danh-gia").html(html);
     }
@@ -225,13 +229,32 @@
 
     // A. Ẩn / Hiện
     function AnHien(id) {
-        if(!confirm("Xác nhận thay đổi trạng thái ẩn/hiện?")) return;
-        var fd = new FormData(); fd.append('maDG', id);
+        if (!confirm("Xác nhận thay đổi trạng thái ẩn/hiện?")) return;
+
+        var fd = new FormData();
+        fd.append('maDG', id);
+
         $.ajax({
-            type: "POST", url: url_domain + '/DanhGia/ToggleAnDanhGia', data: fd, processData: false, contentType: false,
-            success: function(res) {
-                if(res === "OK") ReloadPage();
-                else alert(res);
+            type: "POST",
+            url: url_domain + '/DanhGia/ToggleAnDanhGia',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                // Xử lý thông minh: Chấp nhận cả chuỗi "OK" lẫn JSON {success: true}
+                var response = (typeof res === 'string' && (res.startsWith('{') || res.startsWith('['))) ? JSON.parse(res) : res;
+
+                if (response === "OK" || response.success === true) {
+                    ReloadPage(); // Tải lại danh sách
+                } else {
+                    // Hiển thị thông báo lỗi rõ ràng
+                    var msg = response.message ? response.message : JSON.stringify(response);
+                    alert("Không thể thay đổi trạng thái: " + msg);
+                }
+            },
+            error: function (err) {
+                console.log(err);
+                alert("Lỗi kết nối server khi ẩn/hiện đánh giá.");
             }
         });
     }
@@ -259,16 +282,36 @@
     function GuiTraLoi() {
         var id = $("#reply-id").val();
         var noiDung = $("#reply-content").val();
-        if(!noiDung.trim()) { alert("Vui lòng nhập nội dung!"); return; }
+        if (!noiDung.trim()) { alert("Vui lòng nhập nội dung!"); return; }
 
-        var fd = new FormData(); fd.append('maDG', id); fd.append('noiDung', noiDung);
+        var fd = new FormData();
+        fd.append('maDG', id);
+        fd.append('noiDung', noiDung);
+
         $.ajax({
-            type: "POST", url: url_domain + '/DanhGia/TraLoiDanhGia', data: fd, processData: false, contentType: false,
-            success: function(res) {
-                if(res === "OK") {
+            type: "POST",
+            url: url_domain + '/DanhGia/TraLoiDanhGia',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                // Tự động nhận diện nếu server trả về String hay JSON Object
+                var response = (typeof res === 'string' && (res.startsWith('{') || res.startsWith('['))) ? JSON.parse(res) : res;
+
+                // Kiểm tra các trường hợp thành công (String "OK" hoặc Object {success: true})
+                if (response === "OK" || response.success === true) {
                     $("#modal-reply").fadeOut();
+                    // REQUEST LẠI TRANG (Tải lại danh sách)
                     ReloadPage();
-                } else alert(res);
+                } else {
+                    // Nếu lỗi, hiển thị thông báo cụ thể thay vì [object Object]
+                    var msg = response.message ? response.message : JSON.stringify(response);
+                    alert("Lỗi: " + msg);
+                }
+            },
+            error: function (err) {
+                console.log(err);
+                alert("Lỗi kết nối server");
             }
         });
     }
@@ -276,17 +319,35 @@
     // D. Xử lý hàng loạt (Ẩn)
     function XuLyHangLoat(action) {
         var ids = [];
-        $(".check-item:checked").each(function() { ids.push($(this).val()); });
-        if(ids.length === 0) return;
-        if(!confirm(`Bạn muốn ẩn ${ids.length} đánh giá đã chọn?`)) return;
+        $(".check-item:checked").each(function () { ids.push($(this).val()); });
 
-        // Gọi nhiều request (do API thiết kế đơn lẻ)
+        if (ids.length === 0) return;
+        if (!confirm(`Bạn muốn ẩn ${ids.length} đánh giá đã chọn?`)) return;
+
+        // Hiển thị loading hoặc disable nút để tránh bấm nhiều lần
+        $("#btn-hide-selected").prop("disabled", true).text("Đang xử lý...");
+
+        // Gọi nhiều request
         var promises = ids.map(id => {
-            var fd = new FormData(); fd.append('maDG', id);
-            return $.ajax({ type: "POST", url: url_domain + '/DanhGia/ToggleAnDanhGia', data: fd, processData: false, contentType: false });
+            var fd = new FormData();
+            fd.append('maDG', id);
+            return $.ajax({
+                type: "POST",
+                url: url_domain + '/DanhGia/ToggleAnDanhGia',
+                data: fd,
+                processData: false,
+                contentType: false
+            });
         });
 
-        $.when.apply($, promises).done(function() { ReloadPage(); });
+        // Khi tất cả request hoàn tất (dù thành công hay thất bại)
+        $.when.apply($, promises).always(function () {
+            // Reset nút
+            $("#btn-hide-selected").prop("disabled", false).html('<i class="fas fa-eye-slash"></i> Ẩn đã chọn');
+            // Tải lại trang để cập nhật trạng thái mới
+            ReloadPage();
+            alert("Đã xử lý xong!");
+        });
     }
 
     // --- 4. TIỆN ÍCH ---

@@ -86,9 +86,9 @@
                 success: function (res) {
                     if (res.success) {
                         const data = res.data;
-
+                        var imgUrl = data.AnhSP ? url_domain + data.AnhSP.replace('~/', '/') : "/Content/img/no-image.png";
                         // 3. Điền dữ liệu vào HTML (DOM Manipulation)
-                        $('#img-sanpham').attr('src', data.AnhSP).attr('alt', data.TenSP);
+                        $('#img-sanpham').attr('src', imgUrl).attr('alt', data.TenSP);
                         $('#txt-ten-sp').text(data.TenSP);
                         $('#txt-soluong').text(data.SoLuong);
                         $('#txt-trangthai').text(data.TrangThai);
