@@ -448,7 +448,7 @@
         $(".check-item:checked").each(function () { ids.push($(this).val()); });
 
         if (ids.length === 0) return;
-        if (!confirm(`Bạn muốn ẩn ${ids.length} đánh giá đã chọn?`)) return;
+        if (!confirm(`Bạn muốn ẩn/hiện ${ids.length} đánh giá đã chọn?`)) return;
 
         // Hiển thị loading hoặc disable nút để tránh bấm nhiều lần
         $("#btn-hide-selected").prop("disabled", true).text("Đang xử lý...");
