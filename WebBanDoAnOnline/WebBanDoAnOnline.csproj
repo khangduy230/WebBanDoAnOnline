@@ -340,8 +340,7 @@
     <Content Include="Views\DonHang\ChiTietDonHang.cshtml" />
     <Content Include="Views\SanPham\NV_DanhSachSanPham.cshtml" />
     <Content Include="Views\SanPham\ChiTietSanPham.cshtml" />
-    <Content Include="Views\DanhGia\QL_QuanLyDanhGia.cshtml" />
-    <Content Include="Views\DanhGia\NV_QuanLyDanhGia.cshtml" />
+    <Content Include="Views\DanhGia\DanhSachDanhGia.cshtml" />
     <Content Include="Views\BaoCao\QL_BaoCao.cshtml" />
     <Content Include="Views\DonHang\QL_DanhSachDonHang.cshtml" />
     <Content Include="Views\NguoiDung\QL_ChiTietNguoiDung.cshtml" />

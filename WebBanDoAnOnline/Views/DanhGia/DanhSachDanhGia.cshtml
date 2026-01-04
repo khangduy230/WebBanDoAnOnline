@@ -1,6 +1,16 @@
 ﻿@{
+    var userRole = ViewBag.VaiTro as string;
     ViewBag.Title = "Quản lý đánh giá";
-    Layout = "~/Views/Shared/_QL_Layout.cshtml";
+
+    // 2. Xác định Layout dựa trên vai trò
+    if (userRole == "Quản lý")
+    {
+        Layout = "~/Views/Shared/_QL_Layout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_NV_Layout.cshtml";
+    }
 }
 
 <style>
@@ -297,8 +307,11 @@
             <input type="text" id="input-tim-kiem" placeholder="Tìm kiếm...">
             <i class="fas fa-search"></i>
         </div>
-        <button id="btn-an-chon" class="action-btn btn-hide">Ẩn chọn</button>
-        <button id="btn-xoa-chon" class="action-btn btn-delete">Xoá chọn</button>
+        <button id="btn-an-chon" class="action-btn btn-hide">Ẩn/hiện chọn</button>
+        @if (userRole == "Quản lý")
+        {
+            <button id="btn-xoa-chon" class="action-btn btn-delete">Xoá chọn</button>
+        }
         <button id="btn-xem-an" class="action-btn btn-view-hidden">Xem đã ẩn</button>
     </div>
 
@@ -343,6 +356,7 @@
 
 @section scripts {
     <script>
+       
         let dangXemDaAn = false;
         let urlDomain = window.location.origin;
         let currentPage = 1;
@@ -366,7 +380,10 @@
             });
 
             document.getElementById('btn-an-chon').addEventListener('click', () => xuLyHangLoat('an'));
-            document.getElementById('btn-xoa-chon').addEventListener('click', () => xuLyHangLoat('xoa'));
+            const btnXoaChon = document.getElementById('btn-xoa-chon');
+            if (btnXoaChon) {
+                btnXoaChon.addEventListener('click', () => xuLyHangLoat('xoa'));
+            }
         });
 
         function taiDanhSachDanhGia(page) {
@@ -415,6 +432,8 @@
             data.forEach(dg => {
                 // Đã loại bỏ thẻ <img>, chỉ giữ lại text
                 const hanhDongAn = dg.DaAn ? `<a onclick="anHienDanhGia(${dg.MaDG})">Hủy ẩn</a>` : `<a onclick="anHienDanhGia(${dg.MaDG})">Ẩn</a>`;
+                
+                
 
                 html += `<tr>
                     <td><input type="checkbox" class="check-item" data-id="${dg.MaDG}"></td>
@@ -434,7 +453,7 @@
                     <td class="actions-cell">
                         <a onclick="moModalTraLoi(${dg.MaDG}, '${dg.TenKhachHang}', '${dg.BinhLuan || ''}', ${dg.SoSao})"><i class="fas fa-reply"></i> Trả lời</a>
                         ${hanhDongAn}
-                        <a class="delete-link" onclick="xoaDanhGia(${dg.MaDG})"><i class="fas fa-trash"></i></a>
+                       
                     </td>
                 </tr>`;
             });
