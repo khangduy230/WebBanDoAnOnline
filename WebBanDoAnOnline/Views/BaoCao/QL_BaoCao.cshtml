@@ -185,6 +185,7 @@
                 var d = new Date();
                 var y = d.getFullYear(); var m = d.getMonth() + 1; var day = d.getDate();
                 function pad(x) { return x < 10 ? '0' + x : '' + x; }
+                // Mặc định từ đầu tháng đến hiện tại
                 document.getElementById('tuNgay').value = y + '-' + pad(m) + '-01';
                 document.getElementById('denNgay').value = y + '-' + pad(m) + '-' + pad(day);
             }
@@ -193,9 +194,34 @@
                 var tu = document.getElementById('tuNgay').value;
                 var den = document.getElementById('denNgay').value;
 
+                // --- BẮT ĐẦU VALIDATE ---
+                // 1. Kiểm tra rỗng
+                if (!tu || !den) {
+                    alert('Vui lòng chọn đầy đủ "Từ ngày" và "Đến ngày".');
+                    return;
+                }
+
+                // 2. Kiểm tra logic (Ngày bắt đầu > Ngày kết thúc)
+                var dateTu = new Date(tu);
+                var dateDen = new Date(den);
+
+                if (dateTu > dateDen) {
+                    alert('Ngày bắt đầu không được lớn hơn ngày kết thúc.');
+                    // Reset lại ngày kết thúc bằng ngày bắt đầu (gợi ý cho user)
+                    document.getElementById('denNgay').value = tu;
+                    return;
+                }
+                // --- KẾT THÚC VALIDATE ---
+
                 var form = new FormData();
                 form.append('tuNgay', tu);
                 form.append('denNgay', den);
+
+                // Hiệu ứng đang tải (Optional: Có thể thêm spinner nếu muốn)
+                var btn = document.getElementById('btnTai');
+                var textCu = btn.innerText;
+                btn.innerText = 'Đang tải...';
+                btn.disabled = true;
 
                 fetch(goc + '/BaoCao/Lay_BaoCao', { method: 'POST', body: form })
                     .then(r => r.text())
@@ -204,7 +230,12 @@
                         if (!res.success) { alert(res.message || 'Lỗi'); return; }
                         veBaoCao(res.data);
                     })
-                    .catch(e => alert('Lỗi tải báo cáo: ' + e));
+                    .catch(e => alert('Lỗi tải báo cáo: ' + e))
+                    .finally(() => {
+                        // Trả lại trạng thái nút
+                        btn.innerText = textCu;
+                        btn.disabled = false;
+                    });
             }
 
             function veBaoCao(d) {
@@ -229,10 +260,10 @@
                         spBody.appendChild(tr);
                     });
                 } else {
-                    spBody.innerHTML = '<tr><td colspan="3"><i>Không có dữ liệu</i></td></tr>';
+                    spBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted"><i>Không có dữ liệu</i></td></tr>';
                 }
 
-                // Doanh thu theo Danh mục + bar đơn giản
+                // Doanh thu theo Danh mục
                 var dmBody = document.querySelector('#tbDM tbody');
                 dmBody.innerHTML = '';
                 var tongDT = (d.DoanhThuTheoDanhMuc || []).reduce((s, x) => s + (x.DoanhThu || 0), 0);
@@ -243,11 +274,11 @@
                         tr.innerHTML =
                             '<td>' + (x.TenDM || 'Khác') + '</td>' +
                             '<td>' + dinhDangSo(x.DoanhThu) + 'đ</td>' +
-                            '<td><div class="thanh"><div class="fill" style="width:' + ty + '%;"></div></div></td>';
+                            '<td><div class="thanh" title="' + ty + '%"><div class="fill" style="width:' + ty + '%;"></div></div></td>';
                         dmBody.appendChild(tr);
                     });
                 } else {
-                    dmBody.innerHTML = '<tr><td colspan="3"><i>Không có dữ liệu</i></td></tr>';
+                    dmBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted"><i>Không có dữ liệu</i></td></tr>';
                 }
 
                 // Voucher
@@ -262,12 +293,15 @@
                         vBody.appendChild(tr);
                     });
                 } else {
-                    vBody.innerHTML = '<tr><td colspan="3"><i>Không có dữ liệu</i></td></tr>';
+                    vBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted"><i>Không có dữ liệu</i></td></tr>';
                 }
             }
 
             document.getElementById('btnTai').addEventListener('click', taiBaoCao);
+
+            // Khởi chạy
             macDinhNgay();
             taiBaoCao();
-        })();</script>
+        })();
+    </script>
 }
