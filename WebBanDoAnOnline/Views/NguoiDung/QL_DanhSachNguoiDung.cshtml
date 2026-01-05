@@ -93,6 +93,7 @@
                         <td><span class="fw-bold">${u.VaiTro}</span></td>
                         <td>${TaoTrangThai(u.TrangThai)}</td>
                         <td class="text-center">
+                            <a href="/NguoiDung/ChiTietTaiKhoan/${u.MaTK}" class="btn btn-sm btn-outline-primary me-1">Xem chi tiết</a>
                             <a href="/NguoiDung/QL_SuaNguoiDung/${u.MaTK}" class="btn btn-sm btn-outline-warning me-1">Sửa</a>
                             ${actionBtn}
                         </td>
@@ -100,7 +101,6 @@
                     container.append(html);
                 }
 
-                // ★ QUAN TRỌNG: Đã sửa dongTrang thành currentTrang
                 HienThiPhanTrang(data.TongTrang, data.currentTrang);
             },
             error: function () {
@@ -115,7 +115,6 @@
         if (!confirm(msg)) return;
         var fd = new FormData(); fd.append('id', id);
 
-        // Bạn kiểm tra lại URL này trong Controller xem là DatTrangThai hay TaoKhoa nhé
         $.ajax({
             type: "POST", url: url_domain + '/NguoiDung/DatTrangThai',
             data: fd, processData: false, contentType: false,
@@ -127,7 +126,7 @@
         });
     }
 
-    // --- 4. HÀM PHÂN TRANG (ĐÃ SỬA CLASS CSS) ---
+    // --- 4. HÀM PHÂN TRANG ---
     function HienThiPhanTrang(totalPages, currentPage) {
         totalPages = parseInt(totalPages);
         currentPage = parseInt(currentPage);
@@ -143,7 +142,6 @@
             var clickEvent = (isDisabled || isActive) ? "" : `onclick="TaiNguoiDung('${kwordSafe}', ${page})"`;
             var display = text || page;
 
-            // ★ ĐÃ SỬA: Dùng class page-item và page-link của Bootstrap
             return `<li class="page-item ${activeClass} ${disabledClass}">
                         <a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a>
                     </li>`;

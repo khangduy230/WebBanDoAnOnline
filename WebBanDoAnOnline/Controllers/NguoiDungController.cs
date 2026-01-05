@@ -14,6 +14,11 @@ namespace WebBanDoAnOnline.Controllers
         public ActionResult QL_ThemNguoiDung() { return View(); }
         public ActionResult QL_SuaNguoiDung(int id) { ViewBag.MaTK = id; return View(); }
 
+        public ActionResult ChiTietTaiKhoan(int id)
+        {
+            ViewBag.UserId = id;
+            return View("~/Views/NguoiDung/ChiTietTaiKhoan.cshtml");
+        }
         // 1. LẤY DANH SÁCH 
         [HttpPost]
         public string Lay_DSNguoiDung()
@@ -110,18 +115,30 @@ namespace WebBanDoAnOnline.Controllers
                 // Trạng thái hoạt động
                 string trangThai = (tk.isDelete == 1 ? "Đã xóa/Khóa" : "Đang hoạt động");
 
-                // Lấy thông tin gần đây: đơn mới nhất
-                var donGanNhat = db.DonHangs
+                // Lấy đơn mới nhất: LƯU Ý không format ToString trong Select của SQL
+                var donGanNhatRaw = db.DonHangs
                     .Where(d => d.MaTK == id && (d.isDelete == 0 || d.isDelete == null))
                     .OrderByDescending(d => d.Create_at)
                     .Select(d => new
                     {
                         d.MaDH,
-                        time = d.Create_at.HasValue ? d.Create_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
+                        d.Create_at,
                         d.TrangThai,
                         d.TongTien
                     })
                     .FirstOrDefault();
+
+                var donGanNhat = (donGanNhatRaw == null)
+                    ? null
+                    : new
+                    {
+                        donGanNhatRaw.MaDH,
+                        time = donGanNhatRaw.Create_at.HasValue
+                            ? donGanNhatRaw.Create_at.Value.ToString("HH:mm - dd/MM/yyyy")
+                            : "",
+                        donGanNhatRaw.TrangThai,
+                        donGanNhatRaw.TongTien
+                    };
 
                 var result = new
                 {

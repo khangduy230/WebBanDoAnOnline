@@ -1,5 +1,6 @@
-﻿@{
-    ViewBag.Title = "Quản lý - Chi tiết người dùng";
+﻿.cshtml
+@{
+    ViewBag.Title = "Quản lý - Chi tiết tài khoản";
     Layout = "~/Views/Shared/_QL_Layout.cshtml";
     var userId = ViewBag.UserId ?? "";
 }
@@ -14,6 +15,7 @@
     </div>
 
     <div id="panelError" class="alert alert-danger d-none"></div>
+    <div id="roleNotice" class="alert d-none"></div>
 
     <div class="row g-3">
         <div class="col-lg-8">
@@ -30,7 +32,7 @@
                             <div class="text-muted">
                                 <i class="far fa-envelope me-2"></i><span id="email">...</span>
                                 <span class="mx-2">•</span>
-                                <i class="far fa-phone me-2"></i><span id="sdt">...</span>
+                                <i class="fas fa-phone me-2"></i><span id="sdt">...</span>
                             </div>
                         </div>
                     </div>
@@ -40,7 +42,7 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <div class="border rounded p-3">
-                                <div class="text-muted">Tổng số đơn</div>
+                                <div class="text-muted" id="lblTongDon">Tổng số đơn</div>
                                 <div id="tongDon" class="fs-4 fw-bold">0</div>
                             </div>
                         </div>
@@ -74,8 +76,8 @@
                     <h5 class="fw-bold mb-3">Hành động nhanh</h5>
                     <div class="d-grid gap-2">
                         <a class="btn btn-dark" href="@Url.Action("QL_SuaNguoiDung","NguoiDung")?id=@userId"><i class="fas fa-pen me-2"></i>Sửa thông tin</a>
-                        <a class="btn btn-outline-primary" href="@Url.Action("QL_DanhSachDonHang","DonHang")?keyword=@userId"><i class="fas fa-file-invoice me-2"></i>Xem đơn hàng</a>
-                        <button id="btnLock" class="btn btn-outline-danger"><i class="fas fa-user-slash me-2"></i>Khóa/Xóa mềm</button>
+                        <a id="btnViewOrders" class="btn btn-outline-primary" href="@Url.Action("QL_DanhSachDonHang","DonHang")?keyword=@userId"><i class="fas fa-file-invoice me-2"></i>Xem đơn hàng</a>
+                        <button id="btnToggle" class="btn btn-outline-danger"><i class="fas fa-user-slash me-2"></i><span>Khóa/Mở</span></button>
                     </div>
                 </div>
             </div>
@@ -84,15 +86,29 @@
 </div>
 
 @section scripts{
-<script>
+    <script>
 (function(){
     const id = '@(userId)';
-    const api = '@Url.Action("QL_LayChiTietNguoiDung","NguoiDung")';
+    const apiDetail = '@Url.Action("QL_LayChiTietNguoiDung","NguoiDung")';
+    const apiToggle = '@Url.Action("DatTrangThai","NguoiDung")';
 
     function badgeStatus(s){
         if(!s) return '<span class="badge bg-secondary">N/A</span>';
-        if(s.includes('xóa') || s.includes('Khóa')) return '<span class="badge bg-danger">'+s+'</span>';
+        if((s||'').toLowerCase().indexOf('khóa')>=0 || (s||'').toLowerCase().indexOf('xóa')>=0)
+            return '<span class="badge bg-danger">'+s+'</span>';
         return '<span class="badge bg-success">'+s+'</span>';
+    }
+
+    function styleRoleBadge(role){
+        const r = (role||'').toLowerCase();
+        const $v = $('#vaiTro');
+        if(r.indexOf('quản lý')>=0){
+            $v.attr('class', 'badge bg-danger me-2').text(role); // Quản trị nổi bật (đỏ)
+        }else if(r.indexOf('nhân viên')>=0){
+            $v.attr('class', 'badge bg-primary me-2').text(role); // Nội bộ (xanh dương)
+        }else{
+            $v.attr('class', 'badge bg-secondary me-2').text(role); // Khách hàng (xám)
+        }
     }
 
     function renderLastOrder(o){
@@ -121,8 +137,40 @@
         `);
     }
 
+    function applyRoleUi(role){
+        const r = (role||'').toLowerCase();
+        const $notice = $('#roleNotice').addClass('d-none').removeClass('alert-info alert-warning alert-danger');
+        const $btnToggle = $('#btnToggle');
+        const $btnOrders = $('#btnViewOrders');
+        const $lblTongDon = $('#lblTongDon');
+
+        // mặc định
+        $btnToggle.prop('disabled', false).removeClass('disabled').attr('title','');
+        $btnOrders.html('<i class="fas fa-file-invoice me-2"></i>Xem đơn hàng');
+        $lblTongDon.text('Tổng số đơn');
+
+        if(r.indexOf('quản lý')>=0){
+            // Quản lý: cảnh báo + khóa nút Toggle
+            $notice.removeClass('d-none').addClass('alert alert-warning')
+                   .text('Tài khoản Quản lý có quyền cao, thao tác khóa/mở bị vô hiệu hóa tại đây.');
+            $btnToggle.prop('disabled', true).addClass('disabled').attr('title','Không thể khóa tài khoản Quản lý');
+            $lblTongDon.text('Tổng tác vụ/đơn liên quan (theo tài khoản)');
+        }else if(r.indexOf('nhân viên')>=0){
+            // Nhân viên: đổi nhãn phù hợp
+            $notice.removeClass('d-none').addClass('alert alert-info')
+                   .text('Tài khoản Nhân viên (nội bộ). Bạn có thể cập nhật thông tin, xem các đơn do tài khoản này thực hiện.');
+            $btnOrders.html('<i class="fas fa-file-invoice me-2"></i>Đơn liên quan đến nhân viên');
+            $lblTongDon.text('Đơn liên quan đến nhân viên');
+        }else{
+            // Khách hàng
+            $notice.removeClass('d-none').addClass('alert alert-info')
+                   .text('Tài khoản Khách hàng. Bạn có thể xem lịch sử đơn hàng và quản lý trạng thái tài khoản.');
+            $lblTongDon.text('Tổng số đơn của khách');
+        }
+    }
+
     function load(){
-        $.post(api, { id: id }, function(res){
+        $.post(apiDetail, { id: id }, function(res){
             try{
                 const data = typeof res==='string' ? JSON.parse(res) : res;
                 if(data.error){
@@ -132,23 +180,39 @@
                 $('#hoTen').text(data.hoTen||'');
                 $('#email').text(data.email||'');
                 $('#sdt').text(data.sdt||'');
-                $('#vaiTro').text(data.vaiTro||'');
+                styleRoleBadge(data.vaiTro||'');
                 $('#trangThai').html(badgeStatus(data.trangThai));
                 $('#tongDon').text(data.tongDon||0);
                 $('#createAt').text(data.createAt||'');
                 $('#updateAt').text(data.updateAt||'');
                 renderLastOrder(data.donGanNhat);
+                applyRoleUi(data.vaiTro||'');
             }catch(e){
                 $('#panelError').removeClass('d-none').text('Lỗi parse dữ liệu.');
             }
         });
     }
 
-    $('#btnLock').on('click', function(){
-        alert('Tính năng Khóa/Xóa mềm sẽ được bổ sung: cập nhật isDelete=1.');
+    $('#btnToggle').on('click', function(){
+        if($(this).prop('disabled')) return;
+        if(!confirm('Xác nhận thực hiện thao tác Khóa/Mở khóa cho tài khoản này?')) return;
+        $.ajax({
+            type: 'POST',
+            url: apiToggle,
+            data: (function(){ var fd = new FormData(); fd.append('id', id); return fd; })(),
+            processData: false,
+            contentType: false,
+            success: function(msg){
+                alert(msg || 'Thực hiện thành công');
+                load();
+            },
+            error: function(){
+                alert('Không thể cập nhật trạng thái tài khoản.');
+            }
+        });
     });
 
     load();
 })();
-</script>
+    </script>
 }
