@@ -264,7 +264,9 @@
 
             <div class="form-group">
                 <label for="sdt">Số điện thoại <span class="text-danger">*</span></label>
-                <input type="tel" id="sdt" name="SDT" placeholder="0987654321" required>
+                <!-- 1. CẬP NHẬT HTML: Thêm oninput chặn nhập chữ -->
+                <input type="tel" id="sdt" name="SDT" placeholder="0987654321"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
             </div>
 
             <div class="form-group">
@@ -278,7 +280,6 @@
             </div>
 
             <div class="modal-actions">
-                <!-- Sửa: onclick="DongModal()" -->
                 <button type="button" class="btn-cancel" onclick="DongModal()">Hủy</button>
                 <button type="submit" class="btn-save">Lưu</button>
             </div>
@@ -292,17 +293,16 @@
         var isEditMode = false;
 
         $(document).ready(function () {
-            // 1. SỬA: Gọi đúng tên hàm TaiDSDiaChi()
             TaiDSDiaChi();
 
             $('#addressForm').submit(function (e) {
                 e.preventDefault();
-                LuuDiaChi(); // 2. SỬA: Gọi hàm LuuDiaChi
+                LuuDiaChi();
             });
 
             $('#modalOverlay').on('click', function (e) {
                 if (e.target.id === 'modalOverlay') {
-                    DongModal(); // 3. SỬA: Gọi DongModal
+                    DongModal();
                 }
             });
 
@@ -311,7 +311,6 @@
             });
         });
 
-        // ĐỔI TÊN: loadDSDiaChi -> TaiDSDiaChi
         function TaiDSDiaChi() {
             $.ajax({
                 type: "POST",
@@ -320,7 +319,6 @@
                 success: function (response) {
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     if (res.success) {
-                        // 4. SỬA: Gọi HienThiDSDiaChi
                         HienThiDSDiaChi(res.data);
                     } else {
                         $('#address-list').html('<div class="alert alert-danger">' + res.message + '</div>');
@@ -332,7 +330,6 @@
             });
         }
 
-        // ĐỔI TÊN: renderAddressList -> HienThiDSDiaChi
         function HienThiDSDiaChi(data) {
             if (data.length === 0) {
                 $('#address-list').html('<div class="text-center py-4 text-muted">Chưa có địa chỉ nào</div>');
@@ -345,34 +342,30 @@
                 var defaultClass = addr.MacDinh ? 'default' : '';
                 var defaultBadge = addr.MacDinh ? '<span class="default-badge">Mặc định</span>' : '';
 
-                // 5. SỬA: Gọi đúng tên hàm DatDiaChiMacDinh
                 var setDefaultBtn = !addr.MacDinh ? `<button class="btn-address btn-set-default" onclick="DatDiaChiMacDinh(${addr.MaDC})"><i class="fas fa-star"></i> Đặt mặc định</button>` : '';
 
-                // JSON.stringify object để truyền vào hàm sửa
-                // Lưu ý: Replace dấu nháy đơn để tránh lỗi HTML
                 var addrJson = JSON.stringify(addr).replace(/"/g, '&quot;');
 
-                // 6. SỬA: Gọi SuaDiaChi và XoaDiaChi
                 html += `
-                        <div class="address-card ${defaultClass}">
-                            ${defaultBadge}
-                            <div class="address-info">
-                                <strong>${addr.TenNguoiNhan}</strong>
-                                <span>SĐT: ${addr.SDT}</span>
-                            </div>
-                            <div class="address-info">
-                                <span>${addr.DiaChi}</span>
-                            </div>
-                            <div class="address-actions">
-                                <button class="btn-address btn-edit" onclick="ChuanBiSua(${addrJson})">
-                                    <i class="fas fa-edit"></i> Cập nhật
-                                </button>
-                                ${setDefaultBtn}
-                                <button class="btn-address btn-delete" onclick="XoaDiaChi(${addr.MaDC})">
-                                    <i class="fas fa-trash"></i> Xóa
-                                </button>
-                            </div>
-                        </div>`;
+                            <div class="address-card ${defaultClass}">
+                                ${defaultBadge}
+                                <div class="address-info">
+                                    <strong>${addr.TenNguoiNhan}</strong>
+                                    <span>SĐT: ${addr.SDT}</span>
+                                </div>
+                                <div class="address-info">
+                                    <span>${addr.DiaChi}</span>
+                                </div>
+                                <div class="address-actions">
+                                    <button class="btn-address btn-edit" onclick="ChuanBiSua(${addrJson})">
+                                        <i class="fas fa-edit"></i> Cập nhật
+                                    </button>
+                                    ${setDefaultBtn}
+                                    <button class="btn-address btn-delete" onclick="XoaDiaChi(${addr.MaDC})">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </button>
+                                </div>
+                            </div>`;
             }
             $('#address-list').html(html);
         }
@@ -386,12 +379,10 @@
             setTimeout(function () { $('#tenNguoiNhan').focus(); }, 300);
         }
 
-        // ĐỔI TÊN: currentModal -> DongModal
         function DongModal() {
             $('#modalOverlay').removeClass('show');
         }
 
-        // Hàm này được gọi từ nút "Cập nhật"
         function ChuanBiSua(addr) {
             isEditMode = true;
             $('#modalTitle').text('Cập nhật địa chỉ');
@@ -403,8 +394,27 @@
             $('#modalOverlay').addClass('show');
         }
 
-        // ĐỔI TÊN: saveAddress -> LuuDiaChi
+        // 2. CẬP NHẬT JS: Thêm Validate trước khi gửi Ajax
         function LuuDiaChi() {
+            // Lấy giá trị để kiểm tra
+            var name = $('#tenNguoiNhan').val().trim();
+            var phone = $('#sdt').val().trim();
+            var address = $('#diaChi').val().trim();
+
+            // 1. Kiểm tra rỗng
+            if (!name || !phone || !address) {
+                alert("Vui lòng nhập đầy đủ thông tin bắt buộc!");
+                return;
+            }
+
+            // 2. Kiểm tra Regex SĐT
+            if (!/^\d{9,11}$/.test(phone)) {
+                alert("Số điện thoại không hợp lệ (Phải là số và có từ 9-11 ký tự)!");
+                $('#sdt').focus(); // Trỏ chuột vào ô sdt
+                return;
+            }
+
+            // Nếu hợp lệ thì mới tiếp tục
             var formData = new FormData($('#addressForm')[0]);
             formData.set('MacDinh', $('#macDinh').is(':checked'));
 
@@ -418,8 +428,8 @@
                     var res = (typeof response === 'string') ? JSON.parse(response) : response;
                     if (res.success) {
                         alert(res.message);
-                        DongModal(); // Gọi DongModal
-                        TaiDSDiaChi(); // Gọi TaiDSDiaChi
+                        DongModal();
+                        TaiDSDiaChi();
                     } else {
                         alert(res.message);
                     }
@@ -428,16 +438,12 @@
             });
         }
 
-        // ĐỔI TÊN: setDefault -> DatDiaChiMacDinh
         function DatDiaChiMacDinh(maDC) {
             if (!confirm('Đặt làm địa chỉ mặc định?')) return;
 
             var formData = new FormData();
             formData.append('MaDC', maDC);
             formData.append('MacDinh', 'true');
-
-            // Controller logic xử lý việc set các cái khác thành false rồi
-            // và Controller kiểm tra null cho các trường khác nên chỉ cần gửi MaDC và MacDinh là đủ
 
             $.ajax({
                 type: "POST",
@@ -455,7 +461,6 @@
             });
         }
 
-        // ĐỔI TÊN: deleteAddress -> XoaDiaChi
         function XoaDiaChi(maDC) {
             if (!confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
 

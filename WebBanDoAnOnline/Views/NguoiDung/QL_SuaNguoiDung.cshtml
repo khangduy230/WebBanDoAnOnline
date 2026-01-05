@@ -1,6 +1,6 @@
 ﻿@{
     ViewBag.Title = "Cập nhật Người dùng";
-    
+    Layout = "~/Views/Shared/_QL_Layout.cshtml";
 }
 
 <div class="container-fluid py-4">
@@ -10,32 +10,40 @@
         </div>
         <div class="card-body">
             <form id="form-user-edit">
-                <!-- ID ẩn, tên là txt_MaTK_hide để khớp Controller -->
+                <!-- ID ẩn -->
                 <input type="hidden" id="txt_MaTK_hide" name="txt_MaTK_hide" value="@ViewBag.MaTK" />
 
                 <div class="row">
+                    <!-- Cột Trái -->
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label">Họ và tên</label>
-                            <input type="text" class="form-control" name="txt_HoTen" id="txt_HoTen" required />
+                            <label class="form-label fw-bold">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="txt_HoTen" id="txt_HoTen" placeholder="Nhập họ tên" />
+                            <small id="err_HoTen" class="text-danger fw-bold"></small>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Tên tài khoản</label>
+                            <label class="form-label fw-bold">Tên tài khoản</label>
                             <input type="text" class="form-control bg-light" name="txt_TenTK" id="txt_TenTK" readonly />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" name="txt_Email" id="txt_Email" required />
+                            <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="txt_Email" id="txt_Email" placeholder="example@gmail.com" />
+                            <small id="err_Email" class="text-danger fw-bold"></small>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Số điện thoại</label>
-                            <input type="tel" class="form-control" name="txt_SoDienThoai" id="txt_SoDienThoai" />
+                            <label class="form-label fw-bold">Số điện thoại</label>
+                            <!-- Chặn nhập chữ ngay lập tức -->
+                            <input type="tel" class="form-control" name="txt_SoDienThoai" id="txt_SoDienThoai"
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Nhập SĐT" />
+                            <small id="err_SoDienThoai" class="text-danger fw-bold"></small>
                         </div>
                     </div>
+
+                    <!-- Cột Phải -->
                     <div class="col-md-6">
                         <div class="row">
                             <div class="col-6 mb-3">
-                                <label class="form-label">Vai trò</label>
+                                <label class="form-label fw-bold">Vai trò</label>
                                 <select name="slc_VaiTro" id="slc_VaiTro" class="form-select">
                                     @*<option value="QuanLy">Quản lý</option>*@
                                     <option value="NhanVien">Nhân viên</option>
@@ -43,7 +51,7 @@
                                 </select>
                             </div>
                             <div class="col-6 mb-3">
-                                <label class="form-label">Trạng thái</label>
+                                <label class="form-label fw-bold">Trạng thái</label>
                                 <select name="slc_TrangThai" id="slc_TrangThai" class="form-select">
                                     <option value="Hoatdong">Hoạt động</option>
                                     <option value="BiKhoa">Bị khóa</option>
@@ -51,20 +59,27 @@
                             </div>
                         </div>
                         <hr />
-                        <div class="mb-3">
-                            <label class="form-label">Đổi mật khẩu (Bỏ trống nếu không đổi)</label>
-                            <input type="password" class="form-control" name="txt_MatKhau" id="txt_MatKhau" placeholder="Nhập mật khẩu mới..." />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Xác nhận mật khẩu mới</label>
-                            <input type="password" class="form-control" id="txt_MatKhau_Confirm" />
+                        <div class="alert alert-light border">
+                            <h6 class="text-muted"><i class="fas fa-key"></i> Đổi mật khẩu</h6>
+                            <small class="d-block mb-2 text-secondary">(Bỏ trống nếu không muốn thay đổi)</small>
+
+                            <div class="mb-3">
+                                <label class="form-label">Mật khẩu mới</label>
+                                <input type="password" class="form-control" name="txt_MatKhau" id="txt_MatKhau" placeholder="Tối thiểu 6 ký tự" />
+                                <small id="err_MatKhau" class="text-danger fw-bold"></small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Xác nhận mật khẩu</label>
+                                <input type="password" class="form-control" id="txt_MatKhau_Confirm" placeholder="Nhập lại mật khẩu mới" />
+                                <small id="err_MatKhau_Confirm" class="text-danger fw-bold"></small>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <hr />
                 <div class="d-flex justify-content-end gap-2">
                     <a href="@Url.Action("QL_DanhSachNguoiDung", "NguoiDung")" class="btn btn-secondary">Hủy</a>
-                    <button type="button" id="btn_capnhat" class="btn btn-warning text-white">Cập nhật</button>
+                    <button type="button" id="btn_capnhat" class="btn btn-warning text-white px-4">Cập nhật</button>
                 </div>
             </form>
         </div>
@@ -89,20 +104,17 @@
                 var u = JSON.parse(res);
                 if (!u.MaTK) { alert("Không tìm thấy user"); return; }
 
-                // Điền dữ liệu
                 $("#txt_HoTen").val(u.HoTen);
                 $("#txt_TenTK").val(u.TenTK);
                 $("#txt_Email").val(u.Email);
                 $("#txt_SoDienThoai").val(u.SoDienThoai);
 
-                // MAP DỮ LIỆU DB (Tiếng Việt) -> SELECT OPTION (Mã)
-                // DB: "Quản lý" -> Select: "QuanLy"
+                // Map dữ liệu DB sang Value Select
                 var role = "KhachHang";
                 if (u.VaiTro === "Quản lý") role = "QuanLy";
                 else if (u.VaiTro === "Nhân viên") role = "NhanVien";
                 $("#slc_VaiTro").val(role);
 
-                // DB: "Hoạt động" -> Select: "Hoatdong"
                 var status = (u.TrangThai === "Bị khóa") ? "BiKhoa" : "Hoatdong";
                 $("#slc_TrangThai").val(status);
             }
@@ -112,33 +124,92 @@
     $(document).ready(function () {
         if (userId) TaiThongTin();
 
+        // Tự động xóa lỗi khi người dùng bắt đầu nhập lại
+        $("input").on("input", function() {
+            $(this).next("small.text-danger").text("");
+            if(this.id === "txt_MatKhau" || this.id === "txt_MatKhau_Confirm") {
+                $("#err_MatKhau").text("");
+                $("#err_MatKhau_Confirm").text("");
+            }
+        });
+
+        // 2. Xử lý Cập nhật với Validate chi tiết
         $("#btn_capnhat").click(function () {
-        var email = $("#txt_Email").val();
-        var phone = $("#txt_SoDienThoai").val();
+            // Reset toàn bộ lỗi cũ
+            $("small.text-danger").text("");
+            var isValid = true;
 
-        if (!email.includes("@@")) { alert("Email không hợp lệ"); return; }
-        var phoneRegex = /^\d{9,11}$/;
-        if (!phoneRegex.test(phone)) { alert("Số điện thoại không hợp lệ"); return; }
+            // --- VALIDATE HỌ TÊN ---
+            var hoTen = $("#txt_HoTen").val().trim();
+            if (hoTen === "") {
+                $("#err_HoTen").text("Vui lòng nhập họ tên.");
+                isValid = false;
+            }
 
-        var pass = $("#txt_MatKhau").val();
-        var rePass = $("#txt_MatKhau_Confirm").val();
-        if (pass !== "" && pass !== rePass) { alert("Mật khẩu xác nhận không khớp!"); return; }
+            // --- VALIDATE EMAIL ---
+            var email = $("#txt_Email").val().trim();
+            var emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/; // Regex chuẩn
+            if (email === "") {
+                $("#err_Email").text("Vui lòng nhập Email.");
+                isValid = false;
+            } else if (!emailRegex.test(email)) {
+                $("#err_Email").text("Email không đúng định dạng.");
+                isValid = false;
+            }
 
-        var form = $('#form-user-edit')[0];
-        var formData = new FormData(form);
+            // --- VALIDATE SỐ ĐIỆN THOẠI ---
+            var phone = $("#txt_SoDienThoai").val().trim();
+            var phoneRegex = /^\d{9,11}$/; // Chỉ số, dài 9-11
+            if (phone !== "" && !phoneRegex.test(phone)) {
+                // Nếu không bắt buộc nhập SĐT thì chỉ check khi user có nhập
+                // Nếu bắt buộc thì thêm điều kiện if (phone === "") ...
+                $("#err_SoDienThoai").text("SĐT phải là số và có 9-11 ký tự.");
+                isValid = false;
+            }
 
-        $.ajax({
-            type: "POST",
-            url: window.location.origin + '/NguoiDung/CapNhatNguoiDung',
-            data: formData,
-            processData: false, contentType: false, cache: false,
-            success: function (res) {
-                alert(res);
-                if (res.toLowerCase().includes("thành công")) {
-                    window.location.href = '@Url.Action("QL_DanhSachNguoiDung", "NguoiDung")';
+            // --- VALIDATE MẬT KHẨU (Chỉ check nếu có nhập) ---
+            var pass = $("#txt_MatKhau").val();
+            var rePass = $("#txt_MatKhau_Confirm").val();
+
+            if (pass !== "") {
+                if (pass.length < 6) {
+                    $("#err_MatKhau").text("Mật khẩu mới phải từ 6 ký tự.");
+                    isValid = false;
                 }
-            },
-            error: function () { alert("Lỗi kết nối server."); }
+                if (pass !== rePass) {
+                    $("#err_MatKhau_Confirm").text("Xác nhận mật khẩu không khớp.");
+                    isValid = false;
+                }
+            }
+
+            // Nếu có lỗi thì dừng
+            if (!isValid) return;
+
+            // --- GỬI AJAX ---
+            var form = $('#form-user-edit')[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                type: "POST",
+                url: window.location.origin + '/NguoiDung/CapNhatNguoiDung',
+                data: formData,
+                processData: false, contentType: false, cache: false,
+                beforeSend: function() {
+                    $("#btn_capnhat").text("Đang xử lý...").prop("disabled", true);
+                },
+                success: function (res) {
+                    if (res.toString().toLowerCase().includes("thành công")) {
+                        alert(res);
+                        window.location.href = '@Url.Action("QL_DanhSachNguoiDung", "NguoiDung")';
+                    } else {
+                        alert(res); // Lỗi từ server (ví dụ Email trùng)
+                        $("#btn_capnhat").text("Cập nhật").prop("disabled", false);
+                    }
+                },
+                error: function () {
+                    alert("Lỗi kết nối server.");
+                    $("#btn_capnhat").text("Cập nhật").prop("disabled", false);
+                }
             });
         });
     });

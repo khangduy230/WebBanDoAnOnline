@@ -1,6 +1,6 @@
-﻿﻿@{
+﻿@{
     ViewBag.Title = "Sửa Voucher";
-
+    Layout = "~/Views/Shared/_QL_Layout.cshtml";
 }
 
 <main class="container-fluid py-4">
@@ -13,15 +13,20 @@
                 <input type="hidden" name="txt_MaVoucher_hide" value="@ViewBag.MaVoucher" />
 
                 <div class="row">
+                    <!-- Cột Trái -->
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Tên voucher</label>
-                            <input type="text" id="txt_TenVoucher" name="txt_TenVoucher" class="form-control" required />
+                            <label class="form-label fw-bold">Tên voucher <span class="text-danger">*</span></label>
+                            <input type="text" id="txt_TenVoucher" name="txt_TenVoucher" class="form-control" placeholder="Ví dụ: Khuyến mãi Tết" />
+                            <small id="err_TenVoucher" class="text-danger fw-bold"></small>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Mã Code</label>
-                            <input type="text" id="txt_MaCode" name="txt_MaCode" class="form-control text-uppercase" required />
+                            <label class="form-label fw-bold">Mã Code <span class="text-danger">*</span></label>
+                            <input type="text" id="txt_MaCode" name="txt_MaCode" class="form-control text-uppercase" placeholder="VD: TET2025" />
+                            <small id="err_MaCode" class="text-danger fw-bold"></small>
                         </div>
+
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label fw-bold">Loại giảm</label>
@@ -31,31 +36,38 @@
                                 </select>
                             </div>
                             <div class="col-6 mb-3">
-                                <label class="form-label fw-bold">Giá trị giảm</label>
-                                <input type="number" id="txt_GiaTri" name="txt_GiaTri" class="form-control" min="0" required />
+                                <label class="form-label fw-bold">Giá trị giảm <span class="text-danger">*</span></label>
+                                <input type="number" id="txt_GiaTri" name="txt_GiaTri" class="form-control" min="0" placeholder="Nhập số..." />
+                                <small id="err_GiaTri" class="text-danger fw-bold"></small>
                             </div>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Điều kiện tối thiểu</label>
-                            <input type="number" id="txt_DieuKienToiThieu" name="txt_DieuKienToiThieu" class="form-control" min="0" />
+                            <label class="form-label">Điều kiện tối thiểu (Đơn hàng từ...)</label>
+                            <input type="number" id="txt_DieuKienToiThieu" name="txt_DieuKienToiThieu" class="form-control" min="0" value="0" />
                         </div>
                     </div>
 
+                    <!-- Cột Phải -->
                     <div class="col-md-6">
                         <div class="row">
                             <div class="col-6 mb-3">
-                                <label class="form-label fw-bold">Ngày bắt đầu</label>
-                                <input type="date" id="date_NgayBatDau" name="date_NgayBatDau" class="form-control" required />
+                                <label class="form-label fw-bold">Ngày bắt đầu <span class="text-danger">*</span></label>
+                                <input type="date" id="date_NgayBatDau" name="date_NgayBatDau" class="form-control" />
+                                <small id="err_NgayBatDau" class="text-danger fw-bold"></small>
                             </div>
                             <div class="col-6 mb-3">
-                                <label class="form-label fw-bold">Ngày kết thúc</label>
-                                <input type="date" id="date_NgayKetThuc" name="date_NgayKetThuc" class="form-control" required />
+                                <label class="form-label fw-bold">Ngày kết thúc <span class="text-danger">*</span></label>
+                                <input type="date" id="date_NgayKetThuc" name="date_NgayKetThuc" class="form-control" />
+                                <small id="err_NgayKetThuc" class="text-danger fw-bold"></small>
                             </div>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Số lượt dùng tối đa</label>
-                            <input type="number" id="txt_SoLuotDungToiDa" name="txt_SoLuotDungToiDa" class="form-control" min="1" />
+                            <input type="number" id="txt_SoLuotDungToiDa" name="txt_SoLuotDungToiDa" class="form-control" min="1" placeholder="Bỏ trống nếu không giới hạn" />
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Mô tả thêm</label>
                             <textarea id="txt_MoTaThem" name="txt_MoTaThem" class="form-control" rows="3"></textarea>
@@ -64,7 +76,7 @@
                 </div>
                 <hr />
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="~/Voucher/QL_DanhSachVoucher" class="btn btn-secondary">Hủy</a>
+                    <a href="@Url.Action("QL_DanhSachVoucher", "Voucher")" class="btn btn-secondary">Hủy</a>
                     <button type="button" id="btn_save" class="btn btn-warning text-white px-4">Cập nhật</button>
                 </div>
             </form>
@@ -75,6 +87,24 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     var vId = '@ViewBag.MaVoucher';
+
+    $(document).ready(function () {
+        TaiDuLieu();
+
+        // Tự động xóa lỗi khi nhập lại
+        $("input, select").on("input change", function() {
+            $(this).next("small.text-danger").text("");
+            // Riêng 2 ngày thì xóa lỗi chéo nhau để người dùng đỡ rối
+            if(this.id == "date_NgayBatDau" || this.id == "date_NgayKetThuc") {
+                 $("#err_NgayBatDau").text("");
+                 $("#err_NgayKetThuc").text("");
+            }
+        });
+
+        $("#btn_save").click(function () {
+            ValidateVaCapNhat();
+        });
+    });
 
     function TaiDuLieu() {
         var fd = new FormData(); fd.append('id', vId);
@@ -88,36 +118,88 @@
 
                 $("#txt_TenVoucher").val(v.TenVoucher);
                 $("#txt_MaCode").val(v.MaCode);
-                $("#slc_LoaiGiam").val(v.LoaiGiam); // Server đã trả về "PhanTram" hoặc "SoTien"
+                $("#slc_LoaiGiam").val(v.LoaiGiam);
                 $("#txt_GiaTri").val(v.GiaTri);
                 $("#txt_DieuKienToiThieu").val(v.DieuKienToiThieu);
+
+                // Lưu ý: Server cần trả về format yyyy-MM-dd cho input date
                 $("#date_NgayBatDau").val(v.NgayBatDau);
                 $("#date_NgayKetThuc").val(v.NgayKetThuc);
+
                 $("#txt_SoLuotDungToiDa").val(v.SoLuotDungToiDa);
                 $("#txt_MoTaThem").val(v.MoTaThem);
             }
         });
     }
 
-    $(document).ready(function () {
-        TaiDuLieu();
+    function ValidateVaCapNhat() {
+        // 1. Reset lỗi
+        $("small.text-danger").text("");
+        var isValid = true;
 
-        $("#btn_save").click(function () {
-            // Validate
-            if ($("#txt_GiaTri").val() < 0) { alert("Giá trị không được âm"); return; }
+        // 2. Lấy giá trị
+        var ten = $("#txt_TenVoucher").val().trim();
+        var code = $("#txt_MaCode").val().trim();
+        var giaTri = parseFloat($("#txt_GiaTri").val());
+        var loaiGiam = $("#slc_LoaiGiam").val();
 
-            var formData = new FormData($('#form-voucher-edit')[0]);
-            $.ajax({
-                type: "POST",
-                url: window.location.origin + '/Voucher/CapNhatVoucher',
-                data: formData, processData: false, contentType: false,
-                success: function (res) {
+        var ngayBDStr = $("#date_NgayBatDau").val();
+        var ngayKTStr = $("#date_NgayKetThuc").val();
+
+        // 3. Validate Thông tin cơ bản
+        if (ten === "") { $("#err_TenVoucher").text("Nhập tên voucher"); isValid = false; }
+        if (code === "") { $("#err_MaCode").text("Nhập mã code"); isValid = false; }
+
+        // Validate Giá trị giảm
+        if (isNaN(giaTri) || giaTri <= 0) {
+            $("#err_GiaTri").text("Giá trị giảm phải > 0");
+            isValid = false;
+        } else if (loaiGiam === "PhanTram" && giaTri > 100) {
+            $("#err_GiaTri").text("Phần trăm giảm không được quá 100%");
+            isValid = false;
+        }
+
+        // 4. VALIDATE NGÀY (QUAN TRỌNG)
+        if (ngayBDStr === "") {
+            $("#err_NgayBatDau").text("Chọn ngày bắt đầu");
+            isValid = false;
+        }
+        if (ngayKTStr === "") {
+            $("#err_NgayKetThuc").text("Chọn ngày kết thúc");
+            isValid = false;
+        }
+
+        if (ngayBDStr !== "" && ngayKTStr !== "") {
+            var dateBD = new Date(ngayBDStr);
+            var dateKT = new Date(ngayKTStr);
+
+            // Kiểm tra Logic: Ngày bắt đầu > Ngày kết thúc
+            if (dateBD > dateKT) {
+                $("#err_NgayKetThuc").text("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu!");
+                $("#date_NgayKetThuc").focus(); // Trỏ chuột vào ô lỗi
+                isValid = false;
+            }
+        }
+
+        if (!isValid) return; // Dừng nếu có lỗi
+
+        // 5. Gửi Ajax
+        var formData = new FormData($('#form-voucher-edit')[0]);
+        $.ajax({
+            type: "POST",
+            url: window.location.origin + '/Voucher/CapNhatVoucher',
+            data: formData, processData: false, contentType: false,
+            success: function (res) {
+                if (res.toString().includes("thành công")) {
                     alert(res);
-                    if (res.includes("thành công")) {
-                        window.location.href = '/Voucher/QL_DanhSachVoucher';
-                    }
+                    window.location.href = '/Voucher/QL_DanhSachVoucher';
+                } else {
+                    alert("Lỗi: " + res);
                 }
-            });
+            },
+            error: function () {
+                alert("Lỗi kết nối server");
+            }
         });
-    });
+    }
 </script>

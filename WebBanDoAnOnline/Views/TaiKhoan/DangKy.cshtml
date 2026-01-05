@@ -1,11 +1,10 @@
-﻿﻿@{
+﻿@{
     ViewBag.Title = "Đăng ký";
     Layout = "~/Views/Shared/_XacThucLayout.cshtml";
 }
 
-<!-- Style giữ nguyên -->
 <style>
-    /* ... (Giữ nguyên CSS cũ) ... */
+    /* CSS Cũ giữ nguyên */
     body {
         background-color: #f4f6f9;
         display: flex;
@@ -23,6 +22,9 @@
         border-radius: 15px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         margin: 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+        scrollbar-gutter: stable;
     }
 
     .auth-logo {
@@ -50,7 +52,7 @@
     }
 
     .form-group {
-        margin-bottom: 15px;
+        margin-bottom: 20px;
     }
 
     .form-label {
@@ -145,7 +147,7 @@
 
     <!-- Form -->
     <form id="reg_frm" method="post">
-        <!-- Báo lỗi -->
+        <!-- Báo lỗi chung -->
         <div id="error-msg" class="alert-custom" style="display:none;"></div>
 
         <div class="form-group">
@@ -160,7 +162,8 @@
 
         <div class="form-group">
             <label class="form-label">Số điện thoại</label>
-            <input type="text" id="txt_phone" name="txt_phone" class="custom-input" placeholder="Nhập SĐT" />
+            <input type="text" id="txt_phone" name="txt_phone" class="custom-input" placeholder="Nhập SĐT (9-11 số)"
+                   oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
         </div>
 
         <div class="form-group">
@@ -183,9 +186,11 @@
                 <i class="fas fa-eye-slash toggle-password"></i>
             </div>
         </div>
+
         <div class="form-group">
             <label class="form-label">Câu hỏi bảo mật (Dùng khi quên mật khẩu)</label>
-            <select name="CauHoiBaoMat" class="custom-input" required style="background-color: white;">
+            <!-- THÊM ID: id="ddl_question" -->
+            <select id="ddl_question" name="CauHoiBaoMat" class="custom-input" style="background-color: white;">
                 <option value="">-- Chọn câu hỏi --</option>
                 <option value="Bạn thích ăn món gì nhất">Bạn thích ăn món gì nhất?</option>
                 <option value="Bạn thích điều gì nhất ở nhà hàng của chúng tôi">Bạn thích điều gì nhất ở nhà hàng của chúng tôi?</option>
@@ -195,7 +200,8 @@
 
         <div class="form-group">
             <label class="form-label">Câu trả lời</label>
-            <input type="text" name="CauTraLoiBaoMat" class="custom-input" placeholder="Nhập câu trả lời của bạn" required />
+            <!-- THÊM ID: id="txt_answer" -->
+            <input type="text" id="txt_answer" name="CauTraLoiBaoMat" class="custom-input" placeholder="Nhập câu trả lời của bạn" />
         </div>
 
         <button type="button" id="btn_register" class="btn-action btn-register">Đăng ký ngay</button>
@@ -215,21 +221,47 @@
             var email = $("#txt_email").val().trim();
             var pass = $("#txt_pass").val();
             var repass = $("#txt_repass").val();
+            // Lấy giá trị câu hỏi và trả lời (MỚI)
+            var question = $("#ddl_question").val();
+            var answer = $("#txt_answer").val().trim();
 
-            // 2. Validate phía Client (Giữ nguyên logic của bạn)
-            if (name == "" || user == "" || pass == "" || phone == "" || email == "") {
-                Error("Vui lòng nhập đầy đủ thông tin bắt buộc!"); return;
+            // 2. Validate Dữ liệu
+
+            // 2.1 Kiểm tra thông tin cơ bản
+            if (name == "" || user == "" || phone == "" || email == "") {
+                Error("Vui lòng nhập đầy đủ thông tin cá nhân!"); return;
             }
-            if (!/^\d+$/.test(phone)) { Error("Số điện thoại chỉ được chứa số!"); return; }
+
+            // 2.2 Validate Câu hỏi bảo mật (MỚI)
+            if (question == "") {
+                Error("Vui lòng chọn câu hỏi bảo mật!"); return;
+            }
+            if (answer == "") {
+                Error("Vui lòng nhập câu trả lời cho câu hỏi bảo mật!"); return;
+            }
+
+            // 2.3 Validate SĐT
+            if (!/^\d{9,11}$/.test(phone)) {
+                Error("Số điện thoại phải là số và có từ 9-11 ký tự!"); return;
+            }
+
+            // 2.4 Validate Email
+            var emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            if (!emailRegex.test(email)) {
+                Error("Email không đúng định dạng!"); return;
+            }
+
+            // 2.5 Validate Mật khẩu
+            if (pass == "" || repass == "") { Error("Vui lòng nhập mật khẩu!"); return; }
+            if (pass.length < 6) { Error("Mật khẩu phải tối thiểu 6 ký tự!"); return; }
             if (pass !== repass) { Error("Mật khẩu xác nhận không khớp!"); return; }
-            if (pass.length < 6) { Error("Mật khẩu quá ngắn!"); return; }
+
 
             // 3. Gửi AJAX
             var formData = new FormData($('#reg_frm')[0]);
 
             $.ajax({
                 type: "POST",
-                // Đảm bảo tên Controller và Action chính xác
                 url: '/TaiKhoan/XuLiDangKy',
                 data: formData,
                 processData: false, contentType: false,
@@ -238,12 +270,10 @@
                     $("#error-msg").hide();
                 },
                 success: function (rs) {
-                    // SỬA LỖI Ở ĐÂY: Dùng rs.success thay vì rs.code
                     if (rs.success) {
                         alert("Đăng ký thành công! Vui lòng đăng nhập.");
                         window.location.href = "/TaiKhoan/DangNhap";
                     } else {
-                        // Hiển thị lỗi từ server trả về
                         Error(rs.message);
                         $("#btn_register").text("Đăng ký ngay").prop("disabled", false);
                     }
@@ -256,10 +286,12 @@
         });
 
         function Error(msg) {
+            // Hiển thị lỗi ra thẻ div và scroll lên trên để user thấy
             $("#error-msg").text(msg).fadeIn();
+            $('.login-card').scrollTop(0);
         }
 
-        // Toggle Password Visibility
+        // Ẩn/Hiện mật khẩu
         $(".toggle-password").click(function () {
             var input = $(this).siblings("input");
             if (input.attr("type") === "password") {

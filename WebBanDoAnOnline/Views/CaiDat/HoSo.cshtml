@@ -4,6 +4,7 @@
 }
 
 <style>
+    /* Style giữ nguyên */
     .profile-avatar {
         text-align: center;
         margin-bottom: 30px;
@@ -105,7 +106,9 @@
 
     <div class="form-group">
         <label for="phone">Số điện thoại</label>
-        <input type="tel" id="phone" class="form-control-custom" placeholder="0123456789" required>
+        <!-- THÊM oninput: Chặn nhập chữ -->
+        <input type="tel" id="phone" class="form-control-custom" placeholder="0123456789"
+               oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
     </div>
 
     <div class="form-group">
@@ -126,114 +129,134 @@
     <button type="submit" class="btn-save">Lưu thay đổi</button>
 </form>
 
+<script>
+    var selectedAvatar = null;
+    var url_domain = window.location.origin;
 
+    $(document).ready(function () {
+        LayHoSo();
 
-    <script>
-        var selectedAvatar = null;
-        var url_domain = window.location.origin; // Lấy domain gốc (ví dụ: localhost:1234)
-
-        $(document).ready(function () {
-            // 1. SỬA LỖI: Gọi đúng tên hàm LayHoSo() thay vì loadProfile()
-            LayHoSo();
-
-            // Xem trước ảnh khi chọn file
-            $('#avatarInput').change(function (e) {
-                var file = e.target.files[0];
-                if (file) {
-                    selectedAvatar = file;
-                    var reader = new FileReader();
-                    reader.onload = function (e) {
-                        $('#avatarPreview').attr('src', e.target.result);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            // Xử lý Lưu
-            $('#profileForm').submit(function (e) {
-                e.preventDefault();
-                // 2. SỬA LỖI: Gọi đúng tên hàm LuuHoSo() thay vì saveProfile()
-                LuuHoSo();
-            });
+        // Xem trước ảnh khi chọn file
+        $('#avatarInput').change(function (e) {
+            var file = e.target.files[0];
+            if (file) {
+                selectedAvatar = file;
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#avatarPreview').attr('src', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
         });
 
-        // Hàm lấy thông tin hồ sơ
-        function LayHoSo() {
-            $.ajax({
-                type: "POST",
-                // Đảm bảo đường dẫn Controller/Action chính xác
-                url: '/CaiDat/LayHoSo',
-                contentType: false, processData: false, cache: false,
-                success: function (response) {
-                    // Parse JSON nếu server trả về chuỗi
-                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+        // Xử lý Lưu
+        $('#profileForm').submit(function (e) {
+            e.preventDefault();
+            LuuHoSo();
+        });
+    });
 
-                    if (res.success) {
-                        $('#fullName').val(res.data.HoTen || '');
-                        $('#email').val(res.data.Email || '');
-                        $('#phone').val(res.data.SoDienThoai || '');
-                        $('#question').val(res.data.CauHoi || '');
-                        $('#answer').val(res.data.TraLoi || '');
+    // Hàm lấy thông tin hồ sơ
+    function LayHoSo() {
+        $.ajax({
+            type: "POST",
+            url: '/CaiDat/LayHoSo',
+            contentType: false, processData: false, cache: false,
+            success: function (response) {
+                var res = (typeof response === 'string') ? JSON.parse(response) : response;
 
-                        // Xử lý đường dẫn ảnh
-                        if (res.data.Avatar) {
-                            // Thêm timestamp (?v=...) để tránh trình duyệt cache ảnh cũ
-                            var imgUrl = res.data.Avatar.replace("~", "") + "?v=" + new Date().getTime();
-                            $('#avatarPreview').attr('src', imgUrl);
-                        }
-                    } else {
-                        // Nếu chưa đăng nhập hoặc lỗi, chuyển hướng hoặc thông báo
-                        if (res.message === "Chưa đăng nhập") {
-                            window.location.href = "/TaiKhoan/DangNhap";
-                        } else {
-                            alert(res.message);
-                        }
+                if (res.success) {
+                    $('#fullName').val(res.data.HoTen || '');
+                    $('#email').val(res.data.Email || '');
+                    $('#phone').val(res.data.SoDienThoai || '');
+                    $('#question').val(res.data.CauHoi || '');
+                    $('#answer').val(res.data.TraLoi || '');
+
+                    if (res.data.Avatar) {
+                        var imgUrl = res.data.Avatar.replace("~", "") + "?v=" + new Date().getTime();
+                        $('#avatarPreview').attr('src', imgUrl);
                     }
-                },
-                error: function () {
-                    console.error("Lỗi gọi API LayHoSo");
+                } else {
+                    if (res.message === "Chưa đăng nhập") {
+                        window.location.href = "/TaiKhoan/DangNhap";
+                    } else {
+                        // alert(res.message); // Có thể comment lại để đỡ phiền lúc load trang
+                    }
                 }
-            });
+            },
+            error: function () {
+                console.error("Lỗi gọi API LayHoSo");
+            }
+        });
+    }
+
+    // Hàm lưu thông tin hồ sơ (ĐÃ CẬP NHẬT VALIDATE)
+    function LuuHoSo() {
+        // 1. Lấy dữ liệu để kiểm tra
+        var fullName = $('#fullName').val().trim();
+        var email = $('#email').val().trim();
+        var phone = $('#phone').val().trim();
+        var question = $('#question').val();
+        var answer = $('#answer').val().trim();
+
+        // 2. --- BẮT ĐẦU VALIDATE ---
+
+        // Kiểm tra rỗng
+        if (!fullName || !email || !phone || !question || !answer) {
+            alert("Vui lòng nhập đầy đủ thông tin!");
+            return;
         }
 
-        // Hàm lưu thông tin hồ sơ
-        function LuuHoSo() {
-            var btn = $(".btn-save");
-            btn.prop("disabled", true).text("Đang lưu...");
+        // Validate SĐT (9-11 số)
+        if (!/^\d{9,11}$/.test(phone)) {
+            alert("Số điện thoại không hợp lệ (Phải là số và có từ 9-11 ký tự).");
+            $('#phone').focus();
+            return;
+        }
 
-            var formData = new FormData();
-            formData.append('HoTen', $('#fullName').val());
-            formData.append('Email', $('#email').val());
-            formData.append('SoDienThoai', $('#phone').val());
-            formData.append('CauHoi', $('#question').val());
-            formData.append('TraLoi', $('#answer').val());
+        // Validate Email
+        var emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+        if (!emailRegex.test(email)) {
+            alert("Email không đúng định dạng.");
+            $('#email').focus();
+            return;
+        }
 
-            if (selectedAvatar) {
-                formData.append('Avatar', selectedAvatar);
-            }
+        // 3. --- GỬI AJAX ---
+        var btn = $(".btn-save");
+        btn.prop("disabled", true).text("Đang lưu...");
 
-            $.ajax({
-                type: "POST",
-                url: '/CaiDat/LuuHoSo',
-                data: formData,
-                contentType: false, processData: false, cache: false,
-                success: function (response) {
-                    var res = (typeof response === 'string') ? JSON.parse(response) : response;
+        var formData = new FormData();
+        formData.append('HoTen', fullName);
+        formData.append('Email', email);
+        formData.append('SoDienThoai', phone);
+        formData.append('CauHoi', question);
+        formData.append('TraLoi', answer);
 
-                    if (res.success) {
-                        alert('Cập nhật thành công!');
-                        // Reload trang để cập nhật ảnh trên Header (nếu có)
-                        window.location.reload();
-                    } else {
-                        alert(res.message);
-                        btn.prop("disabled", false).text("Lưu thay đổi");
-                    }
-                },
-                error: function () {
-                    alert('Lỗi kết nối server!');
+        if (selectedAvatar) {
+            formData.append('Avatar', selectedAvatar);
+        }
+
+        $.ajax({
+            type: "POST",
+            url: '/CaiDat/LuuHoSo',
+            data: formData,
+            contentType: false, processData: false, cache: false,
+            success: function (response) {
+                var res = (typeof response === 'string') ? JSON.parse(response) : response;
+
+                if (res.success) {
+                    alert('Cập nhật hồ sơ thành công!');
+                    window.location.reload();
+                } else {
+                    alert(res.message);
                     btn.prop("disabled", false).text("Lưu thay đổi");
                 }
-            });
-        }
-    </script>
-
+            },
+            error: function () {
+                alert('Lỗi kết nối server!');
+                btn.prop("disabled", false).text("Lưu thay đổi");
+            }
+        });
+    }
+</script>

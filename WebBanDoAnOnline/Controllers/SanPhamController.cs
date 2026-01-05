@@ -219,40 +219,63 @@ namespace WebBanDoAnOnline.Controllers
 
         // API 3: Thêm mới
 
-        public string ThemSanPham()
+        [HttpPost]
+        public string ThemMoiSanPham()
         {
             try
             {
                 BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
+
                 string tenSP = Request["txt_TenSP"];
+                string giaStr = Request["txt_Gia"];
+                string moTa = Request["txt_MoTa"];
+                string maDMStr = Request["slc_MaDM"];
+
+                // 1. Kiểm tra thông tin cơ bản
+                if (string.IsNullOrEmpty(tenSP)) return "Vui lòng nhập tên sản phẩm.";
+                if (string.IsNullOrEmpty(giaStr)) return "Vui lòng nhập giá.";
+                if (string.IsNullOrEmpty(maDMStr)) return "Vui lòng chọn danh mục.";
+
+                // 2. KIỂM TRA ẢNH BẮT BUỘC (MỚI)
+                if (Request.Files.Count == 0 || Request.Files[0].ContentLength == 0)
+                {
+                    return "Vui lòng chọn ảnh đại diện cho sản phẩm.";
+                }
 
                 // Check trùng tên
                 if (db.SanPhams.Any(p => p.TenSP == tenSP && (p.isDelete == 0 || p.isDelete == null)))
                     return "Tên sản phẩm này đã tồn tại.";
 
+                decimal gia;
+                if (!decimal.TryParse(giaStr, out gia)) return "Giá bán không hợp lệ.";
+
+                int maDM;
+                if (!int.TryParse(maDMStr, out maDM)) return "Danh mục không hợp lệ.";
+
+                // Tạo object
                 SanPham sp_obj = new SanPham
                 {
                     TenSP = tenSP,
-                    Gia = decimal.Parse(Request["txt_Gia"]),
-                    MoTa = Request["txt_MoTa"],
-                    MaDM = int.Parse(Request["slc_MaDM"]),
-                    TrangThai = "Còn hàng", 
+                    Gia = gia,
+                    MoTa = moTa,
+                    MaDM = maDM,
+                    TrangThai = "Còn hàng",
                     Create_at = DateTime.Now,
                     isDelete = 0,
-                    Anh = "~/img/no-image.jpg" 
+                    // Không cần gán ảnh mặc định nữa vì ở trên đã bắt buộc có ảnh rồi
                 };
 
-                // Xử lý file ảnh
-                if (Request.Files.Count > 0 && Request.Files[0].ContentLength > 0)
-                {
-                    HttpPostedFileBase file = Request.Files[0];
-                    // Tạo tên file ngẫu nhiên tránh trùng
-                    string ext = Path.GetExtension(file.FileName);
-                    string uniqueFileName = Guid.NewGuid().ToString() + ext;
-                    string serverPath = Path.Combine(Server.MapPath("~/img/"), uniqueFileName);
-                    file.SaveAs(serverPath);
-                    sp_obj.Anh = "~/img/" + uniqueFileName;
-                }
+                // Lưu ảnh
+                HttpPostedFileBase file = Request.Files[0];
+                string ext = Path.GetExtension(file.FileName);
+                string[] allowedExt = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                if (!allowedExt.Contains(ext.ToLower())) return "Định dạng ảnh không hỗ trợ.";
+
+                string uniqueFileName = Guid.NewGuid().ToString() + ext;
+                string serverPath = Path.Combine(Server.MapPath("~/img/"), uniqueFileName);
+                file.SaveAs(serverPath);
+
+                sp_obj.Anh = "~/img/" + uniqueFileName;
 
                 db.SanPhams.InsertOnSubmit(sp_obj);
                 db.SubmitChanges();
@@ -260,13 +283,13 @@ namespace WebBanDoAnOnline.Controllers
             }
             catch (Exception ex)
             {
-                return "Thêm mới thất bại. Lỗi: " + ex.Message;
+                return "Lỗi hệ thống: " + ex.Message;
             }
         }
 
-        
+
         // API 4: Cập nhật
-       
+
         public string CapNhatSanPham()
         {
             try

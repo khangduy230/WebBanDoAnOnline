@@ -1,9 +1,8 @@
 ﻿@{
     ViewBag.Title = "Thêm sản phẩm mới";
-    Layout = "~/Views/Shared/_QL_Layout.cshtml"; 
+    Layout = "~/Views/Shared/_QL_Layout.cshtml";
 }
 
-<!--begin::App Content Header-->
 <div class="app-content-header">
     <div class="container-fluid">
         <div class="row">
@@ -12,8 +11,7 @@
         </div>
     </div>
 </div>
-<!--end::App Content Header-->
-<!--begin::App Content-->
+
 <div class="app-content">
     <div class="container-fluid">
         <div class="card card-primary card-outline mb-4">
@@ -22,25 +20,28 @@
             </div>
 
             <div class="card-body">
-                <!-- SỬA: Đảm bảo ID form rõ ràng -->
                 <form id="form-add-product" enctype="multipart/form-data">
                     <div class="row">
-                        <!-- Cột Trái: Thông tin văn bản -->
                         <div class="col-md-8">
+                            <!-- Tên SP -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Tên sản phẩm <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="txt_TenSP" name="txt_TenSP" placeholder="Nhập tên sản phẩm" required />
+                                <input type="text" class="form-control" id="txt_TenSP" name="txt_TenSP" placeholder="Nhập tên sản phẩm" />
+                                <small id="err_TenSP" class="text-danger fw-bold"></small>
                             </div>
 
                             <div class="row">
+                                <!-- Giá -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="txt_Gia" name="txt_Gia" min="0" placeholder="VNĐ" required />
+                                    <input type="number" class="form-control" id="txt_Gia" name="txt_Gia" min="0" placeholder="VNĐ" />
+                                    <small id="err_Gia" class="text-danger fw-bold"></small>
                                 </div>
+                                <!-- Danh mục -->
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Danh mục</label>
+                                    <label class="form-label fw-bold">Danh mục <span class="text-danger">*</span></label>
                                     <select id="slc_MaDM" name="slc_MaDM" class="form-select">
-                                        <!-- Kiểm tra null để tránh lỗi crash view -->
+                                        <option value="">-- Chọn danh mục --</option>
                                         @if (ViewBag.Categories != null)
                                         {
                                             foreach (var cat in ViewBag.Categories)
@@ -49,18 +50,20 @@
                                             }
                                         }
                                     </select>
+                                    <small id="err_MaDM" class="text-danger fw-bold"></small>
                                 </div>
                             </div>
 
+                            <!-- Mô tả -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Mô tả sản phẩm</label>
-                                <textarea id="txt_MoTa" name="txt_MoTa" class="form-control" rows="6" placeholder="Mô tả chi tiết..."></textarea>
+                                <textarea id="txt_MoTa" name="txt_MoTa" class="form-control" rows="6"></textarea>
                             </div>
                         </div>
 
-                        <!-- Cột Phải: Ảnh -->
+                        <!-- ẢNH SẢN PHẨM (CẬP NHẬT VALIDATE) -->
                         <div class="col-md-4">
-                            <label class="form-label fw-bold">Ảnh sản phẩm</label>
+                            <label class="form-label fw-bold">Ảnh sản phẩm <span class="text-danger">*</span></label>
                             <div class="card shadow-sm text-center p-3">
                                 <img id="img_preview"
                                      src="~/img/no-image-anh.jpg"
@@ -69,14 +72,15 @@
                                      alt="Ảnh sản phẩm" />
 
                                 <input type="file" class="form-control" id="file_Anh" name="file_Anh" accept="image/*" />
-                            
+                                <!-- Chỗ hiện lỗi ảnh -->
+                                <small id="err_Anh" class="text-danger fw-bold mt-2 d-block text-start"></small>
                             </div>
                         </div>
                     </div>
 
                     <hr />
                     <div class="d-flex justify-content-end gap-2">
-                        <a href="@Url.Action("LaySanPham", "SanPham")" class="btn btn-secondary">Quay lại</a>
+                        <a href="@Url.Action("QL_DanhSachSanPham", "SanPham")" class="btn btn-secondary">Quay lại</a>
                         <button type="button" id="btn_them" class="btn btn-success px-4">Thêm mới</button>
                     </div>
                 </form>
@@ -84,14 +88,15 @@
         </div>
     </div>
 </div>
-<!--end::App Content-->
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
 <script>
     $(document).ready(function () {
-        // 1. Xử lý xem trước ảnh
+        // 1. Xem trước ảnh & Xóa lỗi khi chọn ảnh
         $("#file_Anh").change(function () {
+            // Xóa thông báo lỗi
+            $("#err_Anh").text("");
+
             if (this.files && this.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function (e) {
@@ -101,38 +106,79 @@
             }
         });
 
-        // 2. Xử lý nút Thêm mới
-        $("#btn_them").click(function () {
-            // Validate cơ bản phía Client
-            var tenSP = $("#txt_TenSP").val().trim();
-            var gia = $("#txt_Gia").val().trim();
+        // 2. Xóa lỗi các input khác khi nhập liệu
+        $("input:not(#file_Anh), select").on("input change", function() {
+            $(this).next("small.text-danger").text("");
+            if(this.id == "slc_MaDM") $("#err_MaDM").text("");
+        });
 
-            if (tenSP === "" || gia === "") {
-                alert("Vui lòng nhập Tên sản phẩm và Giá!");
-                return;
+        // 3. Xử lý nút Thêm mới
+        $("#btn_them").click(function () {
+            var isValid = true;
+
+            // Reset lỗi
+            $("#err_TenSP").text("");
+            $("#err_Gia").text("");
+            $("#err_MaDM").text("");
+            $("#err_Anh").text("");
+
+            // Validate Tên
+            var tenSP = $("#txt_TenSP").val().trim();
+            if (tenSP === "") {
+                $("#err_TenSP").text("Vui lòng nhập tên sản phẩm.");
+                isValid = false;
             }
 
-            // Lấy đúng ID Form là 'form-add-product'
+            // Validate Giá
+            var gia = $("#txt_Gia").val().trim();
+            if (gia === "") {
+                $("#err_Gia").text("Vui lòng nhập giá bán.");
+                isValid = false;
+            } else if (parseFloat(gia) <= 0) {
+                $("#err_Gia").text("Giá bán phải lớn hơn 0.");
+                isValid = false;
+            }
+
+            // Validate Danh mục
+            var maDM = $("#slc_MaDM").val();
+            if (maDM === "" || maDM === null) {
+                $("#err_MaDM").text("Vui lòng chọn danh mục.");
+                isValid = false;
+            }
+
+            // --- VALIDATE ẢNH (MỚI THÊM) ---
+            var fileInput = $("#file_Anh")[0];
+            if (fileInput.files.length === 0) {
+                $("#err_Anh").text("Vui lòng chọn ảnh đại diện cho sản phẩm.");
+                isValid = false;
+            }
+
+            if (!isValid) return; // Dừng nếu có lỗi
+
+            // Gửi Ajax
             var formData = new FormData($('#form-add-product')[0]);
 
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("ThemMoiSanPham", "SanPham")', // Gọi về API InsertSP
+                url: '@Url.Action("ThemMoiSanPham", "SanPham")',
                 data: formData,
                 processData: false,
                 contentType: false,
+                beforeSend: function() {
+                    $("#btn_them").text("Đang xử lý...").prop("disabled", true);
+                },
                 success: function (res) {
-                    // Alert kết quả từ Server trả về
-                    alert(res);
-
-                    // Nếu chuỗi trả về có chữ "thành công", chuyển hướng về trang danh sách
                     if (res.toLowerCase().includes("thành công")) {
-                        window.location.href = '@Url.Action("LaySanPham", "SanPham")';
+                        alert(res);
+                        window.location.href = '@Url.Action("QL_DanhSachSanPham", "SanPham")';
+                    } else {
+                        alert(res);
+                        $("#btn_them").text("Thêm mới").prop("disabled", false);
                     }
                 },
                 error: function (err) {
-                    console.log(err);
-                    alert("Đã xảy ra lỗi trong quá trình xử lý.");
+                    alert("Lỗi kết nối Server: " + err.statusText);
+                    $("#btn_them").text("Thêm mới").prop("disabled", false);
                 }
             });
         });
