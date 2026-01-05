@@ -260,20 +260,24 @@
     }
 
     function LayNutHanhDong(status, maDH) {
-        if (!status) return '';
-        var s = status.trim(); // Xóa khoảng trắng thừa
+        var btnChiTiet = `<a href="/DonHang/ChiTietDonHang/${maDH}" class="btn-action border-secondary text-secondary ms-2">Chi tiết đơn</a>`;
 
-        if (s === 'Chờ xác nhận') {
-            return `<button class="btn-action text-danger border-danger" onclick="HuyDonHang(${maDH})">Hủy đơn</button>`;
-        }
-
-        // Kiểm tra trạng thái (không phân biệt hoa thường để tránh lỗi)
+        if (!status) return btnChiTiet;
+        var s = status.trim();
         var sLower = s.toLowerCase();
-        if (sLower === 'đã nhận hàng' || sLower === 'đã hủy' || sLower === 'hoàn thành') {
-            return `<a href="/SanPham/KH_DanhSachSanPham" class="btn-action btn-warning">Mua lại</a>`;
+
+        // 1. Trạng thái "Chờ xác nhận" -> Hiện nút Hủy
+        if (s === 'Chờ xác nhận') {
+            return `<button class="btn-action text-danger border-danger" onclick="HuyDonHang(${maDH})">Hủy đơn</button>` + btnChiTiet;
         }
 
-        return '';
+        // 2. Trạng thái Hoàn thành/Hủy -> Hiện nút Mua lại
+        if (sLower === 'đã nhận hàng' || sLower === 'đã hủy' || sLower === 'hoàn thành') {
+            return `<a href="/SanPham/KH_DanhSachSanPham" class="btn-action btn-warning">Mua lại</a>` + btnChiTiet;
+        }
+
+        // 3. Các trạng thái khác (Đang giao...) -> Chỉ hiện nút Chi tiết
+        return btnChiTiet;
     }
 
     function DinhDangTienTe(n) { return new Intl.NumberFormat('vi-VN').format(n); }

@@ -369,7 +369,8 @@
         // Giữ nguyên code cũ
         if (order.status === 'pending') {
             return `<button class="btn btn-warning text-white btn-action" onclick="XuLyTrangThai(${order.id}, 'accept')">Chấp nhận</button>
-                    <button class="btn btn-outline-secondary btn-action" onclick="ModalTuChoi(${order.id})">Từ chối</button>`;
+                <button class="btn btn-outline-secondary btn-action" onclick="ModalTuChoi(${order.id})">Từ chối</button>
+                <a href="/DonHang/ChiTietDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
         } else if (order.status === 'shipping') {
             return `<button class="btn btn-success btn-action" onclick="ModalHoanThanh(${order.id})">Hoàn thành</button>
                     <a href="/DonHang/ChiTietDonHang/${order.id}" class="btn btn-light border btn-action">Chi tiết</a>`;
