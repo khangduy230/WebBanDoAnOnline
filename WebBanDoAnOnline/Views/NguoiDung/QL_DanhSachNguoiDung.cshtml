@@ -70,13 +70,27 @@
 
                 for (var i = 0; i < users.length; i++) {
                     var u = users[i];
-                    var actionBtn = "";
+
+                    // 1. Tạo nút Xem (Luôn hiển thị)
+                    // Lưu ý: Đã sửa link thành QL_ChiTietNguoiDung cho đúng Controller
+                    var btnView = `<a href="/NguoiDung/ChiTietTaiKhoan/${u.MaTK}" class="btn btn-sm btn-outline-info me-1" title="Xem chi tiết"><i class="fas fa-eye"></i> Xem</a>`;
+
+                    // 2. Tạo nút Sửa và Khóa (Mặc định có)
+                    var btnEdit = `<a href="/NguoiDung/QL_SuaNguoiDung/${u.MaTK}" class="btn btn-sm btn-outline-warning me-1">Sửa</a>`;
+                    var btnLock = "";
 
                     if (u.TrangThai === "Hoạt động") {
-                        actionBtn = `<button class="btn btn-sm btn-outline-danger" onclick="TaoKhoa(${u.MaTK}, 'lock')" title="Khóa"><i class="fas fa-lock"></i> Khóa</button>`;
+                        btnLock = `<button class="btn btn-sm btn-outline-danger" onclick="TaoKhoa(${u.MaTK}, 'lock')" title="Khóa"><i class="fas fa-lock"></i> Khóa</button>`;
                     } else {
-                        actionBtn = `<button class="btn btn-sm btn-outline-success" onclick="TaoKhoa(${u.MaTK}, 'unlock')" title="Mở"><i class="fas fa-lock-open"></i> Mở</button>`;
+                        btnLock = `<button class="btn btn-sm btn-outline-success" onclick="TaoKhoa(${u.MaTK}, 'unlock')" title="Mở"><i class="fas fa-lock-open"></i> Mở</button>`;
                     }
+
+                    // --- LOGIC QUAN TRỌNG: NẾU LÀ QUẢN LÝ THÌ ẨN SỬA VÀ KHÓA ---
+                    if (u.VaiTro === "Quản lý") {
+                        btnEdit = ""; // Ẩn nút sửa
+                        btnLock = ""; // Ẩn nút khóa
+                    }
+                    // ------------------------------------------------------------
 
                     var rowClass = (u.TrangThai !== 'Hoạt động') ? 'table-secondary opacity-75' : '';
 
@@ -93,14 +107,14 @@
                         <td><span class="fw-bold">${u.VaiTro}</span></td>
                         <td>${TaoTrangThai(u.TrangThai)}</td>
                         <td class="text-center">
-                            <a href="/NguoiDung/QL_SuaNguoiDung/${u.MaTK}" class="btn btn-sm btn-outline-warning me-1">Sửa</a>
-                            ${actionBtn}
+                            ${btnView}
+                            ${btnEdit}
+                            ${btnLock}
                         </td>
                     </tr>`;
                     container.append(html);
                 }
 
-                // ★ QUAN TRỌNG: Đã sửa dongTrang thành currentTrang
                 HienThiPhanTrang(data.TongTrang, data.currentTrang);
             },
             error: function () {
@@ -115,7 +129,6 @@
         if (!confirm(msg)) return;
         var fd = new FormData(); fd.append('id', id);
 
-        // Bạn kiểm tra lại URL này trong Controller xem là DatTrangThai hay TaoKhoa nhé
         $.ajax({
             type: "POST", url: url_domain + '/NguoiDung/DatTrangThai',
             data: fd, processData: false, contentType: false,
@@ -127,7 +140,7 @@
         });
     }
 
-    // --- 4. HÀM PHÂN TRANG (ĐÃ SỬA CLASS CSS) ---
+    // --- 4. HÀM PHÂN TRANG ---
     function HienThiPhanTrang(totalPages, currentPage) {
         totalPages = parseInt(totalPages);
         currentPage = parseInt(currentPage);
@@ -143,7 +156,6 @@
             var clickEvent = (isDisabled || isActive) ? "" : `onclick="TaiNguoiDung('${kwordSafe}', ${page})"`;
             var display = text || page;
 
-            // ★ ĐÃ SỬA: Dùng class page-item và page-link của Bootstrap
             return `<li class="page-item ${activeClass} ${disabledClass}">
                         <a class="page-link" href="javascript:void(0)" ${clickEvent}>${display}</a>
                     </li>`;

@@ -255,19 +255,62 @@ namespace WebBanDoAnOnline.Controllers
                                where ct.MaDH == id
                                select new { sp.TenSP, sp.Anh, ct.SoLuong, ct.ThanhTien }).ToList();
 
-                // --- SỬA LẠI: Lấy lịch sử xử lý an toàn hơn ---
-                // Thay vì join phức tạp, ta lấy list lịch sử trước rồi mới map tên nhân viên
+                // -----------------------------------------------------------
+                // XỬ LÝ LỊCH SỬ VÀ HIỂN THỊ TÊN NGƯỜI CẬP NHẬT THEO VAI TRÒ
+                // -----------------------------------------------------------
+
+                // 1. Lấy thông tin người đang xem (đang đăng nhập)
+                var currentUser = Session["TaiKhoan"] as TaiKhoan;
+                string userRole = currentUser != null ? currentUser.VaiTro : "Khách hàng"; // Mặc định là khách nếu chưa login
+                bool isViewerCustomer = (userRole == "Khách hàng");
+
+                // 2. Lấy danh sách lịch sử thô
                 var historyRaw = db.LichSuTrangThais
                                    .Where(ls => ls.MaDH == id)
                                    .OrderByDescending(ls => ls.ThoiGian)
                                    .ToList();
 
+                // 3. Lấy danh sách tên nhân viên liên quan để tránh query lặp trong vòng lặp (Tối ưu hiệu năng)
+                var staffIds = historyRaw.Where(x => x.MaNhanVien != null)
+                                         .Select(x => x.MaNhanVien.Value).Distinct().ToList();
+
+                var staffNames = db.TaiKhoans.Where(x => staffIds.Contains(x.MaTK))
+                                             .ToDictionary(k => k.MaTK, v => v.HoTen);
+
+                // 4. Map dữ liệu hiển thị
                 var history = historyRaw.Select(ls => {
-                    string actorName = "Khách hàng / Hệ thống";
+                    string actorName = "";
+
                     if (ls.MaNhanVien != null)
                     {
-                        var nv = db.TaiKhoans.FirstOrDefault(t => t.MaTK == ls.MaNhanVien);
-                        if (nv != null) actorName = nv.HoTen;
+                        // --- TRƯỜNG HỢP: NGƯỜI CẬP NHẬT LÀ NHÂN VIÊN/QUẢN LÝ ---
+                        if (isViewerCustomer)
+                        {
+                            // Nếu người xem là Khách hàng -> Hiện "Cửa hàng"
+                            actorName = "Cửa hàng";
+                        }
+                        else
+                        {
+                            // Nếu người xem là Nội bộ -> Hiện Tên thật của nhân viên đó
+                            if (staffNames.ContainsKey(ls.MaNhanVien.Value))
+                                actorName = staffNames[ls.MaNhanVien.Value]; // Ví dụ: Phùng Thanh Duy
+                            else
+                                actorName = "Nhân viên (Đã xóa)";
+                        }
+                    }
+                    else
+                    {
+                        // --- TRƯỜNG HỢP: NGƯỜI CẬP NHẬT LÀ KHÁCH HÀNG (Tự hủy, Tự đặt) ---
+                        if (isViewerCustomer)
+                        {
+                            // Nếu người xem là Khách hàng -> Hiện "Bạn"
+                            actorName = "Bạn";
+                        }
+                        else
+                        {
+                            // Nếu người xem là Nội bộ -> Hiện "Khách hàng"
+                            actorName = "Khách hàng";
+                        }
                     }
 
                     return new
@@ -279,7 +322,7 @@ namespace WebBanDoAnOnline.Controllers
                         Note = ls.GhiChu
                     };
                 }).ToList();
-                // ------------------------------
+                // -----------------------------------------------------------
 
                 string statusUI = "pending";
                 if (dh.TrangThai == "Đang giao") statusUI = "shipping";
@@ -317,118 +360,112 @@ namespace WebBanDoAnOnline.Controllers
             }
             catch (Exception ex)
             {
-                // Trả về lỗi JSON để client biết thay vì chết trang
                 return JsonConvert.SerializeObject(new { error = ex.Message });
             }
         }
 
         // Helper: Map trạng thái tiếng Việt trong DB sang Class CSS trong View
+        // Code thay thế cho hàm LayDanhSachDonHang cũ
+        [HttpPost]
         public string LayDanhSachDonHang()
         {
             try
             {
                 BanDoAnOnlineDataContext db = new BanDoAnOnlineDataContext();
 
-                // 1. Lấy tham số từ Client gửi lên
-                string keyword = Request["keyword"];      // Tìm kiếm
-                string status = Request["status"];        // Trạng thái
-                string dateFromStr = Request["dateFrom"]; // Ngày bắt đầu
-                string dateToStr = Request["dateTo"];     // Ngày kết thúc
+                // 1. Lấy tham số từ Client
+                string keyword = Request["keyword"];
+                string status = Request["status"];
+                string dateFromStr = Request["dateFrom"];
+                string dateToStr = Request["dateTo"];
                 int page = 1;
                 int.TryParse(Request["page"], out page);
-                int pageSize = 10; // Số dòng mỗi trang
+                int pageSize = 10;
 
-                // 2. Query cơ bản (Join bảng để lấy thông tin hiển thị)
+                // 2. Query cơ bản 
+                // QUAN TRỌNG: Select đối tượng gốc { d, t, addr } để giữ lại toàn bộ dữ liệu phục vụ tìm kiếm
                 var query = from d in db.DonHangs
                             join t in db.TaiKhoans on d.MaTK equals t.MaTK
-                            // Left join địa chỉ để lấy tên người nhận thực tế (nếu có)
                             join a in db.DiaChis on d.MaDiaChi equals a.MaDiaChi into da
-                            from addr in da.DefaultIfEmpty()
+                            from addr in da.DefaultIfEmpty() // Left join địa chỉ
                             where d.isDelete == 0 || d.isDelete == null
-                            select new
-                            {
-                                d.MaDH,
-                                d.Create_at,
-                                d.TongTien,
-                                d.TrangThai,
-                                // Ưu tiên lấy tên/sđt từ địa chỉ giao hàng, nếu không có thì lấy từ tài khoản
-                                TenKhach = addr != null ? addr.TenNguoiNhan : t.HoTen,
-                                SDT = addr != null ? addr.SDTNhan : t.SoDienThoai
-                            };
+                            select new { d, t, addr };
 
-                // 3. Xử lý Lọc (Filter)
+                // 3. Xử lý Lọc
 
                 // 3.1. Lọc theo trạng thái
                 if (!string.IsNullOrEmpty(status) && status != "all")
                 {
-                    // Map value từ <select> của View sang dữ liệu trong DB
-                    if (status == "pending") query = query.Where(x => x.TrangThai == "Chờ xác nhận");
-                    else if (status == "confirmed") query = query.Where(x => x.TrangThai == "Đã xác nhận");
-                    else if (status == "shipping") query = query.Where(x => x.TrangThai == "Đang giao");
-                    else if (status == "completed") query = query.Where(x => x.TrangThai == "Đã nhận hàng");
-                    else if (status == "cancelled") query = query.Where(x => x.TrangThai == "Đã hủy");
+                    if (status == "pending") query = query.Where(x => x.d.TrangThai == "Chờ xác nhận");
+                    else if (status == "confirmed") query = query.Where(x => x.d.TrangThai == "Đã xác nhận");
+                    else if (status == "shipping") query = query.Where(x => x.d.TrangThai == "Đang giao");
+                    else if (status == "completed") query = query.Where(x => x.d.TrangThai == "Đã nhận hàng");
+                    else if (status == "cancelled") query = query.Where(x => x.d.TrangThai == "Đã hủy");
                 }
 
-                // 3.2. Lọc theo ngày (Date Range)
-                if (!string.IsNullOrEmpty(dateFromStr))
+                // 3.2. Lọc theo ngày
+                if (!string.IsNullOrEmpty(dateFromStr) && DateTime.TryParse(dateFromStr, out DateTime dtFrom))
                 {
-                    DateTime dtFrom;
-                    if (DateTime.TryParse(dateFromStr, out dtFrom))
-                        query = query.Where(x => x.Create_at >= dtFrom);
+                    query = query.Where(x => x.d.Create_at >= dtFrom.Date);
                 }
-                if (!string.IsNullOrEmpty(dateToStr))
+                if (!string.IsNullOrEmpty(dateToStr) && DateTime.TryParse(dateToStr, out DateTime dtTo))
                 {
-                    DateTime dtTo;
-                    if (DateTime.TryParse(dateToStr, out dtTo))
-                    {
-                        // Cộng thêm 1 ngày để lấy trọn vẹn ngày kết thúc (vì DB lưu cả giờ phút)
-                        dtTo = dtTo.AddDays(1);
-                        query = query.Where(x => x.Create_at < dtTo);
-                    }
+                    // Lấy đến hết ngày (23:59:59)
+                    query = query.Where(x => x.d.Create_at <= dtTo.Date.AddDays(1).AddSeconds(-1));
                 }
 
-                // 3.3. Lọc theo từ khóa (Mã đơn, Tên, SĐT)
+                // 3.3. TÌM KIẾM (ĐÃ SỬA LỖI TẠI ĐÂY)
                 if (!string.IsNullOrEmpty(keyword))
                 {
                     string kw = keyword.ToLower().Trim();
-                    // Thử parse xem có phải tìm theo mã số đơn hàng không
-                    int searchId = 0;
-                    bool isNumber = int.TryParse(kw.Replace("dh", ""), out searchId);
 
-                    if (isNumber && kw.StartsWith("dh")) // Tìm chính xác mã đơn (VD: DH123)
+                    // Nếu nhập đúng định dạng "DH123" -> Tìm chính xác ID
+                    bool isCodeSearch = kw.StartsWith("dh") && int.TryParse(kw.Replace("dh", ""), out int _);
+
+                    if (isCodeSearch)
                     {
-                        query = query.Where(x => x.MaDH == searchId);
+                        int id = int.Parse(kw.Replace("dh", ""));
+                        query = query.Where(x => x.d.MaDH == id);
                     }
                     else
                     {
-                        // Tìm theo Tên hoặc SĐT
-                        query = query.Where(x => x.TenKhach.ToLower().Contains(kw) || x.SDT.Contains(kw));
+                        // Logic tìm kiếm bao quát:
+                        // 1. Mã đơn hàng (chấp nhận nhập số thường)
+                        // 2. Tên khách (TK) hoặc Tên người nhận (Địa chỉ)
+                        // 3. SĐT khách (TK) HOẶC SĐT người nhận (Địa chỉ) <--- FIX: Tìm cả 2
+                        query = query.Where(x =>
+                            x.d.MaDH.ToString().Contains(kw) ||
+                            x.t.HoTen.ToLower().Contains(kw) ||
+                            x.t.SoDienThoai.Contains(kw) ||  // Tìm trong SĐT đăng ký
+                            (x.addr != null && x.addr.TenNguoiNhan.ToLower().Contains(kw)) ||
+                            (x.addr != null && x.addr.SDTNhan.Contains(kw)) // Tìm trong SĐT giao hàng
+                        );
                     }
                 }
 
-                // 4. Phân trang (Pagination)
+                // 4. Phân trang
                 int totalItems = query.Count();
                 int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
                 if (page < 1) page = 1;
                 if (page > totalPages && totalPages > 0) page = totalPages;
 
-                var items = query.OrderByDescending(x => x.Create_at)
-                                 .Skip((page - 1) * pageSize)
-                                 .Take(pageSize)
-                                 .ToList();
+                var rawData = query.OrderByDescending(x => x.d.Create_at)
+                                   .Skip((page - 1) * pageSize)
+                                   .Take(pageSize)
+                                   .ToList();
 
-                // 5. Chuẩn bị dữ liệu trả về khớp với Javascript
-                var resultList = items.Select(x => new
+                // 5. Map dữ liệu trả về JSON
+                var resultList = rawData.Select(x => new
                 {
-                    id = x.MaDH,
-                    code = "DH" + x.MaDH.ToString("D5"), // Format thành DH00001
-                    customerName = x.TenKhach,
-                    phone = x.SDT,
-                    createdAt = x.Create_at.HasValue ? x.Create_at.Value.ToString("dd/MM/yyyy HH:mm") : "",
-                    total = x.TongTien,
-                    // Map trạng thái DB sang trạng thái CSS của View
-                    status = MapStatusToCss(x.TrangThai),
-                    statusText = x.TrangThai // Text hiển thị
+                    id = x.d.MaDH,
+                    code = "DH" + x.d.MaDH.ToString("D5"),
+                    // Hiển thị ưu tiên: Người nhận hàng -> Chủ tài khoản
+                    customerName = x.addr != null ? x.addr.TenNguoiNhan : x.t.HoTen,
+                    phone = x.addr != null ? x.addr.SDTNhan : x.t.SoDienThoai,
+                    createdAt = x.d.Create_at.HasValue ? x.d.Create_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
+                    total = x.d.TongTien,
+                    status = MapStatusToCss(x.d.TrangThai),
+                    statusText = x.d.TrangThai
                 });
 
                 return JsonConvert.SerializeObject(new

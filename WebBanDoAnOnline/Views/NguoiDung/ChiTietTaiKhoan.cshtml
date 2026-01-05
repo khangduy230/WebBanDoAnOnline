@@ -1,0 +1,236 @@
+﻿@{
+    ViewBag.Title = "Quản lý - Chi tiết người dùng";
+    Layout = "~/Views/Shared/_QL_Layout.cshtml";
+    var userId = ViewBag.UserId ?? "";
+}
+<div class="container py-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h3 class="fw-bold mb-0">Chi tiết tài khoản</h3>
+        <div class="btn-group">
+            <a href="@Url.Action("QL_DanhSachNguoiDung","NguoiDung")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+            </a>
+        </div>
+    </div>
+
+    <div id="panelError" class="alert alert-danger d-none"></div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <!-- INFO USER -->
+                    <div class="d-flex align-items-start gap-3">
+                        <!-- CẬP NHẬT: Thêm onerror để chống lỗi ảnh -->
+                        <img id="avatar" src="/img/default-avatar.png"
+                             onerror="this.onerror=null;this.src='/img/default-avatar.png';"
+                             alt="avatar" class="rounded-circle" style="width:84px;height:84px;object-fit:cover;">
+
+                        <div class="flex-grow-1">
+                            <h4 id="hoTen" class="fw-bold mb-1">...</h4>
+                            <div class="text-muted mb-2">
+                                <span id="vaiTro" class="badge bg-dark me-2">...</span>
+                                <span id="trangThai" class="badge bg-success">...</span>
+                            </div>
+                            <div class="text-muted">
+                                <i class="far fa-envelope me-2"></i><span id="email">...</span>
+                                <span class="mx-2">•</span>
+                                <i class="far fa-phone me-2"></i><span id="sdt">...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+                    <!-- ... (Giữ nguyên phần thống kê) ... -->
+                    <div class="row g-3">
+                        <div class="col-md-4" id="stat-order">
+                            <div class="border rounded p-3">
+                                <div class="text-muted">Tổng số đơn</div>
+                                <div id="tongDon" class="fs-4 fw-bold">0</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <div class="text-muted">Ngày tạo</div>
+                                <div id="createAt" class="fw-semibold">...</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <div class="text-muted">Cập nhật gần nhất</div>
+                                <div id="updateAt" class="fw-semibold">...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3" id="block-last-order">
+                        <h5 class="fw-bold mb-2">Đơn hàng gần nhất</h5>
+                        <div id="lastOrder" class="border rounded p-3">
+                            <div class="text-muted">Chưa có dữ liệu</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ... (Giữ nguyên cột bên phải) ... -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Hành động nhanh</h5>
+                    <div class="d-grid gap-2">
+                        <a id="btnEdit" class="btn btn-dark" href="@Url.Action("QL_SuaNguoiDung","NguoiDung")?id=@userId"><i class="fas fa-pen me-2"></i>Sửa thông tin</a>
+                        <a id="btnViewOrders" class="btn btn-outline-primary" href="#"><i class="fas fa-file-invoice me-2"></i>Xem đơn hàng</a>
+                        <button id="btnLock" class="btn btn-outline-danger"><i class="fas fa-user-slash me-2"></i>Khóa/Mở</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+    (function () {
+        const id = '@(ViewBag.UserId)';
+        const apiGet = '@Url.Action("QL_LayChiTietNguoiDung", "NguoiDung")';
+        const apiLock = '@Url.Action("DatTrangThai", "NguoiDung")';
+
+        // Đường dẫn ảnh mặc định chuẩn theo folder của bạn
+        const DEFAULT_AVATAR = "/img/default-avatar.png";
+
+        function badgeStatus(s) {
+            if (!s) return '<span class="badge bg-secondary">N/A</span>';
+            if (s === 'Bị khóa' || s.includes('xóa')) return '<span class="badge bg-danger">Bị khóa</span>';
+            return '<span class="badge bg-success">Hoạt động</span>';
+        }
+
+        function renderLastOrder(o) {
+            if (!o) {
+                $('#lastOrder').html('<div class="text-muted fst-italic py-2">Khách hàng chưa có đơn hàng nào.</div>');
+                return;
+            }
+            const mapStatus = (t) => {
+                if (t === 'Đang giao' || t === 'Đã xác nhận') return '<span class="badge bg-info text-dark">' + t + '</span>';
+                if (t === 'Đã nhận hàng' || t === 'Thành công') return '<span class="badge bg-primary">' + t + '</span>';
+                if (t === 'Đã hủy') return '<span class="badge bg-danger">' + t + '</span>';
+                return '<span class="badge bg-warning text-dark">' + (t || 'Chờ xác nhận') + '</span>';
+            };
+            const money = (n) => Number(n || 0).toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.') + 'đ';
+
+            $('#lastOrder').html(`
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold text-primary">
+                            <i class="fas fa-box me-1"></i>Đơn #${String(o.MaDH).padStart(6, '0')}
+                        </div>
+                        <div class="small text-muted"><i class="far fa-clock me-1"></i>${o.time || ''}</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="mb-1">${mapStatus(o.TrangThai)}</div>
+                        <div class="fw-bold text-danger">${money(o.TongTien)}</div>
+                    </div>
+                </div>
+            `);
+        }
+
+        function updateLockButton(status) {
+            const btn = $('#btnLock');
+            btn.off('click');
+            if (status === 'Hoạt động') {
+                btn.html('<i class="fas fa-lock me-2"></i>Khóa tài khoản');
+                btn.removeClass('btn-outline-success').addClass('btn-outline-danger');
+                btn.on('click', function () { handleLockAction(id, "Bạn có chắc muốn KHÓA tài khoản này?"); });
+            } else {
+                btn.html('<i class="fas fa-lock-open me-2"></i>Mở khóa tài khoản');
+                btn.removeClass('btn-outline-danger').addClass('btn-outline-success');
+                btn.on('click', function () { handleLockAction(id, "Bạn có chắc muốn MỞ KHÓA tài khoản này?"); });
+            }
+        }
+
+        function handleLockAction(userId, msg) {
+            if (!confirm(msg)) return;
+            var fd = new FormData(); fd.append('id', userId);
+            $.ajax({
+                type: "POST", url: apiLock, data: fd, processData: false, contentType: false,
+                success: function (res) { alert(res); load(); },
+                error: function () { alert("Lỗi kết nối server."); }
+            });
+        }
+
+        function load() {
+            $.post(apiGet, { id: id }, function (res) {
+                try {
+                    const data = typeof res === 'string' ? JSON.parse(res) : res;
+
+                    if (data.error) {
+                        $('#panelError').removeClass('d-none').text('Lỗi: ' + (data.message || 'Không tìm thấy'));
+                        return;
+                    }
+
+                    $('#hoTen').text(data.hoTen || 'Chưa cập nhật');
+                    $('#email').text(data.email || '');
+                    $('#sdt').text(data.sdt || '');
+                    $('#vaiTro').text(data.vaiTro || '');
+                    $('#trangThai').html(badgeStatus(data.trangThai));
+                    $('#tongDon').text(data.tongDon || 0);
+                    $('#createAt').text(data.createAt || 'N/A');
+                    $('#updateAt').text(data.updateAt || 'Chưa cập nhật');
+
+                    // === PHẦN SỬA LẠI LOGIC ẢNH ===
+                    var finalAvatar = DEFAULT_AVATAR; // Mặc định là ảnh default
+
+                    if (data.avatar && data.avatar.trim() !== "") {
+                        // Nếu DB có dữ liệu, dùng dữ liệu đó
+                        finalAvatar = data.avatar;
+
+                        // Kiểm tra nếu đường dẫn trong DB thiếu dấu gạch chéo đầu (ví dụ "img/a.jpg" thay vì "/img/a.jpg")
+                        // thì tự động thêm vào để tránh lỗi 404
+                        if (!finalAvatar.startsWith("/") && !finalAvatar.startsWith("http")) {
+                            finalAvatar = "/" + finalAvatar;
+                        }
+                    }
+
+                    // Thêm tham số thời gian để tránh cache (browser lưu ảnh cũ)
+                    $('#avatar').attr('src', finalAvatar + "?v=" + new Date().getTime());
+
+                    // Gán sự kiện xử lý lỗi: Nếu đường dẫn sai -> Tự về ảnh mặc định
+                    $('#avatar').off('error').on('error', function() {
+                        // Tránh lặp vô hạn nếu ảnh mặc định cũng lỗi
+                        if (this.src.indexOf("default-avatar.png") === -1) {
+                            this.src = DEFAULT_AVATAR;
+                        }
+                    });
+                    // ================================
+
+                    renderLastOrder(data.donGanNhat);
+                    updateLockButton(data.trangThai);
+
+                    let keyword = data.sdt ? data.sdt : data.hoTen;
+                    let linkDonHang = '@Url.Action("QL_DanhSachDonHang", "DonHang")' + '?keyword=' + encodeURIComponent(keyword);
+                    $('#btnViewOrders').attr('href', linkDonHang);
+
+                    phanQuyenHienThi(data.vaiTro);
+
+                } catch (e) {
+                    console.error("Lỗi JS:", e);
+                }
+            });
+        }
+
+        function phanQuyenHienThi(roleName) {
+            $('#stat-order, #block-last-order, #btnEdit, #btnViewOrders, #btnLock').show();
+            const role = (roleName || "").toLowerCase();
+            if (role.includes('khách hàng')) return;
+            else if (role.includes('nhân viên')) {
+                $('#stat-order, #block-last-order, #btnViewOrders').hide();
+            }
+            else if (role.includes('quản trị') || role.includes('quản lý')) {
+                $('#stat-order, #block-last-order, #btnViewOrders, #btnEdit, #btnLock').hide();
+            }
+        }
+
+        load();
+    })();
+    </script>
+}

@@ -106,7 +106,14 @@
     var url_domain = window.location.origin;
 
     $(document).ready(function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const kw = urlParams.get('keyword');
+        if (kw) {
+            // Nếu có, điền vào ô tìm kiếm
+            $("#searchKeyword").val(kw);
+        }
         // Tải dữ liệu lần đầu
+
         TaiDanhSachDonHang(1);
 
         // Sự kiện click nút Tìm kiếm

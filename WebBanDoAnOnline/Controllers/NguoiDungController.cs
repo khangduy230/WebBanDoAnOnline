@@ -84,13 +84,14 @@ namespace WebBanDoAnOnline.Controllers
                 user.TrangThai
             });
         }
-        public ActionResult QL_ChiTietNguoiDung(string id)
+        public ActionResult ChiTietTaiKhoan(string id)
         {
             ViewBag.UserId = id;
-            return View("~/Views/NguoiDung/QL_ChiTietNguoiDung.cshtml");
+            return View("~/Views/NguoiDung/ChiTietTaiKhoan.cshtml");
         }
 
         // API: Lấy chi tiết 1 người dùng theo MaTK
+
         [HttpPost]
         public string QL_LayChiTietNguoiDung()
         {
@@ -104,25 +105,45 @@ namespace WebBanDoAnOnline.Controllers
                 var tk = db.TaiKhoans.FirstOrDefault(x => x.MaTK == id);
                 if (tk == null) return JsonConvert.SerializeObject(new { error = "not_found" });
 
-                // Thống kê số đơn hàng còn lưu (không bị xóa)
+                // --- 1. XỬ LÝ AVATAR (FIX LỖI ẢNH) ---
+                // Nếu đường dẫn chứa dấu ~, thay thế bằng rỗng để trình duyệt hiểu
+                string avatarPath = "/img/no-image.jpg";
+                if (!string.IsNullOrEmpty(tk.AnhDaiDien))
+                {
+                    avatarPath = tk.AnhDaiDien.Replace("~", "");
+                }
+
+                // --- 2. XỬ LÝ ĐƠN HÀNG ---
+                // Đếm tổng đơn (Chỉ đếm đơn chưa bị xóa mềm)
                 int tongDon = db.DonHangs.Count(d => d.MaTK == id && (d.isDelete == 0 || d.isDelete == null));
 
-                // Trạng thái hoạt động
-                string trangThai = (tk.isDelete == 1 ? "Đã xóa/Khóa" : "Đang hoạt động");
-
-                // Lấy thông tin gần đây: đơn mới nhất
-                var donGanNhat = db.DonHangs
+                // Lấy đơn mới nhất
+                var rawDonHang = db.DonHangs
                     .Where(d => d.MaTK == id && (d.isDelete == 0 || d.isDelete == null))
                     .OrderByDescending(d => d.Create_at)
-                    .Select(d => new
-                    {
-                        d.MaDH,
-                        time = d.Create_at.HasValue ? d.Create_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
-                        d.TrangThai,
-                        d.TongTien
-                    })
+                    .Select(d => new { d.MaDH, d.Create_at, d.TrangThai, d.TongTien })
                     .FirstOrDefault();
 
+                object donGanNhat = null;
+                if (rawDonHang != null)
+                {
+                    donGanNhat = new
+                    {
+                        rawDonHang.MaDH,
+                        time = rawDonHang.Create_at.HasValue ? rawDonHang.Create_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
+                        rawDonHang.TrangThai,
+                        rawDonHang.TongTien
+                    };
+                }
+
+                // --- 3. NGÀY CẬP NHẬT ---
+                string capNhatGanNhat = "Chưa cập nhật";
+                if (tk.LastEdit_at.HasValue)
+                    capNhatGanNhat = tk.LastEdit_at.Value.ToString("HH:mm - dd/MM/yyyy");
+                else if (tk.Update_at.HasValue)
+                    capNhatGanNhat = tk.Update_at.Value.ToString("HH:mm - dd/MM/yyyy");
+
+                // --- 4. TRẢ VỀ KẾT QUẢ ---
                 var result = new
                 {
                     id = tk.MaTK,
@@ -130,9 +151,12 @@ namespace WebBanDoAnOnline.Controllers
                     email = tk.Email,
                     sdt = tk.SoDienThoai,
                     vaiTro = tk.VaiTro,
-                    trangThai = trangThai,
+                    trangThai = tk.TrangThai,
+
+                    avatar = avatarPath, // Trả về đường dẫn đã xử lý
+
                     createAt = tk.Create_at.HasValue ? tk.Create_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
-                    updateAt = tk.Update_at.HasValue ? tk.Update_at.Value.ToString("HH:mm - dd/MM/yyyy") : "",
+                    updateAt = capNhatGanNhat,
                     tongDon = tongDon,
                     donGanNhat = donGanNhat
                 };
